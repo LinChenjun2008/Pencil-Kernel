@@ -36,5 +36,7 @@ void openvhd(int argc,char* argv[])
     if(!(global::vhd.is_open()))
     {
         std::cerr << argv[0] << ':' << "can't open vhd file" << std::endl;
+        exit(-2);
     }
+    std::cout << "open vhd file:" << argv[i] << std::endl;
 }
