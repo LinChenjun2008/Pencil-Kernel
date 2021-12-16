@@ -9,7 +9,7 @@
 
 struct file_desc              //64B
 {
-    char name[MAX_NAME_LEN];//15B
+    char name[MAX_NAME_LEN];  //15B
     uint8_t f_type;           // 1B
     uint32_t f_size;          // 4B
     uint32_t sectors[11];     //44B
