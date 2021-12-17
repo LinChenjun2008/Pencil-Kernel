@@ -15,7 +15,7 @@ struct super_block
     uint32_t root_dir_start_sector;
     uint32_t root_dir_sector_len;
     uint8_t unused[512 - (4 * 9)];
-};
+};//512B
 
 struct file_desc
 {
@@ -24,5 +24,10 @@ struct file_desc
     uint32_t f_size    // 4B
     uint32_t index[11];//44B
 };//64B
+
+struct index_block
+{
+    uint32_t sector[128];
+};//512B
 
 #endif /* __EPFS_H_ */
