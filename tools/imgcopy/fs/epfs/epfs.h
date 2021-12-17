@@ -3,6 +3,7 @@
 
 #include "stdint.h"
 
+//packed属性:不对数据进行对齐,确保结构体大小
 #ifndef PACKED
     #define PACKED __attribute__((packed))
 #endif /* PACKED */
