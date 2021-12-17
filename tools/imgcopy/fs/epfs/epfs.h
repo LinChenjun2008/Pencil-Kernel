@@ -21,7 +21,7 @@ struct file_desc
 {
     char name[15];     //15B
     uint8_t f_type;    // 1B
-    uint32_t f_size    // 4B
+    uint32_t f_size;   // 4B
     uint32_t index[11];//44B
 };//64B
 
