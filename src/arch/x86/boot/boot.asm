@@ -28,5 +28,5 @@ read_sector:
     add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
     ret
 
-times 510 -($ - $$) db 0
-dd 0x55,0xaa
+times 510 -($ - $$) db 0x00
+db 0x55,0xaa
