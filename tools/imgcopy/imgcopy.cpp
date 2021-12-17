@@ -5,6 +5,8 @@
 
 #include "imgcopy.h"
 
+#include "fs/epfs/epfs.h"
+
 std::fstream vhd;
 
 int main(int argc,char* argv[])
