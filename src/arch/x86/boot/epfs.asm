@@ -1,8 +1,7 @@
 read_super_block:
     mov eax,1
     mov cx,1
-    mov bx,
-    mov es,
+    mov bx,0x900
     call read_sector
 
     jmp $
