@@ -1,4 +1,11 @@
+read_super_block:
+    mov eax,1
+    mov cx,1
+    mov bx,
+    mov es,
+    call read_sector
 
+    jmp $
 read_sector:
                    ;int 0x13 ax=0x42:扩展硬盘读取功能
                    ;eax:扇区号
