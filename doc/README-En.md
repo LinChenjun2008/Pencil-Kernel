@@ -2,11 +2,11 @@
 
 (Translation may not be accurate)
 
-PureKernel
+PencilKernel
 =
 ***
-### PureKernel - A pure kernel
-`PureKernel` designed as a cross-platform kernel,
+### PencilKernel
+`PencilKernel` designed as a cross-platform kernel,
 currently supported platforms:`x86`<br/>
 Future supported platforms:`x64`<br/>
 Production Staff:Lin Chenjun<br/>
