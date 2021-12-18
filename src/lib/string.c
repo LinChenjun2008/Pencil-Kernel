@@ -18,7 +18,28 @@ void memset(void* dst__,uint8_t value,uint32_t size);
     }
     return;
 }
+
+/* memcpy()
+* 功能:将src__处的size字节复制到dst__
+* dst__ :复制的目的地址
+* src__ :原地址
+* size  :要复制的字节数
+*/
 void memcpy(void* dst__,const void* src__,uint32_t size);
+{
+    ASSRET(dst__ != NULL && src__ != NULL)
+    uint8_t* dst = (uint8_t*)dst__;
+    uint8_t* src = (uint8_t*)src__;
+    int i;
+    for(i = 0;i < size;i++)
+    {
+        *dst = *src;
+        dst++;
+        src++;
+    }
+    return;
+}
+
 int32_t memcmp(const void* str_a__,void* str_b__,uint32_t size);
 
 char* strcpy(char* dst__,const char* src__);
