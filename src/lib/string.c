@@ -42,7 +42,7 @@ void memcpy(void* dst__,const void* src__,uint32_t size);
     return;
 }
 
-int32_t memcmp(const void* str_a__,void* str_b__,uint32_t size);
+int32_t memcmp(const void* addr_a__,void* addr_b__,uint32_t size);
 
 char* strcpy(char* dst__,const char* src__);
 uint32_t strlen(const char* str);
