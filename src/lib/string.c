@@ -1,3 +1,5 @@
+#include "string.h"
+#include "debug.h"
 /* string.c */
 
 /* memset()
