@@ -5,5 +5,7 @@ read_super_block:
     mov ax,0x2
     mov cx,1
     call read_sector
-
+    mov RootDirStart,[bx:(4*7)]
     jmp $
+
+RootDirStart dw 0x0000
