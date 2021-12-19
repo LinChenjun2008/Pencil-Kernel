@@ -1,3 +1,5 @@
+jmp short start              ; 2B
+nop                          ; 3B
 Magic          db "EPFS01  " ; 8B
 DiskSize       dw 
 BytesPerSector dw 512
