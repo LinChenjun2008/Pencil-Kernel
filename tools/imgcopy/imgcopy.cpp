@@ -16,8 +16,6 @@ namespace imgcopy
 
 std::fstream vhd;
 
-void vhd_format();
-
 int main(int argc,char* argv[])
 {
 	int i;;
