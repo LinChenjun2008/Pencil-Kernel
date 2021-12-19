@@ -1,4 +1,4 @@
-| [中文文档](README.md) | [English Docs](doc/README-En.md) |
+| [中文文档](doc/README-Zh.md) | [English Docs](doc/README-En.md) |
 
 PencilKernel
 =
