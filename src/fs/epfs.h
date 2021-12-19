@@ -10,7 +10,7 @@
 
 struct super_block
 {
-    char JmpCmd[5]                             //  5B 跳转到引导程序的指令
+    char JmpCmd[5];                            //  5B 跳转到引导程序的指令
     char magic[8];                             //  8B 文件系统名称
     uint32_t disk_size;                        //  4B 磁盘(分区)大小
     uint32_t BytesPerSector;                   //  4B 每扇区大小(byte)
