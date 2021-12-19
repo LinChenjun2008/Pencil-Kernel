@@ -54,9 +54,9 @@ void memcpy(void* dst__,const void* src__,uint32_t size)
 */
 int32_t memcmp(const void* p1__,void* p2__,uint32_t size)
 {
-    ASSRET(p1__ != NULL & p2__ != NULL)
-    uint8_t* p1 = (uint8_t*)addr_a__;
-    uint8_t* p2 = (uint8_t*)addr_b__;
+    ASSRET(p1__ != NULL && p2__ != NULL)
+    uint8_t* p1 = (uint8_t*)p1__;
+    uint8_t* p2 = (uint8_t*)p2__;
     int i;
     for(i = 0;i < size;i++)
     {
