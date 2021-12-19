@@ -14,6 +14,6 @@ PencilKernel
 ***
 ### 联系方式
 [网站](https://pure.cnurl.tk)<br/>
-[E-mail]zpojia@hotmail.com
+E-mail: zpojia@hotmail.com
 ***
 &copy; 2021 Lin Chenjun
