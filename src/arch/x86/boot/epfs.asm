@@ -1,3 +1,7 @@
+Magic      db "EPFS01  " ; 8B
+DiskSize   dw 
+SectorSize dw
+
 read_super_block:
     mov ax,0x00
     mov es,ax
