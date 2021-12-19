@@ -1,6 +1,7 @@
-Magic      db "EPFS01  " ; 8B
-DiskSize   dw 
-SectorSize dw
+Magic          db "EPFS01  " ; 8B
+DiskSize       dw 
+BytesPerSector dw 512
+
 
 read_super_block:
     mov ax,0x00
