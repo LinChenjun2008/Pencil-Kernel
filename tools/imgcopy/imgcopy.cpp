@@ -6,7 +6,7 @@
 #include "imgcopy.h"
 
 #include "fs/epfs/epfs.h"
-
+#include "fs/fat16/fat16.h"
 std::fstream vhd;
 
 int main(int argc,char* argv[])
