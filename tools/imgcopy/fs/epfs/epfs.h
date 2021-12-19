@@ -28,12 +28,12 @@ struct file_desc
     char name[15];     //15B 文件名12B + 拓展名3B
     uint8_t f_type;    // 1B 文件类型
     uint32_t f_size;   // 4B 文件大小
-    uint32_t index[11];//44B 文件索引. [0~7]直接索引 [8]:一级间接索引 [9]:二级间接索引 [10]:三级间接索引
+    uint32_t index[11];//44B 文件索引. [0~7]直接索引块 [8]:一级间接索引块 [9]:二级间接索引块 [10]:三级间接索引块
 }PACKED;//64B
 
 struct index_block
 {
-    uint32_t sector[128];//512B 文件索引块
+    uint32_t sector[128];//512B 一级、二级、三级间接文件索引块(每块128个文件索引)
 }PACKED;//512B
 
 #endif /* __EPFS_H_ */
