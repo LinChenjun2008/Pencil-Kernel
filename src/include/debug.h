@@ -1,3 +1,7 @@
+/* copyright Lin Chenjun
+* All rights reserved
+*/
+
 #ifndef __DEBUG_H_
 #define __DEBUG_H_
 
