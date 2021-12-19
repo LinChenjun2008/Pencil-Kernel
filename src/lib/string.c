@@ -65,7 +65,7 @@ int32_t memcmp(const void* addr_a__,void* addr_b__,uint32_t size)
             break;
         }
     }
-    return (*addr_a - *addr_b);
+    return (int32_t)(*addr_a - *addr_b);
 }
 
 char* strcpy(char* dst__,const char* src__);
