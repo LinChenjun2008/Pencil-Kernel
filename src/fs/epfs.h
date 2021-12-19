@@ -10,18 +10,18 @@
 
 struct super_block
 {
-    char JmpCmd[5]                       //  5B 跳转到引导程序的指令
-    char magic[8];                       //  8B 文件系统名称
-    uint32_t disk_size;                  //  4B 磁盘(分区)大小
-    uint32_t BytesPerSector;             //  4B 每扇区大小(byte)
-    uint32_t bitmap_start_sector;        //  4B bitmap的起始扇区
-    uint32_t bitmap_sectors_len;         //  4B bitmap占用的扇区数
-    uint32_t DataSecStart;               //  4B 数据区起始扇区
-    uint32_t DataSector;                 //  4B 数据区大小
-    uint32_t RootDirStartSector;         //  4B 根目录起始扇区
-    uint32_t RootDirSector;              //  4B 根目录占用扇区数
-    uint8_t unused[510 - ((4 * 8)+(5 + 8))]; //470B 引导程序
-    uint8_t end[2];                      //  2B 结束标志0x55,0xaa
+    char JmpCmd[5]                             //  5B 跳转到引导程序的指令
+    char magic[8];                             //  8B 文件系统名称
+    uint32_t disk_size;                        //  4B 磁盘(分区)大小
+    uint32_t BytesPerSector;                   //  4B 每扇区大小(byte)
+    uint32_t bitmap_start_sector;              //  4B bitmap的起始扇区
+    uint32_t bitmap_sectors_len;               //  4B bitmap占用的扇区数
+    uint32_t DataSecStart;                     //  4B 数据区起始扇区
+    uint32_t DataSector;                       //  4B 数据区大小
+    uint32_t RootDirStartSector;               //  4B 根目录起始扇区
+    uint32_t RootDirSector;                    //  4B 根目录占用扇区数
+    uint8_t unused[510 - ((4 * 8)+(5 + 8))];   //465B 引导程序
+    uint8_t end[2];                            //  2B 结束标志0x55,0xaa
 }PACKED;//512B
 
 struct file_desc
