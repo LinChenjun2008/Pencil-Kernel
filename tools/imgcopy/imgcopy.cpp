@@ -61,7 +61,7 @@ int main(int argc,char* argv[])
         }
         if(std::strcmp("-info",argv[i])==0)
         {
-            std::cout << "imgcopy version 0_0_1" << std::endl;
+            std::cout << "imgcopy version 00 21 4" << std::endl;
             std::cout << "(c) Lin Chenjun" << std::endl;
         }
     }
