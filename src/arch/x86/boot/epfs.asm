@@ -1,7 +1,7 @@
 jmp short start                ;  2B 跳转指令
 nop                            ;  3B 空指令
 Magic           db "EPFS  01"  ;  8B epfs文件系统名称
-TotSec          dw 2880        ;  4B 总扇区数
+TotSec          dw 131072      ;  4B 总扇区数 (131072 * 512)B = 64MB
 BytesPerSector  dw 512         ;  4B 每扇区字节数
 BitmapStartSec  dw 1           ;  4B bitmap的起始扇区数(LBA)
 BitmapSectors   dw             ;  4B bitmap占用的扇区数
