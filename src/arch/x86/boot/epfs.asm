@@ -31,11 +31,15 @@ start:
     mov dx,0x184f
     int 0x10;在qemu中,这一行会出问题(会导致显示不正常)其他虚拟机或物理电脑是正常的
 
-    mov byte [gs:0x00],'M'
+    mov byte [gs:0x00],'B'
     mov byte [gs:0x01],0x07
-    mov byte [gs:0x02],'B'
+    mov byte [gs:0x02],'O'
     mov byte [gs:0x03],0x07
-    mov byte [gs:0x04],'R'
+    mov byte [gs:0x04],'O'
     mov byte [gs:0x05],0x07
+    mov byte [gs:0x06],'T'
+    mov byte [gs:0x07],0x07
  
+    jmp $
+
     jmp $
