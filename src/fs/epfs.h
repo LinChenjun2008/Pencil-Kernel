@@ -12,7 +12,7 @@ struct super_block
 {
     uint8_t JmpCmd[5];                         //  5B 跳转到引导程序的指令
     uint8_t magic[8];                          //  8B 文件系统名称
-    uint32_t DiskSize;                         //  4B 磁盘(分区)大小
+    uint32_t TotSec;                           //  4B 总扇区数
     uint32_t BytesPerSector;                   //  4B 每扇区大小(byte)
     uint32_t BitmapStartSec;                   //  4B bitmap的起始扇区
     uint32_t BitmapSectors;                    //  4B bitmap占用的扇区数
