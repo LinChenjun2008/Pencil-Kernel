@@ -12,4 +12,30 @@ RootDirSectors  dw             ;  4B 根目录占用扇区数
                                ;465B 引导程序
                                ;  2B 0x55,0xaa
 start:
+    mov ax,cs
+    mov ds,ax
+    mov es,ax
+    mov ss,ax
+    mov fs,ax
+
+    mov sp,0x7c00
+
+    mov ax,0xb800
+    mov gs,ax
+
+    ;清屏
+
+    mov ax,0x600
+    mov bx,0x700
+    mov cx,0
+    mov dx,0x184f
+    int 0x10;在qemu中,这一行会出问题(会导致显示不正常)其他虚拟机或物理电脑是正常的
+
+    mov byte [gs:0x00],'M'
+    mov byte [gs:0x01],0x07
+    mov byte [gs:0x02],'B'
+    mov byte [gs:0x03],0x07
+    mov byte [gs:0x04],'R'
+    mov byte [gs:0x05],0x07
+ 
     jmp $
