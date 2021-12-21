@@ -4,9 +4,16 @@
 
 #include "config.h"
 
+enum
+{
+    X86;
+    X64;
+    ARM;
+};
+
 struct arch
 {
-    uint32_t (*io_in16)(uint32_t port);
-}
+    uint32_t (*io_in8)(uint32_t port);
+};
 
 #endif /* __INTERFACE_H_ */
