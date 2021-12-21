@@ -10,6 +10,7 @@ PencilKernel
 制作人员:Lin Chenjun<br/>
 ***
 ### 更多
+[[关于]](doc/about/dir.md)<br/>
 [[Q & A]](doc/Q&A.md)<br/>
 ***
 ### 联系方式
