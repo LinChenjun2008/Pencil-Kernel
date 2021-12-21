@@ -29,7 +29,7 @@ start:
     mov bx,0x700
     mov cx,0
     mov dx,0x184f
-    int 0x10;在qemu中,这一行会出问题(会导致显示不正常)其他虚拟机或物理电脑是正常的
+    int 0x10
 
     mov byte [gs:0x00],'B'
     mov byte [gs:0x01],0x07
