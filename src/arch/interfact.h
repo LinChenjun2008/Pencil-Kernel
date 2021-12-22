@@ -2,18 +2,16 @@
 #ifndef __INTERFACE_H_
 #define __INTERFACE_H_
 
-struct x86
+struct ARCH
 {
     uint32_t (*io_in8)(uint32_t port);
 };
 
-union ARCH /* 只能同时在一个平台,所以用union共用体 */
-{
-    struct x86 x86;
-}arch;
+struct ARCH arch;
+
 /* 调用与平台相关的函数:
 
-arch.平台.函数名(参数);
+arch.函数名(参数);
 
 */
 
