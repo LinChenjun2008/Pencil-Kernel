@@ -34,3 +34,11 @@ struct index_block
 |TotSec         |总扇区数             |
 |BytesPerSec    |每扇区字节数,一般是512 |
 |BitmapStartSec |bitmap的起始扇区     |
+
+布局:
+```
+           -------------------------------------------
+           |Boot |Bitmap        |RootDir      |Data
+           -------------------------------------------
+扇区号(LBA) 0     1              BitmapStartSec+BitmapSectors
+                 BitmapStartSec RootDirStartSec
