@@ -20,7 +20,7 @@ struct super_block
     uint32_t DataSectors;                      //  4B 数据区大小
     uint32_t RootDirStartSec;                  //  4B 根目录起始扇区
     uint32_t RootDirSectors;                   //  4B 根目录占用扇区数
-    uint8_t unused[510 - ((4 * 8)+(5 + 8))];   //465B 引导程序
+    uint8_t ipl[510 - ((4 * 8)+(5 + 8))];      //465B 引导程序
     uint8_t end[2];                            //  2B 结束标志0x55,0xaa
 }PACKED;//512B
 
