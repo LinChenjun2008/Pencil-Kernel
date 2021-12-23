@@ -8,7 +8,7 @@
     #define PACKED __attribute__((packed))
 #endif /* PACKED */
 
-struct super_block
+struct index_block
 {
     uint8_t JmpCmd[5];                         //  5B 跳转到引导程序的指令
     uint8_t magic[8];                          //  8B 文件系统名称
