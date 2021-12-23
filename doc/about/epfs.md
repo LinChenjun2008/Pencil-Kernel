@@ -27,5 +27,7 @@ struct index_block
     uint8_t end[2];                            //  2B 结束标志0x55,0xaa
 }PACKED;//512B
 ```
-这就是epfs的引导扇区,PACKED是__attribute__((packed)) 的宏定义,目的是防止结构体被压缩,
-导致大小与512Byte不符.
+这就是epfs的引导扇区, PACKED是__attribute__((packed)) 的宏定义, 目的是防止结构体被压缩,
+导致大小与512Byte不符.<br/>
+TotSec: 总扇区数<br/>
+BytesPerSec: 每扇区字节数,一般是512<br/>
