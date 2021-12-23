@@ -29,7 +29,8 @@ struct index_block
 ```
 这就是epfs的引导扇区, PACKED是__attribute__((packed)) 的宏定义, 目的是防止结构体被压缩,
 导致大小与512Byte不符.<br/>
-|变量名      |作用               |
-------------|-------------------
-|TotSec     |总扇区数            |
-|BytesPerSec|每扇区字节数,一般是512|
+|变量名          |作用                |
+----------------|-------------------
+|TotSec         |总扇区数             |
+|BytesPerSec    |每扇区字节数,一般是512 |
+|BitmapStartSec |bitmap的起始扇区     |
