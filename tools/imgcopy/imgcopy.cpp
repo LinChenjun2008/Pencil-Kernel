@@ -72,17 +72,17 @@ int main(int argc,char* argv[])
 
 void vhd_format()
 {
-    super_block sb;
-    sb.magic = 0x15320001;
-    sb.disk_size = 64*1024*1024;
-    sb.sector_size = 512;
-    sb.bitmap_start_sector = 3;
-    //sb.bitmap_sectors_len = 
-    sb.data_start_sector = sb.bitmap_start_sector + sb.bitmap_sectors_len;
-    sb.data_size = sb.sector_size - sb.data_start_sector;
+    index_block ib;
+    ib.magic = {'E','P','F','S',' ',' ','0','1'};
+    ib.TotSec = (64*1024*1024)/512;
+    ib.BytesPerSec = 512;
+    ib.BitmapStartSec = 1;
+    //
+    ib.DataStartSec = ib.BitmapStartSec + ib.BitmapSectors;
+    ib.DataSectors = ib.TotSec -1 -ib.DataStartSec;
 	
     vhd.seekp(512);
-    vhd.write((char*)&sb,sizeof(sb));
-//    std::cout << "vhd fmt: " << sizeof(sb)<< std::endl;
+    vhd.write((char*)&ib,sizeof(ib));
+//    std::cout << "vhd fmt: " << sizeof(ib)<< std::endl;
     return;
 }
