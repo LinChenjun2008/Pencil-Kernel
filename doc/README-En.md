@@ -9,7 +9,7 @@ PencilKernel
 `PencilKernel` designed as a cross-platform kernel,
 currently supported platforms:`x86`<br/>
 Future supported platforms:`x64`<br/>
-Production Staff:Lin Chenjun<br/>
+Production Staff:Simon Lin<br/>
 ***
 ### More
 [[Q & A]](Q&A.md)<br/>
