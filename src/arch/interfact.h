@@ -4,6 +4,9 @@
 
 struct ARCH
 {
+    /* io */
+    void (*int_off)(void);
+    void (*int_on)(void);
     uint32_t (*io_in8)(uint32_t port);
 };
 
