@@ -14,7 +14,7 @@ PencilKernel
 [[Q & A]](doc/Q&A.md)<br/>
 ***
 ### 联系方式
-网站: https://pure.cnurl.tk<br/>
+网站: https://pencil.cnurl.tk<br/>
 E-mail: zpojia@hotmail.com
 ***
 &copy; 2021 Lin Chenjun
