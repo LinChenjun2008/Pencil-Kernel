@@ -35,10 +35,12 @@ struct index_block
 |BytesPerSec    |每扇区字节数,一般是512 |
 |BitmapStartSec |bitmap的起始扇区     |
 
-布局:
+epfs文件系统的磁盘布局:
 ```
-           -------------------------------------------
-           |Boot |Bitmap        |RootDir      |Data
-           -------------------------------------------
-扇区号(LBA) 0     1              BitmapStartSec+BitmapSectors
-                 BitmapStartSec RootDirStartSec
+           ----------------------------------------------------------------------------------------
+           |Boot |Bitmap        |RootDir                     |other...                            |
+           ----------------------------------------------------------------------------------------
+扇区号(LBA) 0     1              BitmapStartSec+BitmapSectors RootDirStartSec + RootDirSectors     TotSec-1
+                 BitmapStartSec DataStartSec                                                      DataStartSec + DataSectors
+                                RootDirStartSec                                                   
+```
