@@ -4,6 +4,8 @@
 #ifndef __LIST_H_
 #define __LIST_H_
 
+#define offset(struct_t,elem_name) ((int)(&(((struct_t*)0)->elem_name)))
+
 struct list_elem
 {
     struct list_elem* prev;
