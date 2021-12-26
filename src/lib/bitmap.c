@@ -87,3 +87,20 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
     }
     return bit_index_start;
 }
+
+void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint32_t value)
+{
+    ASSRET(value == 0 || value == 1)
+    uint32_t byte_index = bit_index / 8;
+    uint32_t bit_odd = bit_index % 8;
+    switch(value)
+    {
+        case 0:
+            btmp->map[byte_index] &= (~(BITMAP_MASK << bit_odd));
+            break;
+        case 1:
+            btmp->map[byte_index] |= (BITMAP_MASK << bit_odd);
+            break;
+    }
+    return;
+}
