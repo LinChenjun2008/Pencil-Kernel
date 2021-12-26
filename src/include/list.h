@@ -32,5 +32,6 @@ void list_push(struct list* L,struct list_elem* elem);
 void list_append(struct list* L,struct list_elem* elem);
 struct list_elem* list_remove(struct list_elem* elem);
 struct list_elem* list_pop(struct list* L);
+int list_find(struct list* L,struct list_elem* obj_elem);
 
 #endif /* __LIST_H_ */
