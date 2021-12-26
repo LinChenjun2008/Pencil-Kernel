@@ -1,5 +1,4 @@
 #include "list.h"
-#include "debug.h"
 
 /* list_init
 * 初始化链表
@@ -67,5 +66,13 @@ struct list_elem* list_remove(struct list_elem* elem)
     }
     return elem;
 }
-/从队首弹出一个elem,类似于pop
-struct list_elem* list_pop(struct list* L);
+
+/* list_pop
+* 从队首弹出一个elem,类似于pop
+* L     :链表指针
+* 返回值 :弹出的元素指针
+*/
+struct list_elem* list_pop(struct list* L)
+{
+    return list_remov((L->head).next);
+}
