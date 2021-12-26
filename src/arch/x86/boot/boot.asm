@@ -1,10 +1,12 @@
+;boot.asm
+;copyright (c) 2021 Lin Chenjun,All rights reserved.
+
+org 0x7c00
 [bits 16]
-section .code vstart=0x7c00
 
 %include "epfs.asm"
-
-
     jmp $
+
 read_sector:
                    ;int 0x13 ax=0x42:扩展硬盘读取功能
                    ;eax:扇区号
