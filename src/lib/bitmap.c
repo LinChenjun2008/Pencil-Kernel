@@ -14,15 +14,15 @@ void bitmap_init(struct bitmap* btmp)
 
 /* bitmap_scan_test
 * 判断bitmap中bit_idx是否为1
-* btmp      :bitmap指针
-* bit_idx   :bit位下标
-* 返回 true  :为1
-* 返回 false :为0
+* btmp        :bitmap指针
+* bit_index   :bit位下标
+* 返回 true    :为1
+* 返回 false   :为0
 */
-bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_idx)
+bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_index)
 {
-    uint32_t byte_index = bit_idx / 8;
-    uint32_t bit_odd = bit_idx % 8;
+    uint32_t byte_index = bit_index / 8;
+    uint32_t bit_odd = bit_index % 8;
     return (btmp->map[byte_index] & (BITMAP_MAST << bit_odd));
 }
 
@@ -88,6 +88,12 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
     return bit_index_start;
 }
 
+/* bitmap_set
+* 将bitmap的bit_index位设为value
+* btmp      :bitmap指针
+* bit_index :要设置的位的下标
+* value     :设置值
+*/
 void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint32_t value)
 {
     ASSRET(value == 0 || value == 1)
