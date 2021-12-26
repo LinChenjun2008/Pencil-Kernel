@@ -7,10 +7,10 @@
 */
 void list_init(struct list* L)
 {
-    L->head.prev = NULL;
-    L->head.next = &(L->tail);
-    L->tail.prev = &(L->head);
-    L->tail.next = NULL;
+    (L->head).prev = NULL;
+    (L->head).next = &(L->tail);
+    (L->tail).prev = &(L->head);
+    (L->tail).next = NULL;
     return;
 }
 
