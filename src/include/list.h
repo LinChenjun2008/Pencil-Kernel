@@ -4,7 +4,14 @@
 #ifndef __LIST_H_
 #define __LIST_H_
 
+/* offset
+* 求出member在struct_t类型的结构体中的地址偏移
+*/
 #define offset(struct_t,member) ((int)(&(((struct_t*)0)->member)))
+
+/* list_cast
+* 将struct_t的数据成员member的地址ptr转换为struct_t的地址
+*/
 #define list_cast(struct_t,member,ptr) ((struct*)(((int)ptr) - offset(struct_t,member)))
 
 struct list_elem
@@ -19,17 +26,11 @@ struct list
     struct list_elem list tail;
 };
 
-//初始化
 void list_init(struct list* L);
-//插入elem到in_before前面
 void list_in(struct lise_elem* elem,struct list_elem* in_before);
-//把elem添加到队首,类似于push
 void list_push(struct list* L,struct list_elem* elem);
-//添加elem到队尾
 void list_append(struct list* L,struct list_elem* elem);
-//将元素从链中退出
 struct list_elem* list_remove(struct list_elem* elem);
-//从队首弹出一个elem,类似于pop
 struct list_elem* list_pop(struct list* L);
 
 #endif /* __LIST_H_ */
