@@ -17,8 +17,8 @@ struct bitmap
 };
 
 void bitmap_init(struct bitmap* btmp);
-bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_idx);
+bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_index);
 signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt);
-void bitmap_set(struct bitmap* btmp,uint32_t bit_idx,uint8_t value);
+void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint8_t value);
 
 #endif /* __LIST_H_ */
