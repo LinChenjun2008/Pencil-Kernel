@@ -79,19 +79,19 @@ struct list_elem* list_pop(struct list* L)
 
 /* list_find
 * 在链表中查找obj_elem
-* 返回值 0:查找失败
-* 返回值 1:找到元素
+* 返回 false:查找失败
+* 返回 true:找到元素
 */ 
-int list_find(struct list* L,struct list_elem* obj_elem)
+bool list_find(struct list* L,struct list_elem* obj_elem)
 {
     struct list_elem* elem = (L->head).next;
     while(elem != &(L->tail))
     {
         if(elem == obj_elem)
         {
-            return 1;
+            return true;
         }
         elem = elem->next;
     }
-    return 0;
+    return false;
 }
