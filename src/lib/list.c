@@ -76,3 +76,22 @@ struct list_elem* list_pop(struct list* L)
 {
     return list_remov((L->head).next);
 }
+
+/* list_find
+* 在链表中查找obj_elem
+* 返回值 0:查找失败
+* 返回值 1:找到元素
+*/ 
+int list_find(struct list* L,struct list_elem* obj_elem)
+{
+    struct list_elem* elem = (L->head).next;
+    while(elem != &(L->tail))
+    {
+        if(elem == obj_elem)
+        {
+            return 1;
+        }
+        elem = elem->next;
+    }
+    return 0;
+}
