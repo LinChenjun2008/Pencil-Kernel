@@ -28,10 +28,10 @@ bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_idx)
 
 /* bitmap_alloc
 * 在bitmap中分配cnt个位
-* btmp :bitmap指针
-* cnt  :要分配的位数
-* 返回 -1:分配失败
-* 返回值!= -1:返回值为位的下标
+* btmp       :bitmap指针
+* cnt        :要分配的位数
+* 返回 -1     :分配失败
+* 返回值!= -1 :返回值为位的下标
 */
 int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
 {
