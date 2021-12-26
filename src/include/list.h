@@ -4,7 +4,8 @@
 #ifndef __LIST_H_
 #define __LIST_H_
 
-#define offset(struct_t,elem_name) ((int)(&(((struct_t*)0)->elem_name)))
+#define offset(struct_t,member) ((int)(&(((struct_t*)0)->member)))
+#define list_cast(struct_t,member,ptr) ((struct*)(((int)ptr) - offset(struct_t,member)))
 
 struct list_elem
 {
