@@ -33,7 +33,7 @@ bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_idx)
 * 返回 -1     :分配失败
 * 返回值!= -1 :返回值为位的下标
 */
-int32_t bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
+signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
 {
     uint32_t byte_index = 0;
     /* 寻找第一个空的bit所在位 */
@@ -54,7 +54,7 @@ int32_t bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
     {
         bit_index++;
     }
-    int32_t bit_index_start = byte_index * 8 + bit_index;/* 空闲位在整个bitmap中的下标 */
+    signed int bit_index_start = byte_index * 8 + bit_index;/* 空闲位在整个bitmap中的下标 */
     if(cnt == 1)/* 只分配一个位, 那就是bit_index_start位 */
     {
         return bit_index_start;
