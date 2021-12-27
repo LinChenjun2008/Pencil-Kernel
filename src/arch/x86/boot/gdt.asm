@@ -1,3 +1,6 @@
+;DESC
+;%1:base %2:limit %3:ar
+
 %macro DESC 3
     dw (%2 & 0xffff)
     dw (%1 & 0xffff)
