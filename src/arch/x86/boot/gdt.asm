@@ -9,3 +9,6 @@
     db (((%2 >> 16)& 0x0f) | ((%3 >> 8)& 0xf0))
     db ((%1 >> 24)& 0xff)
 %endmacro
+
+GDT_PTR:
+DESC 0,0,0
