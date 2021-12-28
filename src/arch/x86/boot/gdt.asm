@@ -10,5 +10,3 @@
     db ((%1 >> 24)& 0xff)                       ;段基址31～24
 %endmacro
 
-GDT_PTR:
-DESC 0,0,0
