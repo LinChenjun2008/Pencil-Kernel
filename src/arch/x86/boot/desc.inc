@@ -1,7 +1,7 @@
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
 ;属性:
-;高8位:.G(1bit) D/B(1bit) L(1bit) AVL(1bit) 0(4bit)
+;高8位: G(1bit) D/B(1bit) L(1bit) AVL(1bit) 0(4bit)
 ;低8位: P(1bit) DPL(2bit) S(1bit) type(4bit)
 
 %macro SEGMDESC 3
