@@ -1,7 +1,7 @@
 ;DESC
 ;%1:base %2:limit %3:ar
 
-%macro DESC 3
+%macro SEGMDESC 3
     dw (%2 & 0xffff)      ;段界限15～0
     dw (%1 & 0xffff)      ;段基址15～0
     db ((%1 >> 16) & 0xff);段基址23～16
@@ -10,3 +10,6 @@
     db ((%1 >> 24)& 0xff)                       ;段基址31～24
 %endmacro
 
+%macro GATEDESC 3
+
+%endmacro
