@@ -12,6 +12,8 @@ RootDirSectors  dw             ;  4B 根目录占用扇区数
                                ;465B 引导程序
                                ;  2B 0x55,0xaa
 FileName: db "loader      bin" ;文件名15B
+RootDirSizeForLoop dw RootDirSectors
+SectorNo dd 0 ;下一次要读取的扇区号
 Index  dd 0 ;直接索引扇区
 Index1 dd 0 ;一级间接索引扇区号
 Index2 dd 0 ;二级间接索引扇区号
