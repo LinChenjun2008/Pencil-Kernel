@@ -1,3 +1,6 @@
+;desc.inc
+;Copyright 2021-2022 Lin Chenjun,All rights reserved.
+
 AR_P_0 equ 0x00
 AR_P_1 equ 0x80
 
