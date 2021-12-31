@@ -6,8 +6,11 @@ jmp start
 GDT_BASE
     SEGMDESC 0,0,0
 
-gdt_limit dd ($ - GDT_BASE)
+GDT_SIZE equ ($ - GDT_BASE)
+GDT_LIMIT equ GDT_SIZE - 1
 
+gdt_ptr dw GDT_LIMIT
+        dd GDT_BASE
 
 start:
 jmp $
