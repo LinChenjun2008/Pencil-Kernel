@@ -1,6 +1,5 @@
-/*
-* copyright Eytoue (Lin Chenjun)
-* All rights reserved.
+/* config.h
+* Copyright 2021-2022 Lin Chenjun,All rights reserved.
 */
 
 #ifndef __CONFIG_H_
