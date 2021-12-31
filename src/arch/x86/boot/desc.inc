@@ -2,7 +2,10 @@
 ;%1:段基址 %2:段界限 %3:属性
 ;属性:
 ;高8位: G D/B L AVL 0
+;      1B 1B 1B 1B 4B
+
 ;低8位: P DPL S type
+;      1B 2B 1B 4B
 
 %macro SEGMDESC 3
     dw (%2 & 0xffff)      ;段界限15～0
