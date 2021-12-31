@@ -1,5 +1,6 @@
 /* imgcopy.h
 * Copyright Lin Chenjun,All rights reserved.
+*/
 #ifndef __IMGCOPY_H_
 #define __IMGCOPY_H_
 
