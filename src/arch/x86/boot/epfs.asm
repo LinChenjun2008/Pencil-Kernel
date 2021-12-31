@@ -1,3 +1,6 @@
+;epfs.asm
+;Copyright 2021-2022 Lin Chenjun,All rights reserved.
+
 jmp short start                ;  2B 跳转指令
 nop                            ;  3B 空指令
 Magic           db "EPFS  01"  ;  8B epfs文件系统名称
