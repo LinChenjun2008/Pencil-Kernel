@@ -1,3 +1,11 @@
+AR_P_0 equ 0x00
+AR_P_1 equ 0x80
+
+AR_DPL_0 equ 0x00
+AR_DPL_1 equ 0x20
+AR_DPL_2 equ 0x40
+AR_DPL_3 equ 0x60
+
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
 ;属性:
