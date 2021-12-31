@@ -1,5 +1,4 @@
 ;boot.asm
-;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
 org 0x7c00
 [bits 16]
