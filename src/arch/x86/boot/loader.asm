@@ -1,3 +1,6 @@
+;loader.asm
+;Copyright 2021-2022 Lin Chenjun,All rights reserved.
+
 org 0x500
 [bits 16]
 jmp start
