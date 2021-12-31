@@ -21,6 +21,7 @@
 %macro GATEDESC 3
     dw (%2 & 0xffff) ;偏移15~0
     dw (%1 & 0xffff) ;选择子
+    db 0             ;保留值3B 空值5B
     db (%3 & 0xef)         ;P(1) DPL(2) 0(1) type(4)
     dw (%2 >> 15) & 0xffff);偏移31~16
 %endmacro
