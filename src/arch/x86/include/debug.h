@@ -1,5 +1,4 @@
 /* debug.h
-* Copyright Lin Chenjun,Some rights reserved.
 */
 
 #ifndef __DEBUG_H_
