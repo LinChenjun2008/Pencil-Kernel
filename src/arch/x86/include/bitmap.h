@@ -1,5 +1,5 @@
 /* bitmap.h
-* Copyright 2021-2022 Lin Chenjun,All rights reserved
+* Copyright 2021-2022 Lin Chenjun,Some rights reserved.
 */
 
 #ifndef __LIST_H_
