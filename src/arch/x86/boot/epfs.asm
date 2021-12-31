@@ -11,6 +11,12 @@ RootDirStartSec dw             ;  4B 根目录起始扇区(LBA)
 RootDirSectors  dw             ;  4B 根目录占用扇区数
                                ;465B 引导程序
                                ;  2B 0x55,0xaa
+FileName: db "loader      bin" ;文件名15B
+Index  dd 0 ;直接索引扇区
+Index1 dd 0 ;一级间接索引扇区号
+Index2 dd 0 ;二级间接索引扇区号
+Index3 dd 0 ;三级间接索引扇区号
+
 start:
     mov ax,cs
     mov ds,ax
