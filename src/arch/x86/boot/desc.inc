@@ -1,13 +1,17 @@
 ;desc.inc
 ;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
-AR_P_0 equ 0x00
-AR_P_1 equ 0x80
+AR_G_4K equ 0x8000
 
-AR_DPL_0 equ 0x00
-AR_DPL_1 equ 0x20
-AR_DPL_2 equ 0x40
-AR_DPL_3 equ 0x60
+AR_32 equ 0x4000
+
+AR_P_0 equ 0x0000
+AR_P_1 equ 0x0080
+
+AR_DPL_0 equ 0x0000
+AR_DPL_1 equ 0x0020
+AR_DPL_2 equ 0x0040
+AR_DPL_3 equ 0x0060
 
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
