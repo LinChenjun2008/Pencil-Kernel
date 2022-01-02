@@ -5,6 +5,7 @@
 #define __IMGCOPY_H_
 
 #include "stdint.h"
+#include "bitmap.h"
 
 void vhd_format();
 
