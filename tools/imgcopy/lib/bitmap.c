@@ -1,6 +1,5 @@
 #include "bitmap.h"
 #include "stdint.h"
-#include "global.h"
 
 /* bitmap_init
 * 初始化btmp
@@ -41,7 +40,7 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
     {
         byte_index++;
     }
-    ASSRET(byte_index < (btmp->btmp_bytes_len))
+    //ASSRET(byte_index < (btmp->btmp_bytes_len))
     /* bitmap已满,找不到空位 */
     if(byte_index == (btmp->btmp_bytes_len))
     {
@@ -96,7 +95,7 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
 */
 void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint32_t value)
 {
-    ASSRET(value == 0 || value == 1)
+    //ASSRET(value == 0 || value == 1)
     uint32_t byte_index = bit_index / 8;
     uint32_t bit_odd = bit_index % 8;
     switch(value)
