@@ -51,7 +51,8 @@ start:
     mov byte [gs:0x07],0x07
     mov word ax,[RootDirStartSec]
     mov word [SectorNo],ax
-SerchOnRootDirBegin:
+
+SerchInRootDirBegin:
     cmp word [RootDirSizeForLoop],0;没有扇区可以读取,说明没有loader
     jz No_file
     dec word [RootDirSizeForLoop]  ;已读取扇区减一
@@ -60,7 +61,31 @@ SerchOnRootDirBegin:
     mov bx,0x7e00          ;段偏移0x7e00
     mov word ax,[SectorNo] ;读取的扇区号
     call read16
-    
+    mov si,FileName
+    mov di,0x7e00
+    mov dx,0x8 ;一个扇区几个文件描述符
+
+SerchFileName:
+    cmp dx,0
+    jz GoToNextSectorInRootDir
+    dec dx,1
+    mov cx,0xe
+
+CmpFileName:
+    cmp cx,0
+    jz FileFound
+    dec cx
+    lodsb    ;从ds:(r|e)si地址读取到al/ax/eax/rax寄存器
+             ;读取后,根据DF标志位将(r|e)si寄存器的值减或加上读入的数据大小
+             ;这里是把loader的文件名载入一个字符到al
+    cmp al,byte [es:di] ;比较文件名
+    jz CmpGoOn
+    Cmp FileNameDiffetent
+
+CmpGoOn:
+    inc di
+    jmp CmpFileName
     jmp $
 
+NoFile:
     jmp $
