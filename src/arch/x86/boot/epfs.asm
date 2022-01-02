@@ -71,6 +71,8 @@ SerchFileName:
     dec dx,1
     mov cx,0xe
 
+    push di;保存比较前的di值
+
 CmpFileName:
     cmp cx,0
     jz FileFound
@@ -80,12 +82,16 @@ CmpFileName:
              ;这里是把loader的文件名载入一个字符到al
     cmp al,byte [es:di] ;比较文件名
     jz CmpGoOn
-    Cmp FileNameDiffetent
+    jmp FileNameDifferent
 
 CmpGoOn:
-    inc di
+    inc di         ;继续比较下一个字符
     jmp CmpFileName
-    jmp $
+
+FileNameDifferent:
+    pop di;恢复比较前的di
+    add di,64;下一个文件描述符文件名开始处
+    jmp SerchFileName
 
 NoFile:
     jmp $
