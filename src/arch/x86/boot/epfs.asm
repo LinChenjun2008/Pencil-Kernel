@@ -17,9 +17,9 @@ RootDirSectors  dw             ;  4B 根目录占用扇区数
 FileName: db "loader      bin" ;文件名15B
 RootDirSizeForLoop dw RootDirSectors
 SectorNo dd 0 ;下一次要读取的扇区号
-Index1 dd 0 ;一级间接索引扇区号
-Index2 dd 0 ;二级间接索引扇区号
-Index3 dd 0 ;三级间接索引扇区号
+Index1 dd 0 ;一级间接索所在内存
+Index2 dd 0 ;二级间接索所在内存
+Index3 dd 0 ;三级间接索所在内存
 
 start:
     mov ax,cs
@@ -49,7 +49,9 @@ start:
     mov byte [gs:0x05],0x07
     mov byte [gs:0x06],'T'
     mov byte [gs:0x07],0x07
-SerchOnRootDir:
+SerchOnRootDirBegin:
+    cmp word [RootDirSizeForLoop],0
+    jz No_file
     
     jmp $
 
