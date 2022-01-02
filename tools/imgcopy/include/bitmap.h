@@ -4,7 +4,6 @@
 #ifndef __BITMAP_H_
 #define __BITMAP_H_
 
-#include "global.h"
 #include "stdint.h"
 
 #define BITMAP_MASK 0x01
