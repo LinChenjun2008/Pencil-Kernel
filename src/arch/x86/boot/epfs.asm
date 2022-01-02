@@ -14,7 +14,7 @@ RootDirStartSec dw             ;  4B 根目录起始扇区(LBA)
 RootDirSectors  dw             ;  4B 根目录占用扇区数
                                ;465B 引导程序
                                ;  2B 0x55,0xaa
-FileName: db "loader      bin" ;文件名15B
+FileName: db "loader.bin     " ;文件名15B
 RootDirSizeForLoop dw RootDirSectors
 SectorNo dd 0 ;下一次要读取的扇区号
 Index1 dd 0 ;一级间接索所在内存
@@ -52,7 +52,12 @@ start:
 SerchOnRootDirBegin:
     cmp word [RootDirSizeForLoop],0
     jz No_file
-    
+    dec word [RootDirSizeForLoop]
+    mov ax,0x00
+    mov es,ax
+    mov bx,0x7e00
+    mov ax,[SectorNo]
+    call read16
     jmp $
 
     jmp $
