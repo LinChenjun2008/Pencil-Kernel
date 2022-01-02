@@ -49,7 +49,8 @@ start:
     mov byte [gs:0x05],0x07
     mov byte [gs:0x06],'T'
     mov byte [gs:0x07],0x07
- 
+SerchOnRootDir:
+    
     jmp $
 
     jmp $
