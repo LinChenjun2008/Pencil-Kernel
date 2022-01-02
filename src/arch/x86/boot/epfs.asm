@@ -49,15 +49,18 @@ start:
     mov byte [gs:0x05],0x07
     mov byte [gs:0x06],'T'
     mov byte [gs:0x07],0x07
+    mov word ax,[RootDirStartSec]
+    mov word [SectorNo],ax
 SerchOnRootDirBegin:
-    cmp word [RootDirSizeForLoop],0
+    cmp word [RootDirSizeForLoop],0;没有扇区可以读取,说明没有loader
     jz No_file
-    dec word [RootDirSizeForLoop]
+    dec word [RootDirSizeForLoop]  ;已读取扇区减一
     mov ax,0x00
-    mov es,ax
-    mov bx,0x7e00
-    mov ax,[SectorNo]
+    mov es,ax              ;段基址0
+    mov bx,0x7e00          ;段偏移0x7e00
+    mov word ax,[SectorNo] ;读取的扇区号
     call read16
+    
     jmp $
 
     jmp $
