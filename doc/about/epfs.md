@@ -11,7 +11,7 @@ EPFS,一个简单的文件系统,是通过将inode和fat类文件系统结合而
 读取单位:4kib(约8扇区)
 ***
 ### 引导扇区
-一下信息来自epfs.h
+以下内容来自epfs.h:
 ```c
 struct index_block
 {
@@ -44,3 +44,4 @@ epfs文件系统的磁盘布局:
                  BitmapStartSec DataStartSec                                                      DataStartSec + DataSectors
                                 RootDirStartSec                                                   
 ```
+### EPFS的磁盘管理方式
