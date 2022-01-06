@@ -11,7 +11,7 @@ EPFS,一个简单的文件系统,是通过将inode和fat类文件系统结合而
 读取单位:4kib(约8扇区)
 ***
 ### 引导扇区
-在epfs.h中,可以看到:
+一下信息来自epfs.h
 ```c
 struct index_block
 {
@@ -29,8 +29,6 @@ struct index_block
     uint8_t end[2];                            //  2B 结束标志0x55,0xaa
 }PACKED;//512B
 ```
-这就是epfs的引导扇区, PACKED是__attribute__((packed)) 的宏定义, 目的是防止结构体被压缩,
-导致大小与512Byte不符.<br/>
 |变量名          |作用                |
 ----------------|-------------------
 |TotSec         |总扇区数             |
