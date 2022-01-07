@@ -2,17 +2,19 @@
 ;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
 AR_G_4K equ 0x8000
-
-AR_S_32 equ 0x4000
-
-AR_P_0 equ 0x0000
-AR_P_1 equ 0x0080
-
+AR_D_32 equ 0x4000
+AR_L equ 0x0000
+AR_AVL equ 0x0000
+AR_P equ 0x0080
 AR_DPL_0 equ 0x0000
 AR_DPL_1 equ 0x0020
 AR_DPL_2 equ 0x0040
 AR_DPL_3 equ 0x0060
-
+AR_S_CODE equ 0x0010
+AR_S_DATA equ 0x0010
+AR_S_SYS equ 0x0000
+AR_TYPE_CODE equ 0x0008 ;可执行,非一致,不可读
+AR_TYPE_DATA equ 0x0002 ;不可执行,向上拓展,可写
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
 ;属性:
