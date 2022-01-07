@@ -3,7 +3,7 @@
 
 AR_G_4K equ 0x8000
 
-AR_32 equ 0x4000
+AR_S_32 equ 0x4000
 
 AR_P_0 equ 0x0000
 AR_P_1 equ 0x0080
