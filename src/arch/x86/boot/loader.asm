@@ -7,7 +7,7 @@ jmp start
 
 %include"desc.inc"
 GDT_BASE: SEGMDESC 0,0,0
-SectionCode32 :SEGMDESC 0X00000000,0xfffff,AR_CODE
+SectionCode32 :SEGMDESC 0x00000000,0xfffff,AR_CODE
 SectionData32 :SEGMDESC 0x00000000,0xfffff,
 SectionVideo : SEGMDESC 0x000b8000,0x00007,
 
