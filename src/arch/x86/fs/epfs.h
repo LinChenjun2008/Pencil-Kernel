@@ -37,7 +37,7 @@ struct file_desc
 
 struct index_block
 {
-    uint32_t sector[128];//512B 一级、二级、三级间接文件索引块(每块128个文件索引)
-}PACKED;//512B
+    uint32_t sector[1024];//512*8B 一级、二级、三级间接文件索引块(每块128个文件索引)
+}PACKED;//512*8B
 
 #endif /* __EPFS_H_ */
