@@ -5,7 +5,7 @@ org 0x500
 [bits 16]
 jmp start
 
-%include"desc.inc"
+%include "protect.inc"
 GDT_BASE: SEGMDESC 0,0,0
 SectionCode32 :SEGMDESC 0x00000000,0xfffff,AR_CODE32
 SectionData32 :SEGMDESC 0x00000000,0xfffff,AR_DATA32
@@ -16,6 +16,9 @@ GDT_LIMIT equ GDT_SIZE - 1
 
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
+
+SelectorCode32 equ ((SectionCode32-GDT_BASE)/8 | TI_GDT | RPL0)
+SelectorData32 equ ((SectionData32-GDT_BASE)/8 | TI_GDT | RPL0)
 
 start:
 jmp $
