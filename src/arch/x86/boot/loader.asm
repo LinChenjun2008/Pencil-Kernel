@@ -7,9 +7,9 @@ jmp start
 
 %include"desc.inc"
 GDT_BASE: SEGMDESC 0,0,0
-SectionCode32 :SEGMDESC 0x00000000,0xfffff,AR_CODE
-SectionData32 :SEGMDESC 0x00000000,0xfffff,
-SectionVideo : SEGMDESC 0x000b8000,0x00007,
+SectionCode32 :SEGMDESC 0x00000000,0xfffff,AR_CODE32
+SectionData32 :SEGMDESC 0x00000000,0xfffff,AR_DATA32
+SectionVideo : SEGMDESC 0x000b8000,0x00007,AR_DATA32
 
 GDT_SIZE equ ($ - GDT_BASE)
 GDT_LIMIT equ GDT_SIZE - 1
