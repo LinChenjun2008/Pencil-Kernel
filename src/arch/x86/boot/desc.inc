@@ -16,7 +16,8 @@ AR_S_SYS equ 0x0000
 AR_TYPE_CODE equ 0x0008 ;可执行,非一致,不可读
 AR_TYPE_DATA equ 0x0002 ;不可执行,向上拓展,可写
 
-AR_CODE equ (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_CODE | AR_TYPE_CODE)
+AR_CODE32 equ (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_CODE | AR_TYPE_CODE)
+AR_DATA32 equ (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_DATA | AR_TYPE_DATA)
 
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
