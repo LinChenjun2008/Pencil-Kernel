@@ -1,5 +1,7 @@
-;desc.inc
+;protect.inc
 ;Copyright 2021-2022 Lin Chenjun,All rights reserved.
+
+;段属性
 
 AR_G_4K equ 0x8000
 AR_D_32 equ 0x4000
@@ -18,6 +20,16 @@ AR_TYPE_DATA equ 0x0002 ;不可执行,向上拓展,可写
 
 AR_CODE32 equ (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_CODE | AR_TYPE_CODE)
 AR_DATA32 equ (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_DATA | AR_TYPE_DATA)
+
+;选择子属性
+
+RPL0 equ 00b
+RPL1 equ 01b
+RPL2 equ 10b
+RPL3 equ 11b
+
+TI_GDT equ 000b
+TI_LDT equ 100b
 
 ;DESC
 ;%1:段基址 %2:段界限 %3:属性
