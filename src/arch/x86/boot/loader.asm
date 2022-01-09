@@ -49,11 +49,12 @@ start:
     ;寻找内存容量,就是最大的那一块内存
     mov cx,[ards_nr]
     mov ebx,ards_buf
-    xor edx,edx     ;edx先清零
-    .fine_max_memory:
+    xor edx,edx       ;edx先清零
+    .find_max_memory: ;冒泡排序
         mov eax,[ebx]
         add eax,[ebx + 8]
         add ebx,20
         cmp edx,eax
-        jge
+        jge .next_ards
+        
 jmp $
