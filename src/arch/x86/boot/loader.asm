@@ -6,11 +6,13 @@ org 0x500
 jmp start
 
 %include "protect.inc"
+
 GDT_BASE: SEGMDESC 0,0,0
-SectionCode32 :SEGMDESC 0x00000000,0xfffff,AR_CODE32
-SectionData32 :SEGMDESC 0x00000000,0xfffff,AR_DATA32
-SectionVideo : SEGMDESC 0x000b8000,0x00007,AR_DATA32
+SectionCode32:     SEGMDESC 0x00000000,0xfffff,AR_CODE32
+SectionData32:     SEGMDESC 0x00000000,0xfffff,AR_DATA32
+SectionVideo:      SEGMDESC 0x000b8000,0x00007,AR_DATA32
 SectionColorVideo: SEGMDESC 0x00A00000,,AR_DATA32
+
 GDT_SIZE equ ($ - GDT_BASE)
 GDT_LIMIT equ GDT_SIZE - 1
 
