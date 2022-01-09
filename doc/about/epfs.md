@@ -29,11 +29,12 @@ struct index_block
     uint8_t end[2];                            //  2B 结束标志0x55,0xaa
 }PACKED;//512B
 ```
-|变量名          |作用                |
-----------------|-------------------
-|TotSec         |总扇区数             |
-|BytesPerSec    |每扇区字节数,一般是512 |
-|BitmapStartSec |bitmap的起始扇区     |
+|变量名          |作用                |取值
+----------------|-------------------|-------
+|TotSec         |总扇区数             |磁盘扇区数
+|BytesPerSec    |每扇区字节数         |512
+|BitmapStartSec |bitmap的起始扇区     |1
+|BitmapSectors  |bitmap占用的扇区数   |(bitmap.btmp_bytes_len+511)/512
 
 epfs文件系统的磁盘布局:
 ```
