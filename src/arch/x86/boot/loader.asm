@@ -32,6 +32,7 @@ total_memory_bytes dq 0
 ards_buf times 256 db 0 ;ards
 ards_nr dw 0
 
+;$= 768+64+256+16=0x450
 start:
 ;获取内存布局
     xor ebx,ebx       ;将ebx清零
