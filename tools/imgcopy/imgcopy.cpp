@@ -6,7 +6,7 @@
 #include "imgcopy.h"
 
 #include "fs/epfs/epfs.h"
-#include "fs/fat16/fat16.h"
+//#include "fs/fat16/fat16.h"
 
 namespace imgcopy
 {
