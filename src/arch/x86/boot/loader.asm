@@ -32,8 +32,8 @@ total_memory_bytes dq 0
 ards_buf times 240 db 0 ;ards
 ards_nr dw 0
 ;0x300 + 0x40 + 0x100 = 0x440
-times (0x512-($ - $$)) db 0
-;$ =0x512
+times (0x500-($ - $$)) db 0;对齐到文件起始0x500处
+;$ =0x500 + 0x500 = 0xa00
 start:
 ;获取内存布局
     xor ebx,ebx       ;将ebx清零
