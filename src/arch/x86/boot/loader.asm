@@ -27,10 +27,10 @@ gdt_ptr dw GDT_LIMIT
 
 times (0x300 - ($ - $$)) db 0
 ;&total_memory_bytes = 0x500+0x300 = 0x800
-total_memory_bytes dq 0
+total_memory_bytes dq 0 ;0x8
 
-ards_buf times 240 db 0 ;ards
-ards_nr dw 0
+ards_buf times 240 db 0 ;ards 0x
+ards_nr dw 0;0x4
 ;0x300 + 0x40 + 0x100 = 0x440
 times (0x500-($ - $$)) db 0;对齐到文件起始0x500处
 ;$ =0x500 + 0x500 = 0xa00
