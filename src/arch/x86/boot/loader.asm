@@ -1,7 +1,8 @@
 ;loader.asm
 ;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
-org 0x500
+%include "boot.inc"
+org BaseOfLoader
 [bits 16]
 
 %include "protect.inc"
