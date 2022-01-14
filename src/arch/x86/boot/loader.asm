@@ -2,7 +2,7 @@
 ;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
 %include "boot.inc"
-org BaseOfLoader
+org LoaderBaseAddress
 [bits 16]
 
 %include "protect.inc"
