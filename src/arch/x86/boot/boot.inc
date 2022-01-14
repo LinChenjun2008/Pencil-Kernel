@@ -1,2 +1,1 @@
-BaseOfLoader equ 0x500
-OffsetOfLoader equ 0
+LoaderBaseAddress equ 0x500
