@@ -114,4 +114,4 @@ start:
             jmp .get_memory_error ;在此处死循环,停止启动
     memory_get_success:
         mov dword [total_bytes],edx
-jmp $
+        jmp $
