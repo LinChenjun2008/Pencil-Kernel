@@ -13,7 +13,7 @@
 | B0000 | B7FFF | 32KB | 黑白显示适配器 |
 | A0000 | AFFFF | 64KB | 彩色显示适配器 |
 | 9FC00 | 9FFFF | 1KB | EBDA 拓展BIOS数据区 |
-| 7E00 | 9FBFF | 622080B 约640KB | 可用区域 |
+| 7E00 | 9FBFF | 622080B 约608KB | 可用区域 |
 | 7C00 | 7DFF | 512B | boot.bin |
 | 500 | 7BFF | 30646B 约30KB | 可用区域 |
 | 400 | 4FF | 256B | BIOS数据区 |
