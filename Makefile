@@ -1,13 +1,13 @@
-##code
+#code
 SRCPATH := src/
 ARCHPATH := $(SRCPATH)arch/
 PLATFORM := x86
 BOOTPATH := $(ARCHPATH)$(PLATFORM)/boot/
-KERNELPATH := $(SRCPATH)kernel/
-INCLUDE := $(SRCPATH)include/ -I $(BOOTPATH)
+KERNELPATH := $(ARCHPATH)$(PLATFORM)/kernel/
+INCLUDE := $(ARCHPATH)$(PLATFORM)/include/ -I $(BOOTPATH)
 
 #tool
-TOOLPATH := tool/
+TOOLPATH := tools/
 AS := $(TOOLPATH)as
 CC1 := $(TOOLPATH)cc1
 DD := $(TOOLPATH)dd
@@ -36,11 +36,8 @@ mkvhd:
 
 vhd: $(ALL_FILE)
 	$(DD) if=$(BOOT) of=$(VHD) bs=512 count=1 seek=0 conv=notrunc
-	$(DD) if=$(LOADER) of=$(VHD) bs=512 count=200 seek=2 conv=notrunc
+	$(DD) if=$(LOADER) of=$(VHD) bs=512 count=200 seek=20 conv=notrunc
 
 run: $(ALL_FILE)
 	copy $(VHD) tool\qemu\fdimage0.bin
 	$(MAKE) -C $(TOOLPATH)qemu
-
-moved:
-	$(NASM) -o $(VHD) vhd.asm
