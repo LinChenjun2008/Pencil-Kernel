@@ -1,5 +1,7 @@
 #include "string.h"
 #include "debug.h"
+#include "global.h"
+#include "stdint.h"
 /* string.c */
 
 /* memset
@@ -10,7 +12,7 @@
 */
 void memset(void* dst__,uint8_t value,uint32_t size)
 {
-    ASSRET(dst != NULL)
+    ASSRET(dst__ != NULL)
     uint8_t* dst = (uint8_t*)dst__;
     int i;
     for(i = 0;i < size;i++)
