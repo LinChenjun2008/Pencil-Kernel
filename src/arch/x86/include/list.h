@@ -25,7 +25,7 @@ struct list_elem
 struct list
 {
     struct list_elem head;
-    struct list_elem list tail;
+    struct list_elem tail;
 };
 
 void list_init(struct list* L);
