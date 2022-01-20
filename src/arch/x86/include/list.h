@@ -29,7 +29,7 @@ struct list
 };
 
 void list_init(struct list* L);
-void list_in(struct lise_elem* elem,struct list_elem* in_before);
+void list_in(struct list_elem* elem,struct list_elem* in_before);
 void list_push(struct list* L,struct list_elem* elem);
 void list_append(struct list* L,struct list_elem* elem);
 struct list_elem* list_remove(struct list_elem* elem);
