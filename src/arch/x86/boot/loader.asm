@@ -29,18 +29,26 @@ gdt_ptr dw GDT_LIMIT
 
 times (0x300 - ($ - $$)) db 0
 
-;&total_memory_bytes = 0x500+0x300 = 0x800
+;&total_memory_bytes = LoaderBaseAddress+0x300
 total_memory_bytes dq 0 ;内存大小(单位:字节)
 
 ards_buf times 240 db 0
 ards_nr dw 0
 
-times (0x500-($ - $$)) db 0;对齐到文件起始0x500处
+loadmsg db "Loader..."
 
-;$ =0x500 + 0x500 = 0xa00
+times (0x500 - ($ - $$)) db 0;对齐到文件起始0x500处
 
 ;loader从此处开始执行
 start:
+
+mov bp,loadmsg
+mov cx,9;9个字符
+mov ax,0x1301
+mov bx,0x0007;第0页,黑底白字
+mov dx,0x0200;行,列
+int 0x10
+
 
 ; int 0x15 eax=0xe820 edx=0x534d4150:获取内存布局
     xor ebx,ebx       ;将ebx清零
@@ -113,5 +121,5 @@ start:
             hlt                   ;让CPU休眠
             jmp .get_memory_error ;在此处死循环,停止启动
     memory_get_success:
-        mov dword [total_bytes],edx
+        mov dword [total_memory_bytes],edx
         jmp $

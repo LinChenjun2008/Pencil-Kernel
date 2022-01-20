@@ -22,7 +22,7 @@ mov ax,0x600
 mov bx,0x700
 mov cx,0
 mov dx,0x184f
-;int 0x10;在qemu中,这一行会出问题(会导致显示不正常)其他虚拟机或物理电脑是正常的
+int 0x10
 
 mov bp,bootmsg
 mov cx,11;11个字符
@@ -31,22 +31,26 @@ mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
 int 0x10
 
+Loadfile:
 ;加载loader
 mov eax,0x02 ;第2扇区(LBA)
 mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-mov cx,4 ;读取的扇区数
+mov cx,10 ;读取的扇区数
 call ReadSector
+;call rd_disk_m_16
 
 mov bp,loaderstartmsg
-mov cx,12;11个字符
+mov cx,16;16个字符
 mov ax,0x1301
 mov bx,0x0007;第0页,黑底白字
 mov dx,0x0100;行,列
 int 0x10
 
-jmp LoaderBaseAddress+0x500
+jmp LoaderBaseAddress:LoaderOffsetAddress
+
 
 ReadSector:
+
                    ;int 0x13 ax=0x42:扩展硬盘读取功能
                    ;eax:扇区号
                    ;cx:扇区数
@@ -66,11 +70,20 @@ ReadSector:
     mov  dl,0x00   ;驱动器号
     mov  si,sp
     int 0x13
+    jc .error
     add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
     ret
-    
-    bootmsg db "Starting..."
-    loaderstartmsg db "Go to Loader"
+    .error:
+    mov bp,errmsg
+    mov cx,5;5个字符
+    mov ax,0x1301
+    mov bx,0x008c;第0页,黑底红字闪烁
+    mov dx,0x0100;行,列
+    int 0x10
+    jmp Loadfile
 
+    bootmsg db "Starting..."
+    loaderstartmsg db "Go to Loader.bin"
+    errmsg db "Error"
 times 510 -($ - $$) db 0x00
 db 0x55,0xaa

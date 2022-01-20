@@ -6,7 +6,7 @@ AS := $(TOOLPATH)as
 CC1 := $(TOOLPATH)cc1
 DD := $(TOOLPATH)dd
 LD := $(TOOLPATH)ld
-MAKE := $(TOOLPATH)make -r
+MAKE := $(TOOLPATH)make
 NASM := $(TOOLPATH)nasm
 OBJCOPY :=$(TOOLPATH)objcopy
 #IMGCOPY := $(TOOLPATH)/imgcopy/imgcopy
@@ -30,7 +30,8 @@ v_disk := a.vhd
 
 #other
 OBJ_FORMAT := elf32-i386
-
+K_VERSION := 0.0.0 test
+COPYRIGHT := copyright 2021-2022 Linchenjun, All right reserved.
 #command
 COPY := copy
 CD := cd
@@ -63,20 +64,41 @@ ECHO := echo
 #build: compile all file
 #run: start qenu
 #clean: delet all obj file
-.PHONY: all build clean mkvhd run system
+.PHONY: all build clean logo mkvhd run system
 all: $(BOOT) $(LOADER) $(OBJ_FILE)
 
-build: all
+build: all system
 	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 conv=notrunc
 	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=200 seek=2 conv=notrunc
 
 clean:
+	$(DELET) *.bin
+	$(DELET) *.o
 	$(CD) $(BOOTPATH) && $(DELET) *.bin
+	$(CD) $(KERNELPATH) && $(DELET) *.ao
 	$(CD) $(KERNELPATH) && $(DELET) *.co
 	$(CD) $(KERNELPATH) && $(DELET) *.s
 	$(CD) $(LIB) && $(DELET) *.ao
 	$(CD) $(LIB) && $(DELET) *.co
 	$(CD) $(LIB) && $(DELET) *.s
+
+logo:
+	@$(ECHO) .................
+	@$(ECHO) . ############# .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #   #####   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #########   # .
+	@$(ECHO) . ##  #       # .
+	@$(ECHO) . # # #       # .
+	@$(ECHO) . #  ##       # .
+	@$(ECHO) . ############# .
+	@$(ECHO) .................
+
 mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
@@ -85,5 +107,32 @@ run: build
 	$(TOOLPATH)qemu\qemu-system-i386 -m 32 -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
 
 system: $(OBJ_FILE)
+	@$(ECHO) --------------------------
+	@$(ECHO) --- link Pencil-kernel ---
+	@$(ECHO) --------------------------
+
 	$(LD) -b $(OBJ_FORMAT) -z muldefs -o $(KERNEL_OBJ_FILE) $(OBJ_FILE) -T kernel.lds
-	$(OBJCOPY) -I $(OBJ_FORMAT) -S -R ".eh_frame" -R ".comment" -O binary $(KERNEL) $(KERNEL_OBJ_FILE)
+	$(OBJCOPY) -I $(OBJ_FORMAT) -S -R ".eh_frame" -R ".comment" -O binary $(KERNEL_OBJ_FILE) $(KERNEL)
+	
+	@$(ECHO) .................
+	@$(ECHO) . ############# .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #           # .
+	@$(ECHO) . #   #####   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #   #   #   # .
+	@$(ECHO) . #########   # .
+	@$(ECHO) . ##  #       # .
+	@$(ECHO) . # # #       # .
+	@$(ECHO) . #  ##       # .
+	@$(ECHO) . ############# .
+	@$(ECHO) .................
+
+	@$(ECHO) --------------------------
+	@$(ECHO) --- Pencil-kernel      ---
+	@$(ECHO) --------------------------
+	@$(ECHO) version: $(K_VERSION)
+	@$(ECHO) $(COPYRIGHT)
+	@$(ECHO) --------------------------

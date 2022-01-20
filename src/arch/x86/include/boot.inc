@@ -1,0 +1,2 @@
+LoaderBaseAddress equ 0x700
+LoaderOffsetAddress equ 0x500
