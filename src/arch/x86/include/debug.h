@@ -4,7 +4,7 @@
 #ifndef __DEBUG_H_
 #define __DEBUG_H_
 
-void panic_spin(const char* file,int line,conat char* func,const char* condition);
+void panic_spin(const char* file,int line,const char* func,const char* condition);
 
 #ifndef NDEBUG
     #define PANIC(...) panic_spin(__FILE__,__LINE__,__func__,_VA_ARGS__)
