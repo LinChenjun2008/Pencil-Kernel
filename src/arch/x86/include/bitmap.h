@@ -11,7 +11,7 @@
 
 struct bitmap
 {
-    uint32_t bitmap_bytes_len;
+    uint32_t btmp_bytes_len;
     uint8_t* map;
 };
 
