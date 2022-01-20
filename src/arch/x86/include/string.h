@@ -1,6 +1,8 @@
 #ifndef __STRING_H_
 #define __STRING_H_
 
+#include "stdint.h"
+
 void memset(void* dst__,uint8_t value,uint32_t size);
 void memcpy(void* dst__,const void* src__,uint32_t size);
 int32_t memcmp(const void* p1__,void* p2__,uint32_t size);
