@@ -1,4 +1,6 @@
 #include "bitmap.h"
+#include "debug.h"
+#include "string.h"
 #include "stdint.h"
 #include "global.h"
 
@@ -23,7 +25,7 @@ bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_index)
 {
     uint32_t byte_index = bit_index / 8;
     uint32_t bit_odd = bit_index % 8;
-    return (btmp->map[byte_index] & (BITMAP_MAST << bit_odd));
+    return (btmp->map[byte_index] & (BITMAP_MASK << bit_odd));
 }
 
 /* bitmap_alloc
@@ -37,7 +39,7 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
 {
     uint32_t byte_index = 0;
     /* 寻找第一个空的bit所在位 */
-    while((btmp->map[byte_index] == 0xff) && (byte_index < (bitmp->btmp_bytes_len)))
+    while((btmp->map[byte_index] == 0xff) && (byte_index < (btmp->btmp_bytes_len)))
     {
         byte_index++;
     }
@@ -94,7 +96,7 @@ signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt)
 * bit_index :要设置的位的下标
 * value     :设置值
 */
-void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint32_t value)
+void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint8_t value)
 {
     ASSRET(value == 0 || value == 1)
     uint32_t byte_index = bit_index / 8;
