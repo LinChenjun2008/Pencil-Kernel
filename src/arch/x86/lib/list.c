@@ -1,5 +1,5 @@
 #include "list.h"
-
+#include "global.h"
 /* list_init
 * 初始化链表
 * L :链表指针
@@ -18,7 +18,7 @@ void list_init(struct list* L)
 * elem      :链表节点指针
 * in_before :elem要插入的位置后一个元素
 */
-void list_in(struct lise_elem* elem,struct list_elem* in_before)
+void list_in(struct list_elem* elem,struct list_elem* in_before)
 {
     elem->prev = in_before->prev;
     elem->next = in_before;
@@ -74,7 +74,7 @@ struct list_elem* list_remove(struct list_elem* elem)
 */
 struct list_elem* list_pop(struct list* L)
 {
-    return list_remov((L->head).next);
+    return list_remove((L->head).next);
 }
 
 /* list_find
