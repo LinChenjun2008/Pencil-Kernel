@@ -7,7 +7,7 @@
 void panic_spin(const char* file,int line,const char* func,const char* condition);
 
 #ifndef NDEBUG
-    #define PANIC(...) panic_spin(__FILE__,__LINE__,__func__,_VA_ARGS__)
+    #define PANIC(...) panic_spin(__FILE__,__LINE__,__func__,__VA_ARGS__)
     #define ASSRET(CONDITION)          \
                 if(CONDITION)          \
                 {                      \
