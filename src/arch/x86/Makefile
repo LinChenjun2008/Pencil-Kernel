@@ -27,7 +27,7 @@ OBJ_FILE := $(KERNELPATH)start.ao $(KERNELPATH)main.co $(LIBS)
 KERNEL_OBJ_FILE := $(BUILD_DIR)/kernel.o
 KERNEL := $(BUILD_DIR)/kernel.bin
 #file
-v_disk := a.vhd
+v_disk := a.img
 
 #other
 OBJ_FORMAT := elf32-i386
@@ -75,9 +75,9 @@ build: all system
 	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=200 seek=2 conv=notrunc
 
 clean:
-	$(DELET) *.bin
-	$(DELET) *.o
 	$(CD) $(BOOTPATH) && $(DELET) *.bin
+	$(CD) $(BUILD_DIR) && $(DELET) *.bin
+	$(CD) $(BUILD_DIR) && $(DELET) *.o
 	$(CD) $(KERNELPATH) && $(DELET) *.ao
 	$(CD) $(KERNELPATH) && $(DELET) *.co
 	$(CD) $(KERNELPATH) && $(DELET) *.s
