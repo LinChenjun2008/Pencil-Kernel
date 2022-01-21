@@ -7,7 +7,7 @@ PencilKernel
 `PencilKernel`被设计为一个跨平台内核,
 当前支持平台:`x86` <br/>
 将来会支持的平台:`x64` <br/>
-制作人员:Lin Chenjun<br/>
+制作人员:Lin-2008<br/>
 ***
 ### 文件结构
 ```
@@ -35,4 +35,4 @@ tools:开发工具
 网站: https://pencil.cnurl.tk<br/>
 E-mail: zpojia@hotmail.com
 ***
-&copy; 2021-2022 Lin Chenjun
+&copy; 2021-2022 Lin-2008
