@@ -13,6 +13,7 @@ OBJCOPY :=$(TOOLPATH)objcopy
 
 #src path
 BOOTPATH := boot/
+BUILD_DIR := build
 INCLUDE := include/
 KERNELPATH := kernel/
 LIB := lib/
@@ -23,8 +24,8 @@ LOADER := $(BOOTPATH)loader.bin
 #obj
 LIBS := $(LIB)bitmap.co $(KERNELPATH)debug.co $(LIB)list.co $(LIB)string.co 
 OBJ_FILE := $(KERNELPATH)start.ao $(KERNELPATH)main.co $(LIBS)
-KERNEL_OBJ_FILE := kernel.o
-KERNEL := kernel.bin
+KERNEL_OBJ_FILE := $(BUILD_DIR)/kernel.o
+KERNEL := $(BUILD_DIR)/kernel.bin
 #file
 v_disk := a.vhd
 
@@ -37,6 +38,7 @@ COPY := copy
 CD := cd
 DELET := del
 ECHO := echo
+MAKE_DIR := md
 #.asm to .bin
 %.bin: %.asm
 	@$(ECHO) -----------
@@ -60,11 +62,12 @@ ECHO := echo
 
 #command:
 #all: make all
+#mkdir: make build/ dir
 #mkvhd: make a virtual disk
 #build: compile all file
 #run: start qenu
 #clean: delet all obj file
-.PHONY: all build clean logo mkvhd run system
+.PHONY: all build clean logo mkdir mkvhd run system
 all: $(BOOT) $(LOADER) $(OBJ_FILE)
 
 build: all system
@@ -99,6 +102,10 @@ logo:
 	@$(ECHO) . ############# .
 	@$(ECHO) .................
 
+mkdir:
+#	if [[ ! -d $(BUILD_DIR) ]];then $(MAKE_DIR) $(BUILD_DIR);fi
+	-$(MAKE_DIR) $(BUILD_DIR)
+
 mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
@@ -106,7 +113,7 @@ run: build
 	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
 	$(TOOLPATH)qemu\qemu-system-i386 -m 32 -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
 
-system: $(OBJ_FILE)
+system: mkdir $(OBJ_FILE)
 	@$(ECHO) --------------------------
 	@$(ECHO) --- link Pencil-kernel ---
 	@$(ECHO) --------------------------
