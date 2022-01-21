@@ -1,5 +1,4 @@
 ;boot.asm
-
 org 0x7c00
 [bits 16]
 %include "boot.inc"
@@ -25,7 +24,7 @@ mov dx,0x184f
 int 0x10
 
 mov bp,bootmsg
-mov cx,11;11个字符
+mov cx,8;8个字符
 mov ax,0x1301
 mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
@@ -36,6 +35,7 @@ Loadfile:
 mov eax,0x02 ;第2扇区(LBA)
 mov bx,LoaderBaseAddress ;读取到内存0x700地址处
 mov cx,10 ;读取的扇区数
+;jmp rd
 call ReadSector
 ;call rd_disk_m_16
 
@@ -46,8 +46,7 @@ mov bx,0x0007;第0页,黑底白字
 mov dx,0x0100;行,列
 int 0x10
 
-jmp LoaderBaseAddress:LoaderOffsetAddress
-
+jmp LoaderBaseAddress+LoaderOffsetAddress
 
 ReadSector:
 
@@ -75,15 +74,15 @@ ReadSector:
     ret
     .error:
     mov bp,errmsg
-    mov cx,5;5个字符
+    mov cx,32;32个字符
     mov ax,0x1301
     mov bx,0x008c;第0页,黑底红字闪烁
     mov dx,0x0100;行,列
     int 0x10
     jmp Loadfile
 
-    bootmsg db "Starting..."
+    bootmsg db "Starting"
     loaderstartmsg db "Go to Loader.bin"
-    errmsg db "Error"
+    errmsg db "Start Error: can't load 'LOADER'"
 times 510 -($ - $$) db 0x00
 db 0x55,0xaa
