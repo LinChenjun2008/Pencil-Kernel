@@ -31,23 +31,29 @@ mov dx,0x0000;行,列
 int 0x10
 
 Loadfile:
-;加载loader
-mov eax,0x02 ;第2扇区(LBA)
-mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-mov cx,10 ;读取的扇区数
-;jmp rd
-call ReadSector
-;call rd_disk_m_16
+    ;加载loader
+    mov eax,0x02 ;第2扇区(LBA)
+    mov bx,LoaderBaseAddress ;读取到内存0x700地址处
+    mov cx,10 ;读取的扇区数
+    call ReadSector
+    
+    ;读取结束后显示一条信息,代表将要执行loader
+    mov bp,loaderstartmsg
+    mov cx,16;16个字符
+    mov ax,0x1301
+    mov bx,0x0007;第0页,黑底白字
+    mov dx,0x0100;行,列
+    int 0x10
+    ;跳转到loader,boot到此结束
+    jmp LoaderBaseAddress+LoaderOffsetAddress
 
-mov bp,loaderstartmsg
-mov cx,16;16个字符
-mov ax,0x1301
-mov bx,0x0007;第0页,黑底白字
-mov dx,0x0100;行,列
-int 0x10
-
-jmp LoaderBaseAddress+LoaderOffsetAddress
-
+;函数ReadSecror
+;功能:读取磁盘
+;参数:
+;eax   :扇区号
+;cx    :要读取的扇区数
+;es:bx :读取到的数据存放处
+;dx    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
 ReadSector:
 
                    ;int 0x13 ax=0x42:扩展硬盘读取功能
@@ -65,8 +71,8 @@ ReadSector:
                    ;为int 0x13准备参数
     mov  ah,0x42   ;代表读
                    ;dx为驱动器号,0x00为第一个软盘,0x80为主硬盘驱动器
-                   ;不必担心是否是主硬盘,mbr所在的磁盘默认为是主硬盘
-    mov  dl,0x00   ;驱动器号
+                   ;不必担心是否是主硬盘/软盘,mbr所在的磁盘默认为是主硬盘/软盘
+    mov  dx,0x0000 ;驱动器号
     mov  si,sp
     int 0x13
     jc .error
