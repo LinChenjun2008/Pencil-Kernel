@@ -35,28 +35,29 @@ total_memory_bytes dq 0 ;内存大小(单位:字节)
 ards_buf times 240 db 0
 ards_nr dw 0
 
-loadmsg db "Loader..."
+LoadStartMsg db "Loader"
+MemErrMsg db "Get total memory bytes error!"
 
 times (0x500 - ($ - $$)) db 0;对齐到文件起始0x500处
 
 ;loader从此处开始执行
 start:
 
-mov bp,loadmsg
-mov cx,9;9个字符
-mov ax,0x1301
-mov bx,0x0007;第0页,黑底白字
-mov dx,0x0200;行,列
-int 0x10
+    mov bp,LoadStartMsg
+    mov cx,6;6个字符
+    mov ax,0x1301
+    mov bx,0x0007;第0页,黑底白字
+    mov dx,0x0200;2行,0列
+    int 0x10
 
 
-; int 0x15 eax=0xe820 edx=0x534d4150:获取内存布局
-    xor ebx,ebx       ;将ebx清零
-    mov edx,0x534d4150;edx = "SMAP"
+    ; int 0x15 eax=0xe820 edx=0x534d4150:获取内存布局
+    xor ebx,ebx            ;将ebx清零
+    mov edx,0x534d4150     ;edx = "SMAP"
     mov di,ards_buf
     .e820_memory_get_loop:
-        mov ax,0xe820 ;int 0x15子功能号e820
-        mov ecx,20    ;ards结构大小是20字节
+        mov ax,0xe820      ;int 0x15子功能号e820
+        mov ecx,20         ;ards结构大小是20字节
         int 0x15
         jc .try_e801       ;cf为1表示有错误,尝试e801模式
         add di,cx          ;使di指向下一个ards结构
@@ -78,17 +79,17 @@ int 0x10
         loop .find_max_memory
         jmp memory_get_success
 
-;int 0x15 ax=0xe801:获取内存布局,最大4GB
-;返回值:
-;ax == cx,以KB为单位
-;bx == dx,以64kb为单位
+    ;int 0x15 ax=0xe801:获取内存布局,最大4GB
+    ;返回值:
+    ;ax == cx,以KB为单位
+    ;bx == dx,以64kb为单位
     .try_e801:
         mov ax,0xe801
         int 0x15
-        jc .try_88 ;有错误,尝试0x88功能
-        ;把以KB为单位的低15MB内存的容量转换为以字节为单位
+        jc .try_88    ;有错误,尝试0x88功能
+                      ;把以KB为单位的低15MB内存的容量转换为以字节为单位
         mov cx,0x400
-        mul cx ;ax*cx,结果是以字节为单位的内存容量
+        mul cx        ;ax*cx,结果是以字节为单位的内存容量
         shl edx,16
         and eax,0x0000ffff
         or edx,eax
@@ -103,9 +104,9 @@ int 0x10
         mov edx,esi
         jmp memory_get_success
 
-;int 0x15 ah=0x88 :获取内存容量,只能获取64MB以内
-;返回值:
-;ax:以MB为单位的内存容量
+    ;int 0x15 ah=0x88 :获取内存容量,只能获取64MB以内
+    ;返回值:
+    ;ax:以MB为单位的内存容量
     .try_88:
         mov ah,0x88
         int 0x15
@@ -115,11 +116,19 @@ int 0x10
         mul cx
         shl edx,16
         or edx,eax
-        add edx,0x100000;加上1MB,是实际内存容量
+        add edx,0x100000     ;加上1MB,是实际内存容量
         jmp memory_get_success
         .get_memory_error:
+            mov bp,MemErrMsg
+            mov cx,0x1d;29个字符
+            mov ax,0x1301
+            mov bx,0x0007;第0页,黑底白字
+            mov dx,0x0200;2行,0列
+            int 0x10
+
             hlt                   ;让CPU休眠
             jmp .get_memory_error ;在此处死循环,停止启动
     memory_get_success:
-        mov dword [total_memory_bytes],edx
+        mov dword [total_memory_bytes],edx ;保存内存容量
+    ;下一步:加载内核
         jmp $
