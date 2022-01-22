@@ -14,13 +14,23 @@
 /* 看了一下Linux的ext文件系统,感觉比EPFS更好一些
 * 就想根据ext文件系统来改进EPFS
 * 改进后大概有以下结构:
-* Magic          :用于识别文件系统
-* StartSec       :分区起始扇区
-* TotSec         :用于记录总扇区数
-* BytesPerSector :每扇区字节数(应该都是512吧?)
-* InodeCnt       :inode数量
-* InodeStartSec  :inode起始扇区
-* InodeSectors   :inode占用扇区数
+
+* 基本信息
+* Magic               :用于识别文件系统
+* StartSec            :分区起始扇区
+* TotSec              :用于记录总扇区数
+* BytesPerSector      :每扇区字节数(应该都是512吧?)
+
+* inode信息
+* InodeCnt            :inode数量
+* InodeStartSec       :inode起始扇区
+* InodeSectors        :inode占用扇区数
+
+* bitmap
+* BlockBitmapStartSec :用于记录块使用信息的bitmap
+* BlockBitmapSectors  :块bitmap占用的扇区数
+* InodeBitmapStartSec :用于记录inode使用情况的bitmap
+* InodeBitmapSectors  :inode bitmap占用的扇区数
 */
 struct index_block
 {
