@@ -18,20 +18,25 @@
 * 基本信息
 * Magic               :用于识别文件系统
 * StartSec            :分区起始扇区
-* TotSec              :用于记录总扇区数
+* TotSec              :用于记录分区总扇区数
 * BytesPerSector      :每扇区字节数(应该都是512吧?)
 
 * inode信息
 * InodeCnt            :inode数量
 * InodeStartSec       :inode起始扇区
 * InodeSectors        :inode占用扇区数
+* RootDirInodeNo      :根目录的inode编号
 
 * bitmap
 * BlockBitmapStartSec :用于记录块使用信息的bitmap
 * BlockBitmapSectors  :块bitmap占用的扇区数
 * InodeBitmapStartSec :用于记录inode使用情况的bitmap
 * InodeBitmapSectors  :inode bitmap占用的扇区数
+
+* 数据区
+* DataStartSec        :数据区起始扇区
 */
+
 struct index_block
 {
     uint8_t Magic[8];                          //  8B 文件系统名称
