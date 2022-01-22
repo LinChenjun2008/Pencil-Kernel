@@ -16,7 +16,7 @@
 * 改进后大概有以下结构:
 * Magic          :用于识别文件系统
 * TotSec         :用于记录总扇区数
-* BytesPerSector :每扇区字节数
+* BytesPerSector :每扇区字节数(应该都是512吧?)
 */
 struct index_block
 {
