@@ -11,12 +11,20 @@
     #define PACKED __attribute__((packed))
 #endif /* PACKED */
 
+/* 看了一下Linux的ext文件系统,感觉比EPFS更好一些
+* 就想根据ext文件系统来改进EPFS
+* 改进后大概有以下结构:
+* Magic          :用于识别文件系统
+* TotSec         :用于记录总扇区数
+* BytesPerSector :每扇区字节数
+*/
 struct index_block
 {
-    uint8_t JmpCmd[5];                         //  5B 跳转到引导程序的指令
-    uint8_t magic[8];                          //  8B 文件系统名称
+    uint8_t Magic[8];                          //  8B 文件系统名称
     uint32_t TotSec;                           //  4B 总扇区数
     uint32_t BytesPerSector;                   //  4B 每扇区大小(byte)
+    uint32_t InodeStartSec;
+    uint32_t InodeSectors;
     uint32_t BitmapStartSec;                   //  4B bitmap的起始扇区
     uint32_t BitmapSectors;                    //  4B bitmap占用的扇区数
     uint32_t DataStartSec;                     //  4B 数据区起始扇区
