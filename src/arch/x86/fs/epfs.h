@@ -59,6 +59,7 @@ struct index_block
 
     /* 数据区 */
     uint32_t DataStartSec;        /* 数据区起始扇区 */
+    uint8_t pad[512 - (8 + 4*12)];/* 凑满512字节 */
 }PACKED;//512B
 
 struct file_desc
