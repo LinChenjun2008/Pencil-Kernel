@@ -65,10 +65,11 @@ Loadfile:
         mov  dx,0x0000 ;驱动器号
         mov  si,sp     ;
         int 0x13       ;调用拓展硬盘读取功能
-        jc error      ;读取错误
+        jc load_error  ;读取错误
         add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
         jmp load_success
-        error:
+        load_error:
+            add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
             mov bp,errmsg
             mov cx,32;32个字符
             mov ax,0x1301
