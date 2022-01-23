@@ -27,7 +27,7 @@ tools:开发工具(windows系统中)
 - [ ] 实现微内核
 ### 更多
 [[关于]](doc/about/dir.md)<br/>
-[[Q & A]](doc/Q&A.md)<br/>
+[[~~Q & A~~]](doc/Q&A.md)<br/>
 ***
 ### 联系方式
 网站: https://pencil.cnurl.tk<br/>
