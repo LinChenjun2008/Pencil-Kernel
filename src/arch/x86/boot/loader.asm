@@ -5,7 +5,8 @@
 org LoaderBaseAddress
 [bits 16]
 
-%include "protect.inc"
+%include "protect.inc" ;保护模式相关(GDT等)
+%include "page.inc"    ;分页机制相关
 
 GDT_BASE: SEGMDESC 0,0,0
 SectionCode32:     SEGMDESC 0x00000000,0xfffff,AR_CODE32 ;32位代码段
@@ -128,5 +129,14 @@ start:
             jmp $        ;在此处死循环,停止启动
     memory_get_success:
         mov dword [total_memory_bytes],edx ;保存内存容量
+
     ;下一步:加载内核
+    ;内核要加载到1MB内存处
+    ;因为要在实模式下用int 0x13读取磁盘,
+    ;而实模式不能直接访问1MB以上内存.
+    ;所以要进入Unreal Mode在实模式下访问1MB以上内存空间
+    ;和正常进入保护模式的过程差不多,只是要让段寄存器缓存保护模式的描述符
+    ;就能在实模式下访问1MB以上内存空间了
+    ;基本过程:
+    ;打开a20地址线 -> 加载GDT -> 向短寄存器加载段描述符 -> 退出保护模式
         jmp $
