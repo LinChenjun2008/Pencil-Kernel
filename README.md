@@ -25,6 +25,7 @@ tools:开发工具(windows系统中)
 - [ ] 在文件系统中加载loader和内核
 - [ ] 在物理电脑上运行
 - [ ] 实现微内核
+~~ -[ ] 比肩Linux ~~
 ### 更多
 [[关于]](doc/about/dir.md)<br/>
 [[~~Q & A~~]](doc/Q&A.md)<br/>
