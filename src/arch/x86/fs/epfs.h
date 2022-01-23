@@ -72,7 +72,7 @@ struct index_block
 * time   :最后一次写入的时间(距离当天早上00:00的秒数)
 * index  :文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号)
 */
-struct file_desc
+struct inode
 {
     uint32_t i_no;      /* i节点编号,就是在inode数组的下标 */
     uint16_t owner;     /* 文件所有者 */
