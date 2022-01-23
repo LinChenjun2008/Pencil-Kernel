@@ -4,14 +4,17 @@ org 0x7c00
 %include "boot.inc"
 ;%include "epfs.inc"
 
+;初始化寄存器
 mov ax,cs
 mov ds,ax
 mov es,ax
 mov ss,ax
 mov fs,ax
 
+;栈指针寄存器初始化为0x7c00
 mov sp,0x7c00
 
+;向gs段寄存器写入0xb800(显存)
 mov ax,0xb800
 mov gs,ax
 
@@ -23,6 +26,7 @@ mov cx,0
 mov dx,0x184f
 int 0x10
 
+;显示一条信息
 mov bp,bootmsg
 mov cx,8;8个字符
 mov ax,0x1301
