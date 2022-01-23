@@ -67,17 +67,19 @@ struct index_block
 * owner  :文件所有者
 * f_type :文件类型(普通文件还是目录)
 * year   :最后一次写入的年份
-* month  :最后一次写入的月份
-* day    :最后一次写入的天
+* date   :最后一次写入的日期(高4位是月份,低4位是天)
 * time   :最后一次写入的时间(距离当天早上00:00的秒数)
 * index  :文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号)
 */
 struct file_desc
 {
-    uint32_t i_no   /* i节点编号,就是在inode数组的下标 */
-    uint16_t owner  /* 文件所有者 */
-    uint8_t f_type  /* 文件类型(普通文件还是目录) */
-    uint32_t index[]  :文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号)
+    uint32_t i_no;   /* i节点编号,就是在inode数组的下标 */
+    uint16_t owner;  /* 文件所有者 */
+    uint8_t f_type   /* 文件类型(普通文件还是目录) */
+    uint16_t year;   /* 最后一次写入的年份 */
+    uint8_t date;    /* 最后一次写入的日期(高4位是月份,低4位是天) */
+    uint16_t time;   /* 最后一次写入的时间(距离当天早上00:00的秒数) */
+    uint32_t index[] /* 文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号) */
 }PACKED;//64B
 
 struct index_block
