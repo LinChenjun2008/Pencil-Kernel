@@ -42,7 +42,7 @@ times (0x500 - ($ - $$)) db 0;对齐到文件起始0x500处
 
 ;loader从此处开始执行
 start:
-
+    ;显示一条信息,证明loader在执行
     mov bp,LoadStartMsg
     mov cx,6;6个字符
     mov ax,0x1301
@@ -88,7 +88,7 @@ start:
         int 0x15
         jc .try_88    ;有错误,尝试0x88功能
                       ;把以KB为单位的低15MB内存的容量转换为以字节为单位
-        mov cx,0x400
+        mov cx,0x400  ;ax和cx是一样的,所以用cx做乘数与ax相乘
         mul cx        ;ax*cx,结果是以字节为单位的内存容量
         shl edx,16
         and eax,0x0000ffff
@@ -122,12 +122,10 @@ start:
             mov bp,MemErrMsg
             mov cx,0x1d;29个字符
             mov ax,0x1301
-            mov bx,0x0007;第0页,黑底白字
+            mov bx,0x0084;第0页,黑底红字闪烁
             mov dx,0x0200;2行,0列
             int 0x10
-
-            hlt                   ;让CPU休眠
-            jmp .get_memory_error ;在此处死循环,停止启动
+            jmp $        ;在此处死循环,停止启动
     memory_get_success:
         mov dword [total_memory_bytes],edx ;保存内存容量
     ;下一步:加载内核
