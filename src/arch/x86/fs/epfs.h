@@ -6,7 +6,7 @@
 
 #include "stdint.h"
 
-//packed属性:不对数据进行对齐,确保结构体大小
+/* packed属性:不对数据进行对齐,确保结构体大小 */
 #ifndef PACKED
     #define PACKED __attribute__((packed))
 #endif /* PACKED */
@@ -60,7 +60,7 @@ struct index_block
     /* 数据区 */
     uint32_t DataStartSec;        /* 数据区起始扇区 */
     uint8_t pad[512 - (8 + 4*12)];/* 凑满512字节 */
-}PACKED;//512B
+}PACKED;/* 大小要刚好512字节(一扇区) */
 
 /* inode结构 
 * i_no   :i节点编号,就是在inode数组的下标
@@ -79,8 +79,8 @@ struct file_desc
     uint16_t year;   /* 最后一次写入的年份 */
     uint8_t date;    /* 最后一次写入的日期(高4位是月份,低4位是天) */
     uint16_t time;   /* 最后一次写入的时间(距离当天早上00:00的秒数) */
-    uint32_t index[] /* 文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号) */
-}PACKED;//64B
+    uint32_t index[20] /* 文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号) */
+}PACKED;/* 一个inode刚好32字节,一个扇区放16个inode */
 
 struct index_block
 {
