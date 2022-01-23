@@ -27,7 +27,7 @@ SelectorColorVideo equ (((SectionColorVideo-GDT_BASE)/8) | TI_GDT | RPL0)
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
 
-times (0x300 - ($ - $$)) db 0
+times (0x2ff - ($ - $$)) db 0
 
 ;&total_memory_bytes = LoaderBaseAddress+0x300
 total_memory_bytes dq 0 ;内存大小(单位:字节)
@@ -38,7 +38,7 @@ ards_nr dw 0
 LoadStartMsg db "Loader"
 MemErrMsg db "Get total memory bytes error!"
 
-times (0x500 - ($ - $$)) db 0;对齐到文件起始0x500处
+times (0x4ff - ($ - $$)) db 0;将start对齐到文件起始0x500处
 
 ;loader从此处开始执行
 start:
