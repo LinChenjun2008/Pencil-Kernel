@@ -62,6 +62,11 @@ struct index_block
     uint8_t pad[512 - (8 + 4*12)];/* 凑满512字节 */
 }PACKED;//512B
 
+/* inode结构 
+* i_no :i节点编号,就是在inode数组的下标
+* owner:文件所有者
+* 
+*/
 struct file_desc
 {
     char name[15];     //15B 文件名12B + 拓展名3B
