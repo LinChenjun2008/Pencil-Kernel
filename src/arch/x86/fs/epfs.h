@@ -63,16 +63,21 @@ struct index_block
 }PACKED;//512B
 
 /* inode结构 
-* i_no :i节点编号,就是在inode数组的下标
-* owner:文件所有者
-* 
+* i_no   :i节点编号,就是在inode数组的下标
+* owner  :文件所有者
+* f_type :文件类型(普通文件还是目录)
+* year   :最后一次写入的年份
+* month  :最后一次写入的月份
+* day    :最后一次写入的天
+* time   :最后一次写入的时间(距离当天早上00:00的秒数)
+* index  :文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号)
 */
 struct file_desc
 {
-    char name[15];     //15B 文件名12B + 拓展名3B
-    uint8_t f_type;    // 1B 文件类型
-    uint32_t f_size;   // 4B 文件大小
-    uint32_t index[11];//44B 文件索引. [0~7]直接索引块 [8]:一级间接索引块 [9]:二级间接索引块 [10]:三级间接索引块
+    uint32_t i_no   /* i节点编号,就是在inode数组的下标 */
+    uint16_t owner  /* 文件所有者 */
+    uint8_t f_type  /* 文件类型(普通文件还是目录) */
+    uint32_t index[]  :文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号)
 }PACKED;//64B
 
 struct index_block
