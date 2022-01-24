@@ -35,8 +35,6 @@ int 0x10
 
 Loadfile:
     ;加载loader
-    mov ax,0x00
-    mov es,ax
     mov eax,0x02 ;第2扇区(LBA)
     mov bx,LoaderBaseAddress ;读取到内存0x700地址处
     mov cx,5 ;读取的扇区数
@@ -47,7 +45,6 @@ Loadfile:
     ;es:bx :读取到的数据存放处
     ;dx    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
     ReadSector:
-
                        ;int 0x13 ax=0x42:扩展硬盘读取功能
                        ;eax:扇区号
                        ;cx:扇区数
@@ -64,30 +61,19 @@ Loadfile:
         mov  ah,0x42   ;代表读
                        ;dx为驱动器号,0x00为第一个软盘,0x80为主硬盘驱动器
                        ;不必担心是否是主硬盘/软盘,mbr所在的磁盘默认为是主硬盘/软盘
-        mov  dl,0x00 ;驱动器号
-        mov  si,sp     ;
+        mov  dl,0x00   ;驱动器号
+        mov  si,sp     ;DS:SI是硬盘地址包
         int 0x13       ;调用扩展硬盘读取功能
         jc load_error  ;读取错误
         add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
         jmp load_success
         load_error:    ;读取失败
             add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
-
-            push ax
-            push bx
-            mov ah,0x0e
+            ;显示一个'.',代表错误了一次.如果一直错误就满屏都是"........"
+            mov ah,0x04
             mov al,'.'
             mov bx,0x0f
             int 0x10
-            pop bx
-            pop ax
-
-            ; mov bp,errmsg
-            ; mov cx,32;32个字符
-            ; mov ax,0x1301
-            ; mov bx,0x008c;第0页,黑底红字闪烁
-            ; mov dx,0x0100;行,列
-            ; int 0x10
             jmp Loadfile ;重新读取,直到成功
     load_success:
         ;读取结束后显示一条信息,代表将要执行loader
@@ -103,7 +89,6 @@ Loadfile:
 ;其他数据
 bootmsg db "Starting"
 loaderstartmsg db "Go to Loader.bin"
-errmsg db "Start Error: can't load 'LOADER'"
 
 times 510 -($ - $$) db 0x00
 db 0x55,0xaa
