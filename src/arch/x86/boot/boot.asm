@@ -70,9 +70,9 @@ Loadfile:
         load_error:    ;读取失败
             add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
             ;显示一个'.',代表错误了一次.如果一直错误就满屏都是"........"
-            mov ah,0x04
+            mov ah,0x0e
             mov al,'.'
-            mov bx,0x0f
+            mov bx,0x0c
             int 0x10
             jmp Loadfile ;重新读取,直到成功
     load_success:
