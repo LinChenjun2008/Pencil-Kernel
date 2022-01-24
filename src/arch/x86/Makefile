@@ -62,16 +62,18 @@ MAKE_DIR := md
 
 #command:
 #all: make all
-#mkdir: make build/ dir
-#mkvhd: make a virtual disk
 #build: compile all file
-#run: start qenu
 #clean: delet all obj file
-.PHONY: all build clean logo mkdir mkvhd run system
+#debug: debug kernel
+#mkdir: make build/ dir
+#mkvd: make a virtual disk
+#run: start qenu
+
+.PHONY: all build clean debug logo mkdir mkvd run system
 all: $(BOOT) $(LOADER) $(OBJ_FILE)
 
-build: all system
-	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 conv=notrunc
+build: all system mkvd
+	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
 	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=200 seek=2 conv=notrunc
 
 clean:
@@ -84,6 +86,10 @@ clean:
 	$(CD) $(LIB) && $(DELET) *.ao
 	$(CD) $(LIB) && $(DELET) *.co
 	$(CD) $(LIB) && $(DELET) *.s
+	$(DELET) $(v_disk)
+
+debug: build
+	$(TOOLPATH)qemu\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
 
 logo:
 	@$(ECHO) .................
@@ -110,8 +116,7 @@ mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
 run: build
-	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
-	$(TOOLPATH)qemu\qemu-system-i386 -m 32 -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
+	$(TOOLPATH)qemu\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
 
 system: mkdir $(OBJ_FILE)
 	@$(ECHO) --------------------------

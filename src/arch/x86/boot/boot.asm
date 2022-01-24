@@ -31,13 +31,15 @@ mov cx,8;8个字符
 mov ax,0x1301
 mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
-int 0x10;
+int 0x10
 
 Loadfile:
     ;加载loader
+    mov ax,0x00
+    mov es,ax
     mov eax,0x02 ;第2扇区(LBA)
     mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-    mov cx,10 ;读取的扇区数
+    mov cx,5 ;读取的扇区数
     ;ReadSector:读取磁盘
     ;参数:
     ;eax   :扇区号
@@ -59,10 +61,10 @@ Loadfile:
         push word  cx  ;传输的扇区数
         push word  0x10;偏移0x00 和 偏移0x01:硬盘地址包大小:0x10,保留值0
                        ;为int 0x13准备参数
-        mov  ax,0x42   ;代表读
+        mov  ah,0x42   ;代表读
                        ;dx为驱动器号,0x00为第一个软盘,0x80为主硬盘驱动器
                        ;不必担心是否是主硬盘/软盘,mbr所在的磁盘默认为是主硬盘/软盘
-        mov  dx,0x0000 ;驱动器号
+        mov  dl,0x00 ;驱动器号
         mov  si,sp     ;
         int 0x13       ;调用扩展硬盘读取功能
         jc load_error  ;读取错误
@@ -70,14 +72,23 @@ Loadfile:
         jmp load_success
         load_error:    ;读取失败
             add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
-            mov bp,errmsg
-            mov cx,32;32个字符
-            mov ax,0x1301
-            mov bx,0x008c;第0页,黑底红字闪烁
-            mov dx,0x0100;行,列
+
+            push ax
+            push bx
+            mov ah,0x0e
+            mov al,'.'
+            mov bx,0x0f
             int 0x10
+            pop bx
+            pop ax
+
+            ; mov bp,errmsg
+            ; mov cx,32;32个字符
+            ; mov ax,0x1301
+            ; mov bx,0x008c;第0页,黑底红字闪烁
+            ; mov dx,0x0100;行,列
+            ; int 0x10
             jmp Loadfile ;重新读取,直到成功
-    
     load_success:
         ;读取结束后显示一条信息,代表将要执行loader
         mov bp,loaderstartmsg
