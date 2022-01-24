@@ -33,6 +33,7 @@ mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
 int 0x10
 
+
 Loadfile:
     ;加载loader
     mov eax,0x02 ;第2扇区(LBA)
@@ -68,7 +69,7 @@ Loadfile:
         jc load_error  ;读取错误
         add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
         jmp load_success
-        load_error:
+        load_error:    ;读取失败
             add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
             mov bp,errmsg
             mov cx,32;32个字符
