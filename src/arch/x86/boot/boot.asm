@@ -32,7 +32,6 @@ mov ax,0x1301
 mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
 int 0x10
-mov ax,0
 
 Loadfile:
     ;加载loader
