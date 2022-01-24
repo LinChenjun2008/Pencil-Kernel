@@ -31,7 +31,7 @@ mov cx,8;8个字符
 mov ax,0x1301
 mov bx,0x0007;第0页,黑底白字
 mov dx,0x0000;行,列
-int 0x10
+int 0x10;
 
 Loadfile:
     ;加载loader
