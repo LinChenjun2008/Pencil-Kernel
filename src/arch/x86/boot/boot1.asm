@@ -1,6 +1,6 @@
 org 0x7c00
 
-RETRY_CNT equ 5
+RETRY_CNT equ 5 ;读取错误的话重试的次数
 SecPerCyc equ 18;每磁道扇区数
 
 ;将lba转换为CHS
@@ -98,7 +98,7 @@ Loadfile:
             int 0x10
             pop bx
             pop ax
-            add bx,0x0200 ;偏移地址加上512(一扇区)
+            add es,0x0020 ;基地址加上0x20,实际地址会加上0x200(一扇区)
             add cl,1      ;下一个扇区
             cmp cl,E_CHS_C
             jbe .readloop ;cl <= E_CHS_C时跳转到readloop
