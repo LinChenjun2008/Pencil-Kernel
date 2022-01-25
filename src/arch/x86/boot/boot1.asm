@@ -6,11 +6,11 @@ SecPerCyc equ 18;每磁道扇区数
 ;将lba转换为CHS
 ; S_CHS_C equ ((LoaderStartSec/SecPerCyc) >> 1);要读入的起始柱面号
 ; S_CHS_H equ ((LoaderStartSec/SecPerCyc) & 1) ;要读入的起始磁头号
-; S_CHS_S equ ((LoaderStartSec - (LoaderStartSec/SecPerCyc)) + 1);要读入的起始扇区号
+; S_CHS_S equ ((LoaderStartSec%SecPerCyc) + 1);要读入的起始扇区号
 
 ; E_CHS_C equ (((LoaderStartSec + LoaderSectors)/SecPerCyc) >> 1)
 ; E_CHS_H equ (((LoaderStartSec + LoaderSectors)/SecPerCyc) & 1)
-; E_CHS_S equ (((LoaderStartSec + LoaderSectors) - (LoaderStartSec/SecPerCyc)) + 1)
+; E_CHS_S equ (((LoaderStartSec + LoaderSectors)%SecPerCyc) + 1)
 S_CHS_C equ 0;要读入的起始柱面号
 S_CHS_H equ 0 ;要读入的起始磁头号
 S_CHS_S equ 3;要读入的起始扇区号
