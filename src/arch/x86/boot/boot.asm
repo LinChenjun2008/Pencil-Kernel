@@ -23,7 +23,7 @@ mov ax,0x600
 mov bx,0x700
 mov cx,0
 mov dx,0x184f
-int 0x10
+;int 0x10
 
 ;显示一条信息
 mov bp,bootmsg
@@ -37,7 +37,7 @@ Loadfile:
     ;加载loader
     mov eax,0x02 ;第2扇区(LBA)
     mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-    mov cx,5 ;读取的扇区数
+    mov cx,1 ;读取的扇区数
     ;ReadSector:读取磁盘
     ;参数:
     ;eax   :扇区号
@@ -45,7 +45,7 @@ Loadfile:
     ;es:bx :读取到的数据存放处
     ;dx    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
     ReadSector:
-                       ;int 0x13 ax=0x42:扩展硬盘读取功能
+                       ;int 0x13 ah=0x42:扩展硬盘读取功能
                        ;eax:扇区号
                        ;cx:扇区数
                        ;bx:传输缓冲区(偏移)

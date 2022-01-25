@@ -18,7 +18,7 @@ INCLUDE := include/
 KERNELPATH := kernel/
 LIB := lib/
 #exec
-BOOT := $(BOOTPATH)boot.bin
+BOOT := $(BOOTPATH)boot2.bin
 LOADER := $(BOOTPATH)loader.bin
 
 #obj
@@ -32,7 +32,7 @@ v_disk := a.img
 #other
 OBJ_FORMAT := elf32-i386
 K_VERSION := 0.0.0 test
-COPYRIGHT := copyright 2021-2022 Linchenjun, All right reserved.
+COPYRIGHT := copyright 2021-2022 LinChenjun, All right reserved.
 #command
 COPY := copy
 CD := cd
@@ -89,7 +89,7 @@ clean:
 	$(DELET) $(v_disk)
 
 debug: build
-	$(TOOLPATH)qemu\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
+	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
 
 logo:
 	@$(ECHO) .................
@@ -116,8 +116,9 @@ mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
 run: build
-	$(TOOLPATH)qemu\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
-
+#	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
+	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
+	$(MAKE) -r -C $(TOOLPATH)qemu
 system: mkdir $(OBJ_FILE)
 	@$(ECHO) --------------------------
 	@$(ECHO) --- link Pencil-kernel ---
