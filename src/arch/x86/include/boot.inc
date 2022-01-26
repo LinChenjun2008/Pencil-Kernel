@@ -16,9 +16,10 @@ DrvNum equ 0x00
 BaseOfBootStack equ 0x7c00  ;boot栈区起始地址
 
 LoaderStartSec equ 0x02       ;loader在2扇区(LBA)开始处
-LoaderSectors equ 5           ;loader占用5扇区
+LoaderSectors equ 7           ;loader占用7扇区
 LoaderBaseAddress equ 0x700   ;loader加载到0x700地址处
 LoaderOffsetAddress equ 0x500 ;loader前0x4ff字节是数据,代码正式开始是0x500字节
+LoaderStackTop equ 0x700
 
 KernelStartSec equ 0x09       ;Kernel在9扇区(LBA)开始处
 KernelSectors equ 200         ;Kernel占用200扇区

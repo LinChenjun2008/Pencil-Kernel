@@ -19,10 +19,16 @@ GDT_LIMIT equ GDT_SIZE - 1
 times 60 dq 0;预留60个描述符
 
 ;段选择子
-SelectorCode32     equ (((SectionCode32-GDT_BASE)/8) | TI_GDT | RPL0)
-SelectorData32     equ (((SectionData32-GDT_BASE)/8) | TI_GDT | RPL0)
-SelectorVideo      equ (((SectionVideo -GDT_BASE)/8) | TI_GDT | RPL0)
-SelectorColorVideo equ (((SectionColorVideo-GDT_BASE)/8) | TI_GDT | RPL0)
+; SelectorCode32     equ (((SectionCode32-GDT_BASE)/8) | TI_GDT | RPL0)
+; SelectorData32     equ (((SectionData32-GDT_BASE)/8) | TI_GDT | RPL0)
+; SelectorVideo      equ (((SectionVideo -GDT_BASE)/8) | TI_GDT | RPL0)
+; SelectorColorVideo equ (((SectionColorVideo-GDT_BASE)/8) | TI_GDT | RPL0)
+
+SelectorCode32     equ (0x0001 << 3 | TI_GDT | RPL0)
+SelectorData32     equ (0x0002 << 3 | TI_GDT | RPL0)
+SelectorVideo      equ (0x0003 << 3 | TI_GDT | RPL0)
+SelectorColorVideo equ (0x0004 << 3 | TI_GDT | RPL0)
+
 
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
@@ -46,7 +52,7 @@ LoadKernelSuccessMsg db "Load Kernel success!";20
 times (LoaderOffsetAddress - ($ - $$)) db 0;将start对齐到文件起始LoaderOffsetAddress处
 
 ;loader从此处开始执行
-start:
+Start:
     ;显示一条信息,证明loader在执行
     mov bp,LoadStartMsg
     mov cx,6;6个字符
@@ -141,50 +147,16 @@ start:
             mov dx,0x0300;3行,0列
             int 0x10
     LoadKernel:
-        ; ;下一步:加载内核
-        ; ;内核要加载到1MB内存处
-        ; ;因为要在实模式下用int 0x13读取磁盘,
-        ; ;而实模式不能直接访问1MB以上内存.
-        ; ;所以要进入Unreal Mode在实模式下访问1MB以上内存空间
-        ; ;和正常进入保护模式的过程差不多,只是要让段寄存器缓存保护模式的描述符
-        ; ;就能在实模式下访问1MB以上内存空间了
-        ; ;进入Unreal Mode的基本过程:
-        ; ;打开a20地址线 -> 加载GDT -> 向段寄存器加载段描述符 -> 退出保护模式
-        ; mov bp,LoadKernelMsg
-        ; mov cx,17;17个字符
-        ; mov ax,0x1301
-        ; mov bx,0x0007;第0页,黑底白字
-        ; mov dx,0x0400;4行,0列
-        ; int 0x10
-        ; ;1. 打开a20地址线
-        ; in al,0x92
-        ; or al,0x02
-        ; out 0x92,al
-
-        ; ;2. 加载GDT
-        ; cli ;关中断
-        ; db 0x66
-        ; lgdt [gdt_ptr]
-
-        ; ;3. cr0第0位置为1
-        ; mov eax,cr0
-        ; or eax,0x00000001
-        ; mov cr0,eax
-
-        ; ;4. 向段寄存器加载段描述符
-        ; mov ax,SelectorCode32
-        ; mov fs,ax
-
-        ; ;5. 退出保护模式
-        ; mov eax,cr0
-        ; and al,0xfe
-        ; mov cr0,eax
-
-        ; sti ;开中断
-        ; ; 读取Kernel,并把Kernel加载到1MB地址处
-        ; ;读取一扇区 -> 移动到1MB地址后 -> 再读一扇区 ...
-
-        ;注:内核目前在前1MB内存中.(详细信息看include/boot.inc)
+        ;下一步:加载内核
+        ;内核要加载到1MB内存处
+        ;因为要在实模式下用int 0x13读取磁盘,
+        ;而实模式不能直接访问1MB以上内存.
+        ;所以要进入Unreal Mode在实模式下访问1MB以上内存空间
+        ;和正常进入保护模式的过程差不多,只是要让段寄存器缓存保护模式的描述符
+        ;就能在实模式下访问1MB以上内存空间了
+        ;进入Unreal Mode的基本过程:
+        ;打开a20地址线 -> 加载GDT -> 向段寄存器加载段描述符 -> 退出保护模式
+        ;注:内核目前在前1MB内存里.(详细信息看include/boot.inc)
         mov bp,LoadKernelMsg
         mov cx,17;17个字符
         mov ax,0x1301
@@ -202,8 +174,25 @@ start:
             mov bx,0x0002;第0页,黑底绿字
             mov dx,0x0500;5行,0列
             int 0x10
-            jmp $
+    ;获取VBE信息
+    ;GetVbeInfo:
+    ;    mov ax,
 
+    ;进入32位模式
+    SetProtectMode:
+        cli ;关闭中断
+        ;1. 打开a20地址线
+        in al,0x92
+        or al,0x02
+        out 0x92,al
+        ;2. 加载GDT
+        lgdt [gdt_ptr]
+        ;3. 置cr0寄存器第0位为1
+        mov eax,cr0
+        or eax,0x00000001
+        mov cr0,eax
+        ;使用跳转指令清空流水线
+        jmp dword SelectorCode32:ProtectModeStart
 ;函数定义部分:
 
 ;下面的内容来自boot:
@@ -271,4 +260,62 @@ ReadSector:
         pop bp
         ret
     %endif
+
+[bits 32]
+
+    ProtectModeStart:
+        ;进入32位模式
+        ;向段寄存器加载段选择子
+        mov ax,SelectorData32
+        mov ds,ax
+        mov es,ax
+        mov ss,ax
+        mov esp,LoaderStackTop
+        mov ax,SelectorVideo
+        mov gs,ax
+        mov byte [gs:0x00],'P'
         jmp $
+
+SetupPage:
+    ;1. 先将页目录表所用的内存空间清零
+    mov ecx,4096
+    mov esi,0
+    .clear_pagedir:
+        mov byte [PAGE_DIR_TABLE_POS + esi],0
+        inc esi
+        loop .clear_pagedir
+    ;2. 创建页目录项
+    .create_pde:
+        mov eax,PAGE_DIR_TABLE_POS
+        add eax,0x1000 ;eax存第一个页表的位置和属性
+        mov ebx,eax    ;为创建页表项做准备
+
+        ;将页目录0和0xc00存入第一个页表的地址
+        or eax,PG_US_U | PG_RW_W | PG_P      ;用户属性,所有特权级都可以访问
+        mov [PAGE_DIR_TABLE_POS + 0x000],eax ;写入第一个页目录项
+        mov [PAGE_DIR_TABLE_POS + 0xc00],eax ;写入最后一个个页目录项
+
+        sub eax,0x1000
+        mov [PAGE_DIR_TABLE_POS + 0x1000],eax ;最后一个页目录指向页表本身
+    ;3. 创建页表项
+    mov ecx,256 ;低端1MB内存里有256页
+    mov esi,0
+    mov edx,PG_US_U | PG_RW_W | PG_P
+    .create_pte:
+        mov [ebx + esi * 4],edx ;ebx是第一个页表地址
+        add edx,4096
+        inc esi
+        loop .create_pte
+    ;4. 创建内核其他页表的页目录项
+    mov eax,PAGE_DIR_TABLE_POS
+    add eax,0x2000 ;第二个页表
+    or eax,PG_US_U | PG_RW_W | PG_P
+    mov ebx,PAGE_DIR_TABLE_POS
+    mov ecx,254 ;769~1022的页目录项指向内核
+    mov esi,769 ;
+    .create_kernel_pde:
+        mov [ebx + esi * 4],eax
+        inc esi
+        add eax,0x1000
+        loop .create_kernel_pde
+    ret

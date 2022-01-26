@@ -41,6 +41,7 @@ Start:
     mov cx,LoaderSectors
     mov bx,LoaderBaseAddress
     call ReadSector
+    ;跳转到loader.bin,boot的使命到此结束(boot:我滴任务完成啦! hhhhh...)
     jmp LoaderBaseAddress+LoaderOffsetAddress
 
 ;Function: ReadSector
