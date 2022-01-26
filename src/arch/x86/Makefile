@@ -74,8 +74,8 @@ all: $(BOOT) $(LOADER) $(OBJ_FILE)
 
 build: all system mkvd
 	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
-	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=200 seek=2 conv=notrunc
-
+	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=2 conv=notrunc
+	$(DD) if=$(KERNEL) of=$(v_disk) bs=512 count=200 seek=9 conv=notrunc
 clean:
 	$(CD) $(BOOTPATH) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.bin

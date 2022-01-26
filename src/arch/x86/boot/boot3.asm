@@ -4,8 +4,6 @@
 org 0x7c00
 [bits 16]
 
-DrvNum equ 0x00
-
 %include "boot.inc"
 
 Start:
@@ -54,29 +52,29 @@ Start:
 ReadSector:
     ;为物理机准备的版本:
     %ifdef __BOOT_ON_PHY_MACHINE__
-    .ReadOneSector:
-        ;备份寄存器
-        push dword eax
-        push bx
-        push dx
-        push es
-        mov word  [DiskAddressPacket + 2],1  ;一次一扇区
-        mov word  [DiskAddressPacket + 4],bx ;看ReadSector和DiskAddressPacket的说明
-        mov word  [DiskAddressPacket + 6],es ;同上
-        mov dword [DiskAddressPacket + 8],eax;同上
-        mov dl,DrvNum ;驱动器号
-        mov ah,0x42
-        mov si,DiskAddressPacket
-        int 0x13
-        ;恢复寄存器
-        pop es
-        pop dx
-        pop bx
-        pop dword eax
-        inc eax
-        add bx,512 ;下512字节
-        loop .ReadOneSector
-        ret
+        .ReadOneSector:
+            ;备份寄存器
+            push dword eax
+            push bx
+            push dx
+            push es
+            mov word  [DiskAddressPacket + 2],1  ;一次一扇区
+            mov word  [DiskAddressPacket + 4],bx ;看ReadSector和DiskAddressPacket的说明
+            mov word  [DiskAddressPacket + 6],es ;同上
+            mov dword [DiskAddressPacket + 8],eax;同上
+            mov dl,DrvNum ;驱动器号
+            mov ah,0x42
+            mov si,DiskAddressPacket
+            int 0x13
+            ;恢复寄存器
+            pop es
+            pop dx
+            pop bx
+            pop dword eax
+            inc eax
+            add bx,512 ;下512字节
+            loop .ReadOneSector
+            ret
     %endif
     ;为虚拟机准备的版本
     %ifdef __BOOT_ON_VIR_MACHINE__
