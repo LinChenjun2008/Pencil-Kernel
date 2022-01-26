@@ -18,7 +18,7 @@ INCLUDE := include/
 KERNELPATH := kernel/
 LIB := lib/
 #exec
-BOOT := $(BOOTPATH)boot1.bin
+BOOT := $(BOOTPATH)boot3.bin
 LOADER := $(BOOTPATH)loader.bin
 
 #obj
@@ -87,6 +87,7 @@ clean:
 	$(CD) $(LIB) && $(DELET) *.co
 	$(CD) $(LIB) && $(DELET) *.s
 	$(DELET) $(v_disk)
+	$(DELET) $(v_disk).lock
 
 debug: build
 	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
@@ -116,9 +117,9 @@ mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
 run: build
-#	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
-	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
-	$(MAKE) -r -C $(TOOLPATH)qemu
+	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
+#	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
+#	$(MAKE) -r -C $(TOOLPATH)qemu
 system: mkdir $(OBJ_FILE)
 	@$(ECHO) --------------------------
 	@$(ECHO) --- link Pencil-kernel ---

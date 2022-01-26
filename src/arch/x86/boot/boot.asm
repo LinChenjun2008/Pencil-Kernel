@@ -43,7 +43,7 @@ Loadfile:
     ;eax   :扇区号
     ;cx    :要读取的扇区数
     ;es:bx :读取到的数据存放处
-    ;dx    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
+    ;dl    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
     ReadSector:
                        ;int 0x13 ah=0x42:扩展硬盘读取功能
                        ;eax:扇区号
