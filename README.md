@@ -20,7 +20,7 @@ src:源代码
          +--fs:文件系统相关
 tools:开发工具(windows系统中)
 ```
-
+[详细信息](doc/question.md)
 ### 目标
 - [x] 在文件系统中加载loader和内核
 - [ ] 实现GUI
