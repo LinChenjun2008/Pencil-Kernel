@@ -273,7 +273,13 @@ ReadSector:
         mov esp,LoaderStackTop
         mov ax,SelectorVideo
         mov gs,ax
-        mov byte [gs:0x00],'P'
+        mov byte [gs:160],'P'
+        mov byte [gs:162],'r'
+        mov byte [gs:164],'o'
+        mov byte [gs:166],'t'
+        mov byte [gs:168],'e'
+        mov byte [gs:170],'c'
+        mov byte [gs:172],'t'
         jmp $
 
 SetupPage:
