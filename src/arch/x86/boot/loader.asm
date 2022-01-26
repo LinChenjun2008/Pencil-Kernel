@@ -193,7 +193,7 @@ Start:
         mov cr0,eax
         ;使用跳转指令清空流水线
         jmp dword SelectorCode32:ProtectModeStart
-;函数定义部分:
+;16位函数定义部分:
 
 ;下面的内容来自boot:
 ;Function: ReadSector
@@ -280,7 +280,31 @@ ReadSector:
         mov byte [gs:168],'e'
         mov byte [gs:170],'c'
         mov byte [gs:172],'t'
+    ;开启分页
+    SetPagingMode:
+        call SetupPage
+        ;先保存gdt地址,开启分页后重新加载
+        sgdt [gdt_ptr]
+        ;将gdt段描述符中的显存段加上0xc0000000
+        mov ebx,[gdt_ptr + 2]
+        or dword [ebx + 0x18 + 4],0xc0000000;显存段是第3个段描述符,每个描述符8字节,3*8 = 0x18
+
+        add dword [gdt_ptr + 2],0xc0000000
+        add esp,0xc0000000
+        ;页目录表赋值给cr3
+        mov eax,PAGE_DIR_TABLE_POS
+        mov cr3,eax
+
+        ;打开cr0的pg位
+        mov eax,cr0
+        or eax,0x80000000
+        mov cr0,eax
+
+        ;重新加载gdt
+        lgdt [gdt_ptr]
+        mov byte [gs:160],'V'
         jmp $
+
 
 SetupPage:
     ;1. 先将页目录表所用的内存空间清零
