@@ -4,7 +4,6 @@
 %include "boot.inc"
 org LoaderBaseAddress
 [bits 16]
-db "abcd"
 %include "protect.inc" ;保护模式相关(GDT等)
 %include "page.inc"    ;分页机制相关
 
@@ -43,10 +42,6 @@ times (LoaderOffsetAddress - ($ - $$)) db 0;将start对齐到文件起始LoaderO
 
 ;loader从此处开始执行
 start:
-    mov ax,0xb800
-    mov gs,ax
-    mov byte [gs:0x00],'L'
-    mov byte [gs:0x01],0x07
     ;显示一条信息,证明loader在执行
     mov bp,LoadStartMsg
     mov cx,6;6个字符
