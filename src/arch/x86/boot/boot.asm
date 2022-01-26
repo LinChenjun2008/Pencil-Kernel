@@ -37,7 +37,7 @@ Loadfile:
     ;加载loader
     mov eax,0x02 ;第2扇区(LBA)
     mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-    mov cx,1 ;读取的扇区数
+    mov cx,5 ;读取的扇区数
     ;ReadSector:读取磁盘
     ;参数:
     ;eax   :扇区号

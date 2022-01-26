@@ -18,7 +18,7 @@ INCLUDE := include/
 KERNELPATH := kernel/
 LIB := lib/
 #exec
-BOOT := $(BOOTPATH)boot2.bin
+BOOT := $(BOOTPATH)boot1.bin
 LOADER := $(BOOTPATH)loader.bin
 
 #obj

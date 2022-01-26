@@ -65,6 +65,7 @@ int 0x10
 mov ax,0
 mov ds,ax
 mov sp,0x7c00
+mov bx,0
 Loadfile:
     mov ax,LoaderBaseAddress >> 4
     mov es,ax    ;缓冲地址基地址LoaderBaseAddress >> 4
@@ -98,10 +99,12 @@ Loadfile:
             int 0x10
             pop bx
             pop ax
-            add bx,0x0200 ;偏移地址加上512(一扇区)
+            mov ax,es
+            add ax,0x0020 ;加上512(一扇区)
+            mov es,ax
             add cl,1      ;下一个扇区
-            cmp cl,E_CHS_C
-            jbe .readloop ;cl <= E_CHS_C时跳转到readloop
+            cmp cl,SecPerCyc
+            jbe .readloop ;cl <= SecPerCyc时跳转到readloop
             mov cx,1      ;1扇区
             add dh,1      ;磁头号 + 1
             cmp dh,E_CHS_H
