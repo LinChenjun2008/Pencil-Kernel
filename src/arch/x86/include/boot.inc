@@ -1,11 +1,12 @@
 ;引导启动阶段的配置文件
-;启动方式:虚拟机还是物理机(单选)
+;启动设备:虚拟机还是物理机
+;只能选一个
 
 ;物理机
 ;%define __BOOT_ON_PHY_MACHINE__
 ;虚拟机
-
 %define __BOOT_ON_VIR_MACHINE__
+
 %ifdef __BOOT_ON_VIR_MACHINE__
     SecPerCyc equ 18
 %endif
