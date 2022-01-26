@@ -35,9 +35,10 @@ total_memory_bytes dq 0 ;内存大小(单位:字节)
 ards_buf times 240 db 0
 ards_nr dw 0
 
-LoadStartMsg db "Loader"
-MemErrMsg db "Get total memory bytes error!"
-
+LoadStartMsg db "Loader";6
+MemErrMsg db "Get total memory bytes error!";29
+MemSuccessMsg db "Get total memory bytes success!";31
+LoadKernelMsg db "Loading Kernel...";17
 times (LoaderOffsetAddress - ($ - $$)) db 0;将start对齐到文件起始LoaderOffsetAddress处
 
 ;loader从此处开始执行
@@ -128,14 +129,20 @@ start:
             jmp $        ;在此处死循环,停止启动
     memory_get_success:
         mov dword [total_memory_bytes],edx ;保存内存容量
-
-    ;下一步:加载内核
-    ;内核要加载到1MB内存处
-    ;因为要在实模式下用int 0x13读取磁盘,
-    ;而实模式不能直接访问1MB以上内存.
-    ;所以要进入Unreal Mode在实模式下访问1MB以上内存空间
-    ;和正常进入保护模式的过程差不多,只是要让段寄存器缓存保护模式的描述符
-    ;就能在实模式下访问1MB以上内存空间了
-    ;基本过程:
-    ;打开a20地址线 -> 加载GDT -> 向短寄存器加载段描述符 -> 退出保护模式
+        ;显示一条信息,证明内存容量获取成功
+        mov bp,MemSuccessMsg
+        mov cx,31;31个字符
+        mov ax,0x1301
+        mov bx,0x0002;第0页,黑底绿字
+        mov dx,0x0300;3行,0列
+        int 0x10
+        ;下一步:加载内核
+        ;内核要加载到1MB内存处
+        ;因为要在实模式下用int 0x13读取磁盘,
+        ;而实模式不能直接访问1MB以上内存.
+        ;所以要进入Unreal Mode在实模式下访问1MB以上内存空间
+        ;和正常进入保护模式的过程差不多,只是要让段寄存器缓存保护模式的描述符
+        ;就能在实模式下访问1MB以上内存空间了
+        ;基本过程:
+        ;打开a20地址线 -> 加载GDT -> 向段寄存器加载段描述符 -> 退出保护模式
         jmp $
