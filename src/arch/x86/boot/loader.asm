@@ -19,17 +19,12 @@ GDT_LIMIT equ GDT_SIZE - 1
 times 60 dq 0;预留60个描述符
 
 ;段选择子
-; SelectorCode32     equ (((SectionCode32-GDT_BASE)/8) | TI_GDT | RPL0)
-; SelectorData32     equ (((SectionData32-GDT_BASE)/8) | TI_GDT | RPL0)
-; SelectorVideo      equ (((SectionVideo -GDT_BASE)/8) | TI_GDT | RPL0)
-; SelectorColorVideo equ (((SectionColorVideo-GDT_BASE)/8) | TI_GDT | RPL0)
-
 SelectorCode32     equ (0x0001 << 3 | TI_GDT | RPL0)
 SelectorData32     equ (0x0002 << 3 | TI_GDT | RPL0)
 SelectorVideo      equ (0x0003 << 3 | TI_GDT | RPL0)
 SelectorColorVideo equ (0x0004 << 3 | TI_GDT | RPL0)
 
-
+;gdt指针
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
 
@@ -58,7 +53,7 @@ Start:
     mov cx,6;6个字符
     mov ax,0x1301
     mov bx,0x0007;第0页,黑底白字
-    mov dx,0x0200;2行,0列
+    mov dx,0x0100;1行,0列
     int 0x10
 
     GetTotalMemoryBytes:
@@ -144,7 +139,7 @@ Start:
             mov cx,31;31个字符
             mov ax,0x1301
             mov bx,0x0002;第0页,黑底绿字
-            mov dx,0x0300;3行,0列
+            mov dx,0x0200;2行,0列
             int 0x10
     LoadKernel:
         ;下一步:加载内核
@@ -161,7 +156,7 @@ Start:
         mov cx,17;17个字符
         mov ax,0x1301
         mov bx,0x0007;第0页,黑底白字
-        mov dx,0x0400;4行,0列
+        mov dx,0x0300;3行,0列
         int 0x10
         mov eax,KernelStartSec
         mov cx,20
@@ -172,7 +167,7 @@ Start:
             mov cx,20;20个字符
             mov ax,0x1301
             mov bx,0x0002;第0页,黑底绿字
-            mov dx,0x0500;5行,0列
+            mov dx,0x0400;4行,0列
             int 0x10
     ;获取VBE信息
     ;GetVbeInfo:
@@ -273,13 +268,13 @@ ReadSector:
         mov esp,LoaderStackTop
         mov ax,SelectorVideo
         mov gs,ax
-        mov byte [gs:160],'P'
-        mov byte [gs:162],'r'
-        mov byte [gs:164],'o'
-        mov byte [gs:166],'t'
-        mov byte [gs:168],'e'
-        mov byte [gs:170],'c'
-        mov byte [gs:172],'t'
+        mov byte [gs:((160*5)+ 0)],'P'
+        mov byte [gs:((160*5)+ 2)],'r'
+        mov byte [gs:((160*5)+ 4)],'o'
+        mov byte [gs:((160*5)+ 6)],'t'
+        mov byte [gs:((160*5)+ 8)],'e'
+        mov byte [gs:((160*5)+10)],'c'
+        mov byte [gs:((160*5)+12)],'t'
     ;开启分页
     SetPagingMode:
         call SetupPage
@@ -302,10 +297,18 @@ ReadSector:
 
         ;重新加载gdt
         lgdt [gdt_ptr]
-        mov byte [gs:160],'V'
+        mov byte [gs:((160*6)+ 0)],'P'
+        mov byte [gs:((160*6)+ 2)],'a'
+        mov byte [gs:((160*6)+ 4)],'g'
+        mov byte [gs:((160*6)+ 6)],'i'
+        mov byte [gs:((160*6)+ 8)],'n'
+        mov byte [gs:((160*6)+10)],'g'
+        mov byte [gs:((160*6)+12)],' '
+        mov byte [gs:((160*6)+ 0)],'M'
+        mov byte [gs:((160*6)+ 2)],'o'
+        mov byte [gs:((160*6)+ 4)],'d'
+        mov byte [gs:((160*6)+ 6)],'e'
         jmp $
-
-
 SetupPage:
     ;1. 先将页目录表所用的内存空间清零
     mov ecx,4096
