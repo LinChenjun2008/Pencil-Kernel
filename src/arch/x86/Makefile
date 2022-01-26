@@ -18,6 +18,8 @@ INCLUDE := include/
 KERNELPATH := kernel/
 LIB := lib/
 #exec
+#boot请使用boot3,boot只适合在物理机中引导,
+#而boot3即可以在物理机中引导,也可以在虚拟机中引导(要先配置boot.inc)
 BOOT := $(BOOTPATH)boot3.bin
 LOADER := $(BOOTPATH)loader.bin
 
