@@ -14,9 +14,9 @@ src:源代码
  |
  +--arch:平台
      |
-     +--x86:Intel80x80平台
+     +--x86:Intel 80x86平台
          |
-         +--boot:启动内核相关
+         +--boot:引导启动相关
          +--fs:文件系统相关
 tools:开发工具(windows系统中)
 
@@ -28,10 +28,9 @@ tools:开发工具(windows系统中)
 - [ ] ~~打倒Linux~~
 ### 更多
 [[关于]](doc/about/dir.md)<br/>
-[[~~Q & A~~]](doc/Q&A.md)<br/>
 ***
 ### 联系方式
 网站: https://pencil.cnurl.tk<br/>
 E-mail: zpojia@hotmail.com
 ***
-&copy; 2021-2022 Lin-2008
+&copy; 2021-2022 LinChenjun
