@@ -1,8 +1,12 @@
 #include "print.h"
 #include "io.h"
 
+static uint8_t color = 0x07;
+
 void put_char(uint8_t char_ascii)
 {
+    uint16_t font;
+    font |= color;
     int cursor_pos;
     cursor_pos = get_cursor();
     switch(char_ascii)
@@ -10,11 +14,23 @@ void put_char(uint8_t char_ascii)
         /* 先是控制字符 */
         /* 退格 */
         case '\b':
+            cursor_pos--;
+            
         /* 换行 */
         case '\n':
+        case '\r':
+            cursor_pos = cursor_pos - (cursor_pos % COL);
+            cursor_pos += COL; /* 移动到下一行行首 */
+            break;
         /* 普通字符 */
         default:
+            font |= (char_ascii << 8);
+            *((uint16_t*)((uint32_t)VRAM + cursor_pos)) = font;
+            cursor_pos++;
+            break;
     }
+    set_cursor(cursor_pos); /* 重设光标 */
+    return;
 }
 
 /* get_cursor
