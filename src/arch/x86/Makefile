@@ -24,7 +24,14 @@ BOOT := $(BOOTPATH)boot3.bin
 LOADER := $(BOOTPATH)loader.bin
 
 #obj
-LIBS := $(LIB)bitmap.co $(KERNELPATH)debug.co $(LIB)list.co $(LIB)print.co  $(LIB)string.co 
+LIBS := $(LIB)bitmap.co   \
+$(KERNELPATH)debug.co     \
+$(KERNELPATH)interrupt.ao \
+$(LIB)io.ao               \
+$(LIB)list.co             \
+$(LIB)print.co            \
+$(LIB)string.co 
+
 OBJ_FILE := $(KERNELPATH)start.ao $(KERNELPATH)main.co $(LIBS)
 KERNEL_OBJ_FILE := $(BUILD_DIR)/kernel.o
 KERNEL := $(BUILD_DIR)/kernel.bin

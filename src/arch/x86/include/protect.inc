@@ -27,7 +27,6 @@ RPL0 equ 00b
 RPL1 equ 01b
 RPL2 equ 10b
 RPL3 equ 11b
-
 TI_GDT equ 000b
 TI_LDT equ 100b
 
@@ -55,6 +54,6 @@ TI_LDT equ 100b
     dw (%2 & 0xffff) ;偏移15~0
     dw (%1 & 0xffff) ;选择子
     db 0             ;保留值3B 空值5B
-    db (%3 & 0xef)         ;P(1) DPL(2) 0(1) type(4)
+    db (%3 & 0xff)         ;P(1) DPL(2) 0(1) type(4)
     dw (%2 >> 15) & 0xffff);偏移31~16
 %endmacro

@@ -1,4 +1,5 @@
 #include "print.h"
+#include "io.h"
 
 /* put_string
 * 功能:显示str到屏幕上
@@ -18,6 +19,37 @@ int put_string(char* vram,char* str,int row,int col,uint8_t fgc,uint8_t bgc)
         *((char*)(((int)vram) + ((80 * row + col) * 2))) = (font | *str);
         str++;
         col++;
+        if(col >= COL)
+        {
+            col = 0;
+            row++;
+        }
+        if(row >= ROW)
+        {
+            row = 0;
+        }
+
     }
+    set_cursor(row,col);
     return 0;
+}
+
+/* set_cursor
+* 功能:设置光标位置
+* row :光标行号
+* col :光标列号
+*/
+void set_cursor(int row,int col)
+{
+    uint16_t coordinate = (80 * row + col);
+
+    /* 1. 设置高8位 */
+    io_out8(0x03d4,0x0e);
+    io_out8(0x03d5,(coordinate & 0xff00) >> 8);
+
+    /* 2. 设置低8位 */
+    io_out8(0x03d4,0x0f);
+    io_out8(0x03d5,coordinate & 0xff);
+    
+    return;
 }
