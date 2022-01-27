@@ -5,7 +5,6 @@ static uint8_t color = 0x07;
 
 void put_char(uint8_t char_ascii)
 {
-    uint16_t font;
     font |= color;
     int cursor_pos;
     cursor_pos = get_cursor();
@@ -25,7 +24,8 @@ void put_char(uint8_t char_ascii)
         /* 普通字符 */
         default:
             font |= (char_ascii << 8);
-            *((uint16_t*)((uint32_t)VRAM + cursor_pos)) = font;
+            *((uint8_t*)(VRAM + (cursor_pos * 2)) = char_ascii;
+         
             cursor_pos++;
             break;
     }
