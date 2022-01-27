@@ -15,7 +15,7 @@ int main()
     io_sti();
     init_all();
     put_string_xy("init down!",8,0,0x7,0x0);
-    while(1)
+    while(1) /* 这个死循环不能少!!! */
     {
         ;
     }

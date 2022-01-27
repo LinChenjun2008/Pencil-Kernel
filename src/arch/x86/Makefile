@@ -99,8 +99,8 @@ clean:
 	$(CD) $(LIB) && $(DELET) *.ao
 	$(CD) $(LIB) && $(DELET) *.co
 	$(CD) $(LIB) && $(DELET) *.s
-	$(DELET) $(v_disk)
-	$(DELET) $(v_disk).lock
+#	$(DELET) $(v_disk)
+#	$(DELET) $(v_disk).lock
 
 debug: build
 	$(TOOLPATH)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S

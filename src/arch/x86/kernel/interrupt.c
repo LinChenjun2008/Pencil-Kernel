@@ -23,7 +23,7 @@ void init_pic()
     io_out8(PIC_S_DATA, 2     ); /* PIC1 IRQ2 */
     io_out8(PIC_S_DATA, 0x01  );
 
-    io_out8(PIC_M_DATA,  0xfe  ); /* 11111011 PIC1以外全部禁止 */
+    io_out8(PIC_M_DATA,  0xfe  ); /*  */
     io_out8(PIC_S_DATA,  0xff  ); /* 11111111 禁止所有中断 */
 
     return;
@@ -59,27 +59,58 @@ void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
     return;
 }
 
+
+/* init_idt
+* 功能:初始化idt
+*/
 void init_idt()
 {
     idt_desc_init();
     init_pic();
     uint64_t idt_ptr = ((sizeof(idt)-1) | ((uint64_t)(((uint32_t)idt) << 16)));
     exception_init();
+    load_idt((sizeof(idt)-1),((uint32_t)idt));
     asm volatile("lidt %0"::"m"(idt_ptr));
     return;
 }
 
+/* general_intr_handler
+* 功能:通用的中断处理函数
+* vector_nr :中断号,由interrupt.asm中的对应函数压入栈中
+*/
 void general_intr_handler(uint8_t vector_nr)
 {
+    char info[12] = {"intr: 0x   "};
     io_out8(PIC_S_CTRL,0x20);
     io_out8(PIC_M_CTRL,0x20);
     if(vector_nr == 0x27 || vector_nr == 0x2f)
     {
         return;
     }
+
+    if((vector_nr & 0x0f) <= 9)
+    {
+        info[9] = (vector_nr & 0x0f) + '0';
+    }
+    else
+    {
+        info[9] = (vector_nr & 0x0f) + 'A';
+    }
+    if(((vector_nr & 0xf0) >> 4) <= 9)
+    {
+        info[8] = ((vector_nr & 0xf0) >> 4) + '0';
+    }
+    else
+    {
+        info[8] = ((vector_nr & 0xf0) >> 4) + 'A';
+    }
+    put_string_xy(info,22,0,0x7,0x0);
     return;
 }
 
+/* exception_init
+* 功能:为中断注册处理函数
+*/
 void exception_init()
 {
     int i;

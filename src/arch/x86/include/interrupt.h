@@ -27,7 +27,7 @@ struct gate_desc {
    uint16_t offset_high;/* 偏移31~16 */
 };
 
-void load_idt(const uint64_t* idt_ptr);
+void load_idt(uint32_t limit,uint32_t addr);
 void init_pic();
 void idt_desc_init(void);
 void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar);

@@ -47,7 +47,7 @@ int put_string(char* str,uint8_t fgc,uint8_t bgc)
     coolrdinate |= io_in8(0x3d5);
     while(*str != '\0')
     {
-        *((char*)(((int)vram) + coolrdinate*2)) = (font | *str);
+        *((uint16_t*)(((int)vram) + coolrdinate*2)) = (font | *str);
         str++;
         coolrdinate++;
         if(coolrdinate >= COL*ROW)
@@ -57,6 +57,11 @@ int put_string(char* str,uint8_t fgc,uint8_t bgc)
     }
     set_cursor(coolrdinate/80,1);
     io_sti();
+    return 0;
+}
+
+int put_int(int a,int row,int col,uint8_t fgc,uint8_t bgc)
+{
     return 0;
 }
 

@@ -55,11 +55,14 @@ section .data
 
 section .text
 extern idt_table
+
     global load_idt
     load_idt:
         push ebp
         mov ebp,esp
-        lidt [ebp + 8]
+        mov ax,[ebp + 8]
+        mov [ebp + 14],ax
+        lidt [ebp + 14]
         pop ebp
         ret
 
