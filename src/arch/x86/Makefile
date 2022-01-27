@@ -32,7 +32,7 @@ $(KERNELPATH)interrupt.ao \
 $(KERNELPATH)interrupt.co \
 $(LIB)io.ao               \
 $(LIB)list.co             \
-$(LIB)print.co            \
+$(LIB)print.ao            \
 $(LIB)string.co           \
 $(DEVICE)timer.co
 

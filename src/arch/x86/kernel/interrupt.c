@@ -80,31 +80,11 @@ void init_idt()
 */
 void general_intr_handler(uint8_t vector_nr)
 {
-    char info[12] = {"intr: 0x   "};
     io_out8(PIC_S_CTRL,0x20);
     io_out8(PIC_M_CTRL,0x20);
-    if(vector_nr == 0x27 || vector_nr == 0x2f)
-    {
-        return;
-    }
-
-    if((vector_nr & 0x0f) <= 9)
-    {
-        info[9] = (vector_nr & 0x0f) + '0';
-    }
-    else
-    {
-        info[9] = (vector_nr & 0x0f) + 'A';
-    }
-    if(((vector_nr & 0xf0) >> 4) <= 9)
-    {
-        info[8] = ((vector_nr & 0xf0) >> 4) + '0';
-    }
-    else
-    {
-        info[8] = ((vector_nr & 0xf0) >> 4) + 'A';
-    }
-    put_string_xy(info,22,0,0x7,0x0);
+    put_str("intr:");
+    put_int(vector_nr);
+    put_char(' ');
     return;
 }
 

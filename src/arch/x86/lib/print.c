@@ -1,68 +1,37 @@
 #include "print.h"
 #include "io.h"
 
-char* vram = 0xc0000000 + 0xb8000;/* 文本模式的显存地址 */
+void put_char(uint8_t char_ascii)
+{
+    int cursor_pos;
+    cursor_pos = get_cursor();
+    switch(char_ascii)
+    {
+        /* 先是控制字符 */
+        /* 退格 */
+        case '\b':
+        /* 换行 */
+        case '\n':
+        /* 普通字符 */
+        default:
+    }
+}
 
-/* put_string_xy
-* 功能:显示str到屏幕上
-* str  :要显示的字符串
-* row  :字符串起始行
-* col  :字符串起始列
-* fgc  :字符串文字颜色
-* bgc  :字符串背景颜色
+/* get_cursor
+* 功能:获取光标位置
 */
-int put_string_xy(char* str,int row,int col,uint8_t fgc,uint8_t bgc)
+int get_cursor()
 {
-    uint16_t font;
-    font = ((bgc << 4 | fgc ) << 8);
-    while(*str != '\0')
-    {
-        *((uint16_t*)(((int)vram) + ((80 * row + col) * 2))) = (font | *str);
-        str++;
-        col++;
-        if(col >= COL)
-        {
-            col = 0;
-            row++;
-        }
-        if(row >= ROW)
-        {
-            row = 0;
-        }
+    int cursor_pos;
+    /* 1. 获取高8位 */
+    io_out8(0x03d4,0x0e);
+    cursor_pos |= io_in8(0x03d5) << 8;
 
-    }
-    set_cursor(row,col);
-    return 0;
-}
-
-int put_string(char* str,uint8_t fgc,uint8_t bgc)
-{
-    io_cli();
-    uint16_t coolrdinate = 0;
-    uint16_t font;
-    font = ((bgc << 4 | fgc ) << 8);
-    io_out8(0x3d4,0x0e);
-    coolrdinate |= io_in8(0x3d5) << 8;
-    io_out8(0x3d4,0x0f);
-    coolrdinate |= io_in8(0x3d5);
-    while(*str != '\0')
-    {
-        *((uint16_t*)(((int)vram) + coolrdinate*2)) = (font | *str);
-        str++;
-        coolrdinate++;
-        if(coolrdinate >= COL*ROW)
-        {
-            coolrdinate = 0;
-        }
-    }
-    set_cursor(coolrdinate/80,1);
-    io_sti();
-    return 0;
-}
-
-int put_int(int a,int row,int col,uint8_t fgc,uint8_t bgc)
-{
-    return 0;
+    /* 2. 获取低8位 */
+    io_out8(0x03d4,0x0f);
+    cursor_pos |= io_in8(0x03d5);
+    
+    return cursor_pos;
 }
 
 /* set_cursor
@@ -70,17 +39,15 @@ int put_int(int a,int row,int col,uint8_t fgc,uint8_t bgc)
 * row :光标行号
 * col :光标列号
 */
-void set_cursor(int row,int col)
+void set_cursor(int cursor_pos)
 {
-    uint16_t coordinate = (80 * row + col);
-
     /* 1. 设置高8位 */
     io_out8(0x03d4,0x0e);
-    io_out8(0x03d5,(coordinate & 0xff00) >> 8);
+    io_out8(0x03d5,(cursor_pos & 0xff00) >> 8);
 
     /* 2. 设置低8位 */
     io_out8(0x03d4,0x0f);
-    io_out8(0x03d5,coordinate & 0xff);
+    io_out8(0x03d5,cursor_pos & 0xff);
     
     return;
 }

@@ -7,14 +7,11 @@
 int main()
 {
     int i;
-    for(i = 0; i < COL;i++)
-    {
-        put_string_xy("-",20,i,0x7,0x0);
-    }
-    put_string_xy("Pencil-Kernel (PKn) version 0.0.0 test",21,0,0x7,0x0);
+    put_char('\n');
+    put_str("Pencil-Kernel (PKn) version 0.0.0 test\n");
     io_sti();
     init_all();
-    put_string_xy("init down!",8,0,0x7,0x0);
+    put_str("init down!\n");
     while(1) /* 这个死循环不能少!!! */
     {
         ;
