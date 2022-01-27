@@ -1,26 +1,15 @@
 #include "interrupt.h"
 
-#include "stdint.h"
 #include "global.h"
+#include "io.h"
+#include "print.h"
+#include "stdint.h"
 
-#define PIC_M_CTRL 0x20	/* 8259A主片的控制端口是0x20 */
-#define PIC_M_DATA 0x21	/* 8259A主片的数据端口是0x21 */
-#define PIC_S_CTRL 0xa0	/* 8259A从片的控制端口是0xa0 */
-#define PIC_S_DATA 0xa1	/* 8259A从片的数据端口是0xa1 */
 
-#define IDT_DESC_CNT 0x2f /* 总共支持0x2f个中断 */
-
-/*中断门描述符结构体*/
-struct gate_desc {
-   uint16_t offset_low; /* 偏移15~0 */
-   uint16_t selector;   /* 目标代码段选择子 */
-   uint8_t dcount;      /* 保留值和空值 */
-   uint8_t attribute;   /* 属性 */
-   uint16_t offset_high;/* 偏移31~16 */
-};
-
-struct gate_desc idt[IDT_DESC_CNT];
-extern void* intr_entry_table[IDT_DESC_CNT];
+struct gate_desc idt[IDT_DESC_CNT];         /* idt描述符 */
+extern void* intr_entry_table[IDT_DESC_CNT];/* interrupt.asm中的中断程序入口地址表 */
+char* intr_name[IDT_DESC_CNT];              /* 保存异常的名字 */
+void* idt_table[IDT_DESC_CNT];              /* 处理中断的函数 */
 
 void init_pic()
 {
@@ -34,7 +23,7 @@ void init_pic()
     io_out8(PIC_S_DATA, 2     ); /* PIC1 IRQ2 */
     io_out8(PIC_S_DATA, 0x01  );
 
-    io_out8(PIC_M_DATA,  0xff  ); /* 11111011 PIC1以外全部禁止 */
+    io_out8(PIC_M_DATA,  0xfe  ); /* 11111011 PIC1以外全部禁止 */
     io_out8(PIC_S_DATA,  0xff  ); /* 11111111 禁止所有中断 */
 
     return;
@@ -66,15 +55,58 @@ void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
     gd->selector = selector;
     gd->dcount = ((ar >> 8) & 0xff);
     gd->attribute = (ar & 0xff);
-    gd->offset_high = ((offset >> 16) & 0xffff);
+    gd->offset_high = ((((uint32_t)func) >> 16) & 0xffff);
     return;
 }
 
 void init_idt()
 {
-    idt_desc_init()
-    init_pic()
+    idt_desc_init();
+    init_pic();
     uint64_t idt_ptr = ((sizeof(idt)-1) | ((uint64_t)(((uint32_t)idt) << 16)));
-    load_idt(&idt_ptr);
+    exception_init();
+    asm volatile("lidt %0"::"m"(idt_ptr));
+    return;
+}
+
+void general_intr_handler(uint8_t vector_nr)
+{
+    io_out8(PIC_S_CTRL,0x20);
+    io_out8(PIC_M_CTRL,0x20);
+    if(vector_nr == 0x27 || vector_nr == 0x2f)
+    {
+        return;
+    }
+    put_string((char*)0xc0000000 + 0xb8000,"intr",0,0,0x7,0x0);
+}
+
+void exception_init()
+{
+    int i;
+    for (i = 0; i < IDT_DESC_CNT; i++)
+    {
+    idt_table[i] = general_intr_handler;
+    intr_name[i] = "unknown";
+    }
+    intr_name[0] = "#DE Divide Error";
+    intr_name[1] = "#DB Debug Exception";
+    intr_name[2] = "NMI Interrupt";
+    intr_name[3] = "#BP Breakpoint Exception";
+    intr_name[4] = "#OF Overflow Exception";
+    intr_name[5] = "#BR BOUND Range Exceeded Exception";
+    intr_name[6] = "#UD Invalid Opcode Exception";
+    intr_name[7] = "#NM Device Not Available Exception";
+    intr_name[8] = "#DF Double Fault Exception";
+    intr_name[9] = "Coprocessor Segment Overrun";
+    intr_name[10] = "#TS Invalid TSS Exception";
+    intr_name[11] = "#NP Segment Not Present";
+    intr_name[12] = "#SS Stack Fault Exception";
+    intr_name[13] = "#GP General Protection Exception";
+    intr_name[14] = "#PF Page-Fault Exception";
+    intr_name[15] = "Reserved";
+    intr_name[16] = "#MF x87 FPU Floating-Point Error";
+    intr_name[17] = "#AC Alignment Check Exception";
+    intr_name[18] = "#MC Machine-Check Exception";
+    intr_name[19] = "#XF SIMD Floating-Point Exception";
     return;
 }

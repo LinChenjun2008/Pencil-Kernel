@@ -1,6 +1,4 @@
 [bits 32]
-extern idt_table
-
 section .data
     global intr_entry_table
     intr_entry_table:
@@ -56,7 +54,7 @@ section .data
         dd intr0x2f_entry ;保留
 
 section .text
-
+extern idt_table
     global load_idt
     load_idt:
         push ebp

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "init.h"
 #include "io.h"
 #include "print.h"
 
@@ -11,9 +12,9 @@ int main()
         put_string(vram,"-",20,i,0x7,0x0);
     }
     put_string(vram,"Pencil-Kernel (PKn) version 0.0.0 test",21,0,0x7,0x0);
-    put_string(vram,"Hello,world!",8,0,0x7,0x0);
-    init_all();
     io_sti();
+    init_all();
+    put_string(vram,"init down!",8,0,0x7,0x0);
     while(1)
     {
         ;

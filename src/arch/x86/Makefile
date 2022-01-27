@@ -26,7 +26,9 @@ LOADER := $(BOOTPATH)loader.bin
 #obj
 LIBS := $(LIB)bitmap.co   \
 $(KERNELPATH)debug.co     \
+$(KERNELPATH)init.co      \
 $(KERNELPATH)interrupt.ao \
+$(KERNELPATH)interrupt.co \
 $(LIB)io.ao               \
 $(LIB)list.co             \
 $(LIB)print.co            \
