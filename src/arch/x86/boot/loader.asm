@@ -304,11 +304,11 @@ ReadSector:
         mov byte [gs:((160*6)+ 8)],'n'
         mov byte [gs:((160*6)+10)],'g'
         mov byte [gs:((160*6)+12)],' '
-        mov byte [gs:((160*6)+ 0)],'M'
-        mov byte [gs:((160*6)+ 2)],'o'
-        mov byte [gs:((160*6)+ 4)],'d'
-        mov byte [gs:((160*6)+ 6)],'e'
-        jmp $
+        mov byte [gs:((160*6)+14)],'M'
+        mov byte [gs:((160*6)+16)],'o'
+        mov byte [gs:((160*6)+18)],'d'
+        mov byte [gs:((160*6)+20)],'e'
+        jmp 0xc0000000+KernelBaseAddress
 SetupPage:
     ;1. 先将页目录表所用的内存空间清零
     mov ecx,4096
