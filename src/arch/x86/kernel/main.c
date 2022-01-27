@@ -5,16 +5,15 @@
 
 int main()
 {
-    char* vram = 0xc0000000 + 0xb8000;/* 文本模式的显存地址 */
     int i;
     for(i = 0; i < COL;i++)
     {
-        put_string(vram,"-",20,i,0x7,0x0);
+        put_string_xy("-",20,i,0x7,0x0);
     }
-    put_string(vram,"Pencil-Kernel (PKn) version 0.0.0 test",21,0,0x7,0x0);
+    put_string_xy("Pencil-Kernel (PKn) version 0.0.0 test",21,0,0x7,0x0);
     io_sti();
     init_all();
-    put_string(vram,"init down!",8,0,0x7,0x0);
+    put_string_xy("init down!",8,0,0x7,0x0);
     while(1)
     {
         ;
