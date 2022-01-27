@@ -60,6 +60,7 @@ extern idt_table
         push ebp
         mov ebp,esp
         lidt [ebp + 8]
+        pop ebp
         ret
 
 %define ERROR_CODE nop ;有错误码了,不做处理

@@ -33,4 +33,9 @@ void idt_desc_init(void);
 void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar);
 void init_idt();
 void exception_init();
+
+enum intr_status intr_enable();
+enum intr_status intr_disable();
+enum intr_status intr_set_status(enum intr_status status);
+enum intr_status intr_get_status();
 #endif /* __INTERRUPT_H__ */

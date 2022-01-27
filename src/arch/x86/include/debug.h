@@ -1,8 +1,8 @@
 /* debug.h
 */
 
-#ifndef __DEBUG_H_
-#define __DEBUG_H_
+#ifndef __DEBUG_H__
+#define __DEBUG_H__
 
 void panic_spin(const char* file,int line,const char* func,const char* condition);
 
@@ -20,4 +20,4 @@ void panic_spin(const char* file,int line,const char* func,const char* condition
 #else
     #define ASSRET(CONDITION) ((void)0)
 #endif /* NDEBUG */
-#endif /* __DEBUG_H_ */
+#endif /* __DEBUG_H__ */

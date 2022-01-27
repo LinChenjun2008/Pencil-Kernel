@@ -78,6 +78,15 @@ io_sti:
     ret
 
 global io_cli
-ioi_cli:
+io_cli:
     cli
+    ret
+
+global get_flages
+get_flages:
+    push ebp
+    mov ebp,esp
+    pushfd
+    pop eax
+    pop ebp
     ret

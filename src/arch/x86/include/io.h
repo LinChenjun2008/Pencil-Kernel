@@ -16,4 +16,6 @@ extern void io_out8(uint32_t port,uint32_t data);
 extern void io_out16(uint32_t port,uint32_t data);
 extern void io_out32(uint32_t port,uint32_t data);
 
+extern uint32_t get_flages();
+
 #endif /* __IO_H__ */

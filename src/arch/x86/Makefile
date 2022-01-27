@@ -16,6 +16,7 @@ BOOTPATH := boot/
 BUILD_DIR := build
 INCLUDE := include/
 KERNELPATH := kernel/
+DEVICE := device/
 LIB := lib/
 #exec
 #boot请使用boot3,boot只适合在物理机中引导,
@@ -32,7 +33,8 @@ $(KERNELPATH)interrupt.co \
 $(LIB)io.ao               \
 $(LIB)list.co             \
 $(LIB)print.co            \
-$(LIB)string.co 
+$(LIB)string.co           \
+$(DEVICE)timer.co
 
 OBJ_FILE := $(KERNELPATH)start.ao $(KERNELPATH)main.co $(LIBS)
 KERNEL_OBJ_FILE := $(BUILD_DIR)/kernel.o

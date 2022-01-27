@@ -77,7 +77,7 @@ void general_intr_handler(uint8_t vector_nr)
     {
         return;
     }
-    put_string((char*)0xc0000000 + 0xb8000,"intr",0,0,0x7,0x0);
+    return;
 }
 
 void exception_init()
@@ -85,8 +85,8 @@ void exception_init()
     int i;
     for (i = 0; i < IDT_DESC_CNT; i++)
     {
-    idt_table[i] = general_intr_handler;
-    intr_name[i] = "unknown";
+        idt_table[i] = general_intr_handler;
+        intr_name[i] = "unknown";
     }
     intr_name[0] = "#DE Divide Error";
     intr_name[1] = "#DB Debug Exception";
@@ -109,4 +109,58 @@ void exception_init()
     intr_name[18] = "#MC Machine-Check Exception";
     intr_name[19] = "#XF SIMD Floating-Point Exception";
     return;
+}
+
+/* intr_enable
+* 功能:开中断,并返回开中断前的状态
+*/
+enum intr_status intr_enable()
+{
+    enum intr_status old_status;
+    if (intr_get_status() == INTR_ON)
+    {
+        old_status = INTR_ON;
+        return old_status;
+    }
+    else
+    {
+        old_status = INTR_OFF;
+        io_sti();
+        return old_status;
+    }
+}
+
+/* intr_disable
+* 功能:关中断,并返回关中断前的状态
+*/
+enum intr_status intr_disable()
+{
+    enum intr_status old_status;
+    if (intr_get_status() == INTR_ON)
+    {
+        old_status = INTR_ON;
+        io_cli();
+        return old_status;
+    }
+    else
+    {
+        old_status = INTR_OFF;
+        return old_status;
+    }
+}
+
+/* intr_set_status
+* 功能:将中断状态设为status
+*/
+enum intr_status intr_set_status(enum intr_status status)
+{
+    return (status == INTR_ON ? intr_enable() : intr_disable());
+}
+
+/* intr_get_status
+* 功能:获取当前中断状态
+*/
+enum intr_status intr_get_status()
+{
+    return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);
 }
