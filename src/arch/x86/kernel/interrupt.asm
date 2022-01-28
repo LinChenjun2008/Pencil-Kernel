@@ -54,21 +54,19 @@ section .data
         dd intr0x2f_entry ;保留
 
 section .text
-extern idt_table
-
+;函数部分:
     global load_idt
     load_idt:
         push ebp
         mov ebp,esp
-        mov ax,[ebp + 8]
-        mov [ebp + 14],ax
-        lidt [ebp + 14]
+        lidt [ebp + 14];ebp + 4:ebp在栈中的值,ebp + 14是传入的参数(idy_ptr)
         pop ebp
         ret
 
 %define ERROR_CODE nop ;有错误码了,不做处理
-%define ZERO push 0    ;没有错误码,手动压入一个0
+%define ZERO push 0    ;没有错误码,为了统一格式,手动压入一个0
 
+extern idt_table
 %macro VECTOR 2
     intr%1_entry:
         ; 保存上下文
