@@ -1,5 +1,8 @@
 #include "print.h"
+#include "config.h"
 #include "io.h"
+
+#ifdef __UI_TEXT__
 
 static uint8_t color = 0x07;
 
@@ -105,3 +108,5 @@ void set_cursor(int cursor_pos)
     
     return;
 }
+
+#endif /* __UI_TEXT__ */
