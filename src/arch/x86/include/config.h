@@ -10,7 +10,7 @@
 * 同时要在boot.inc也做同样的选择
 */
 
-/* #define __UI_GRAPHIC__ /* 图形界面(暂不支持) */ */
+/* #define __UI_GRAPHIC__ /* 图形界面(暂不支持) */
 #define __UI_TEXT__ /* 文本界面 */
 
 #endif /* __CONFIG_H_ */
