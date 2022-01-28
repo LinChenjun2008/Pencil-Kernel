@@ -13,8 +13,9 @@ void put_char(uint8_t char_ascii)
         /* 先是控制字符 */
         /* 退格 */
         case '\b':
-            cursor_pos--;
-            
+            cursor_pos--; /* 光标位置减1 */
+            *((uint8_t*)(VRAM + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
+            break;
         /* 换行 */
         case '\n':
         case '\r':
@@ -25,7 +26,7 @@ void put_char(uint8_t char_ascii)
         default:
             font |= (char_ascii << 8);
             *((uint8_t*)(VRAM + (cursor_pos * 2)) = char_ascii;
-         
+            *((uint8_t*)(VRAM + (cursor_pos * 2) +1)) = color;
             cursor_pos++;
             break;
     }
