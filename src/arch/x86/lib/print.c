@@ -3,6 +3,9 @@
 
 static uint8_t color = 0x07;
 
+/* put_char
+* 功能:在光标位置显示一个字符
+*/
 void put_char(uint8_t char_ascii)
 {
     font |= color;
@@ -19,7 +22,7 @@ void put_char(uint8_t char_ascii)
         /* 回车和换行 */
         case '\n':
         case '\r':
-            cursor_pos = cursor_pos - (cursor_pos % COL);
+            cursor_pos -= (cursor_pos % COL);
             cursor_pos += COL; /* 移动到下一行行首 */
             break;
         /* 普通字符 */
