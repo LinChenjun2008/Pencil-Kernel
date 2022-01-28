@@ -16,7 +16,7 @@ void put_char(uint8_t char_ascii)
             cursor_pos--; /* 光标位置减1 */
             *((uint8_t*)(VRAM + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
             break;
-        /* 换行 */
+        /* 回车和换行 */
         case '\n':
         case '\r':
             cursor_pos = cursor_pos - (cursor_pos % COL);
