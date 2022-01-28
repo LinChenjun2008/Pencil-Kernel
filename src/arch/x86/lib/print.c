@@ -40,6 +40,19 @@ void put_char(uint8_t char_ascii)
     return;
 }
 
+/* put_str
+* 功能:显示字符串
+*/
+void put_str(char* str)
+{
+    while(*str != '\0')
+    {
+        put_char(*str)
+        str++;
+    }
+    return;
+}
+
 /* get_cursor
 * 功能:获取光标位置
 */
