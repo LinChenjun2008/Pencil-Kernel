@@ -53,6 +53,24 @@ void put_str(char* str)
     return;
 }
 
+void put_uint_hex(unsigned int a)
+{
+    char buf[32] = {0};
+    int i
+    for(i = 31;i >= 0;i--)
+    {
+        if((a & 0x0f) <= 9)
+        {
+            buf[i] = (a & 0x0f) + '0';
+        }
+        else if((a & 0x0f) > 9)
+        {
+            buf[i] = (a & 0x0f) + 'A';
+        }
+        a >> 4;
+    }
+}
+
 /* get_cursor
 * 功能:获取光标位置
 */
