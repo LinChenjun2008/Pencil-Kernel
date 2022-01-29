@@ -15,6 +15,7 @@ src:源代码
  +--arch:平台
      |
      +--x86:Intel 80x86平台
+LICENSE:开源协议
 tools:开发工具(windows系统中)
 ```
 [详细信息](doc/question.md)
