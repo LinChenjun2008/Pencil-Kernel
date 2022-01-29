@@ -1,6 +1,4 @@
-;loader.asm
-;Copyright 2021-2022 Lin Chenjun,All rights reserved.
-
+;Pencil-Kernel(PKn) loader.asm
 %include "boot.inc"
 org LoaderBaseAddress
 [bits 16]
