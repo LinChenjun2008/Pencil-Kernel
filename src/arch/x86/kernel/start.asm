@@ -4,15 +4,24 @@ extern main
 [bits 32]
 section .text
 _start:
+    mov ax,SelectorVideo
+    mov gs,ax
     mov byte [gs:((160*7)+ 0)],'K'
     mov byte [gs:((160*7)+ 2)],'e'
     mov byte [gs:((160*7)+ 4)],'r'
     mov byte [gs:((160*7)+ 6)],'n'
     mov byte [gs:((160*7)+ 8)],'e'
     mov byte [gs:((160*7)+10)],'l'
+    ;初始化寄存器
+    mov ax,SelectorData32
+    mov ds,ax
+    mov es,ax
+    mov ss,ax
+    mov fs,ax
+    mov esp,KernelStackTop
     lgdt [gdt_ptr] ;内核栈可能会覆盖loader,所以重新加载gdt.而页表在1MB地址以上,不用担心被覆盖
     jmp main       ;跳转到内核主函数,接下来就是C语言的部分了.
-    jmp $
+    jmp $          ;正常情况下不会到这里,因为main函数不能返回
 section .data
     %include "protect.inc"
     GDT_BASE: SEGMDESC 0,0,0
