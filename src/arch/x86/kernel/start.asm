@@ -18,7 +18,7 @@ _start:
     mov es,ax
     mov ss,ax
     mov fs,ax
-    mov esp,KernelStackTop
+    mov esp,KernelStackTop + 0xc0000000
     lgdt [gdt_ptr] ;内核栈可能会覆盖loader,所以重新加载gdt.而页表在1MB地址以上,不用担心被覆盖
     jmp main       ;跳转到内核主函数,接下来就是C语言的部分了.
     jmp $          ;正常情况下不会到这里,因为main函数不能返回
