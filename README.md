@@ -15,9 +15,6 @@ src:源代码
  +--arch:平台
      |
      +--x86:Intel 80x86平台
-         |
-         +--boot:引导启动相关
-         +--fs:文件系统相关
 tools:开发工具(windows系统中)
 ```
 [详细信息](doc/question.md)
