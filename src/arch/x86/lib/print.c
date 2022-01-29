@@ -4,12 +4,13 @@
 
 static uint8_t color = 0x07;
 
+#ifdef __UI_TEXT__ /* 以下是文本界面的对应函数 */
+
 /* put_char
 * 功能:在光标位置显示一个字符
 */
 void put_char(uint8_t char_ascii)
 {
-#ifdef __UI_TEXT__
     font |= color;
     int cursor_pos;
     cursor_pos = get_cursor();
@@ -40,9 +41,6 @@ void put_char(uint8_t char_ascii)
     }
     set_cursor(cursor_pos); /* 重设光标 */
     return;
-#ifdef __UI_GRAPHTC__
- /* graphc */
-#endif
 }
 
 /* put_str
@@ -50,16 +48,12 @@ void put_char(uint8_t char_ascii)
 */
 void put_str(char* str)
 {
-#ifdef __UI_TEXT__
     while(*str != '\0')
     {
         put_char(*str)
         str++;
     }
     return;
-#ifdef __UI_GRAPHIC__
- /* graphic */
-#endif
 }
 
 void put_uint_hex(unsigned int a)
@@ -104,7 +98,6 @@ int get_cursor()
 */
 void set_cursor(int cursor_pos)
 {
-#ifdef __UI_TEXT__
     /* 1. 设置高8位 */
     io_out8(0x03d4,0x0e);
     io_out8(0x03d5,(cursor_pos & 0xff00) >> 8);
@@ -114,5 +107,8 @@ void set_cursor(int cursor_pos)
     io_out8(0x03d5,cursor_pos & 0xff);
     
     return;
-#endif
 }
+
+#ifdef __UI_GRAPHIC__  /* 以下是图形界面中的对应函数 */
+
+#endif
