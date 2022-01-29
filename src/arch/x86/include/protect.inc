@@ -1,5 +1,4 @@
 ;protect.inc
-;Copyright 2021-2022 Lin Chenjun,All rights reserved.
 
 ;段属性
 
