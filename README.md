@@ -31,7 +31,7 @@ tools:开发工具(windows系统中)
 [[关于]](doc/about/dir.md)<br/>
 ***
 ### 联系方式
-网站: https://pencil.cnurl.tk<br/>
+网站: ~~https://pencil.cnurl.tk~~(暂时关闭中)<br/>
 E-mail: zpojia@hotmail.com
 ***
 &copy; 2021-2022 LinChenjun
