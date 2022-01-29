@@ -1,5 +1,5 @@
 ;Pencil Kernel start.asm
-
+%include "boot.inc"
 extern main
 [bits 32]
 section .text
