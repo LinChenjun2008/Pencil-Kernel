@@ -1,5 +1,5 @@
 /* epfs.h
-* Copyright 2021-2022 Lin Chenjun,All rights reserved.
+* EPFS文件系统
 */
 #ifndef __EPFS_H_
 #define __EPFS_H_
