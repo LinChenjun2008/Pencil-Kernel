@@ -2,7 +2,8 @@ PencilKernel
 =
 ***
 ### PencilKernel
-`PencilKernel`被设计为一个跨平台内核,
+`Pencil-Kernel`,简称`PKn`,是一个小型的操作系统内核.
+`Pencil-Kernel`被设计为一个跨平台内核,
 当前支持平台:`x86` <br/>
 将来会支持的平台:`x64` <br/>
 ***
