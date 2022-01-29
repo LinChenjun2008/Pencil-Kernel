@@ -2,8 +2,6 @@
 #include "config.h"
 #include "io.h"
 
-#ifdef __UI_TEXT__
-
 static uint8_t color = 0x07;
 
 /* put_char
@@ -11,6 +9,7 @@ static uint8_t color = 0x07;
 */
 void put_char(uint8_t char_ascii)
 {
+#ifdef __UI_TEXT__
     font |= color;
     int cursor_pos;
     cursor_pos = get_cursor();
@@ -41,6 +40,9 @@ void put_char(uint8_t char_ascii)
     }
     set_cursor(cursor_pos); /* 重设光标 */
     return;
+#ifdef __UI_GRAPHTC__
+ /* graphc */
+#endif
 }
 
 /* put_str
@@ -48,12 +50,16 @@ void put_char(uint8_t char_ascii)
 */
 void put_str(char* str)
 {
+#ifdef __UI_TEXT__
     while(*str != '\0')
     {
         put_char(*str)
         str++;
     }
     return;
+#ifdef __UI_GRAPHIC__
+ /* graphic */
+#endif
 }
 
 void put_uint_hex(unsigned int a)
