@@ -45,7 +45,7 @@ v_disk := a.img
 #other
 OBJ_FORMAT := elf32-i386
 K_VERSION := 0.0.0 test
-COPYRIGHT := copyright 2021-2022 LinChenjun, All right reserved.
+COPYRIGHT := 
 #command
 COPY := copy
 CD := cd
