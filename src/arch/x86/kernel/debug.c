@@ -1,6 +1,3 @@
-/* copyright Lin Chenjun
-* All rights reserved
-*/
 #include "interrupt.h"
 
 void panic_spin(const char* file,int line,const char* func,const char* condition)
