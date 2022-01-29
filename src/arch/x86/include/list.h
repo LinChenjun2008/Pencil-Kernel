@@ -1,5 +1,5 @@
 /* list.h
-* copyright (c) 2021 Lin Chenjun,All rights reseved
+* 链表
 */
 #ifndef __LIST_H_
 #define __LIST_H_
