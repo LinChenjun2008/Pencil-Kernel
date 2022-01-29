@@ -28,4 +28,4 @@ KernelStartSec equ 0x09       ;Kernel在9扇区(LBA)开始处
 KernelSectors equ 200         ;Kernel占用200扇区
 KernelBufAddress equ 0x7F00   ;Kernel临时转存区
 KernelBaseAddress equ 0x7F00  ;Kernel从物理地址0x7F00开始,虚拟地址要加上0xc0000000
-KernelStackTop equ 0x7b00      ;kernel栈顶在0x900,虚拟地址是0xc0007b00
+KernelStackTop equ 0x7b00     ;kernel栈顶在0x7b00,虚拟地址是0xc0007b00
