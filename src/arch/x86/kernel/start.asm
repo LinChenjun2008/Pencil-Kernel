@@ -1,5 +1,4 @@
 ;Pencil Kernel start.asm
-;copyright 2022 LinChenjun, All rights reserved.
 
 extern main
 [bits 32]
