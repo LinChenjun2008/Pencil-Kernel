@@ -1,5 +1,4 @@
 ;Pencil-Kernel (PKn) boot3
-;Copyright 2022 LinChenjun
 
 org 0x7c00
 [bits 16]
