@@ -1,6 +1,3 @@
-;copyright Eytoue (Lin Chenjun)
-;All rights reserved.
-
 [bits 32]
 section .text
 
