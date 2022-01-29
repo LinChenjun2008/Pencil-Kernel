@@ -27,7 +27,8 @@ tools:开发工具(windows系统中)
 - [ ] 实现微内核
 - [ ] ~~打倒Linux~~
 ### 更多
-[[关于]](doc/about/dir.md)<br/>
+[[关于]](doc/about/dir.md)<br />
+[[运行截图]](doc/image/Readme.md)<br />
 ***
 ### 联系方式
 网站: ~~https://pencil.cnurl.tk~~ (暂时关闭中)<br/>
