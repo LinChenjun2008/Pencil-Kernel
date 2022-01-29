@@ -104,6 +104,7 @@ int get_cursor()
 */
 void set_cursor(int cursor_pos)
 {
+#ifdef __UI_TEXT__
     /* 1. 设置高8位 */
     io_out8(0x03d4,0x0e);
     io_out8(0x03d5,(cursor_pos & 0xff00) >> 8);
@@ -113,6 +114,5 @@ void set_cursor(int cursor_pos)
     io_out8(0x03d5,cursor_pos & 0xff);
     
     return;
+#endif
 }
-
-#endif /* __UI_TEXT__ */
