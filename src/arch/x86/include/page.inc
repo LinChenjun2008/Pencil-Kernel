@@ -1,5 +1,4 @@
 ;page.inc
-;copyright 2022 LinChenjun
 
 PAGE_DIR_TABLE_POS equ 0x100000 ;页目录表存放在0x100000地址处
 
