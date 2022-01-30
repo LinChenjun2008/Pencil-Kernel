@@ -70,6 +70,7 @@ void init_idt()
     uint64_t idt_ptr = ((sizeof(idt)-1) | ((uint64_t)(((uint32_t)idt) << 16)));
     exception_init();
     load_idt((sizeof(idt)-1),((uint32_t)idt));
+    /* 以下是加载idt的内联汇编,这种格式很恶心,就是个四不像.目前是本系统唯一一条内联汇编,以后尽量不使用内联汇编 */
     asm volatile("lidt %0"::"m"(idt_ptr));
     return;
 }
