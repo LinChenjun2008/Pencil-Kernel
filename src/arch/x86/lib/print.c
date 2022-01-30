@@ -74,6 +74,25 @@ void put_uint_hex(unsigned int a)
     }
 }
 
+/* roll_screen
+* 滚动屏幕
+*/
+void roll_screen()
+{
+    uint16_t* src;
+    uint16_t* dst;
+    src = ((uint16_t*)(VRAM + ROW * 2)); /* 第一行行首 */
+    dst = ((uint16_t*)(VRAM)); /* 第0行行首 */
+    int i;
+    for(i = 0;i < (ROW * (COL - 1));i++)
+    {
+        *dst = *src;
+        dst++;
+        src++;
+    }
+    return;
+}
+
 /* get_cursor
 * 功能:获取光标位置
 */
