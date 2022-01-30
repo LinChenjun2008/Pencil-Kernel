@@ -28,8 +28,8 @@ void put_char(uint8_t char_ascii)
         /* 回车和换行 */
         case '\n':
         case '\r':
-            cursor_pos -= (cursor_pos % COL);
-            cursor_pos += COL; /* 移动到下一行行首 */
+            cursor_pos -= (cursor_pos % ROW);
+            cursor_pos += ROW; /* 移动到下一行行首 */
             break;
         /* 普通字符 */
         default:
