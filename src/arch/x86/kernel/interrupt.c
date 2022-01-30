@@ -162,7 +162,7 @@ enum intr_status intr_disable()
 }
 
 /* intr_set_status
-* 功能:将中断状态设为status
+* 功能:将中断状态设为status,并返回关中断前的状态
 */
 enum intr_status intr_set_status(enum intr_status status)
 {
@@ -174,5 +174,6 @@ enum intr_status intr_set_status(enum intr_status status)
 */
 enum intr_status intr_get_status()
 {
+    /* 判断flage寄存器的if位 */
     return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);
 }
