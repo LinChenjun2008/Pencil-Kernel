@@ -42,7 +42,7 @@ void put_char(uint8_t char_ascii)
     if(cursor_pos > (ROW * COL))
     {
         roll_screen();
-        cursor_pos = ((ROW - 1) * COL)
+        cursor_pos = ((ROW - 1) * COL);
     }
     set_cursor(cursor_pos); /* 重设光标 */
     return;
