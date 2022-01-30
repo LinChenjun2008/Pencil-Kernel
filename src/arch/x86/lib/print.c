@@ -39,7 +39,7 @@ void put_char(uint8_t char_ascii)
             cursor_pos++;
             break;
     }
-    if(cursor_pos > (ROW * COL))
+    if(cursor_pos >= (ROW * COL))
     {
         roll_screen();
         cursor_pos = ((ROW - 1) * COL);
