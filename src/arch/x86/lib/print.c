@@ -39,6 +39,11 @@ void put_char(uint8_t char_ascii)
             cursor_pos++;
             break;
     }
+    if(cursor_pos > (ROW * COL))
+    {
+        roll_screen();
+        cursor_pos = ((ROW - 1) * COL)
+    }
     set_cursor(cursor_pos); /* 重设光标 */
     return;
 }
@@ -84,7 +89,7 @@ void roll_screen()
     src = ((uint16_t*)(VRAM + ROW * 2)); /* 第一行行首 */
     dst = ((uint16_t*)(VRAM)); /* 第0行行首 */
     int i;
-    for(i = 0;i < (ROW * (COL - 1));i++)
+    for(i = 0;i < ((ROW - 1) * COL);i++)
     {
         *dst = *src;
         dst++;
