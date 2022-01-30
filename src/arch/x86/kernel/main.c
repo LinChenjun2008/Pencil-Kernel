@@ -9,9 +9,9 @@ int main()
     int i;
     put_char('\n');
     put_str("Pencil-Kernel (PKn) version 0.0.0 test\n");
-    io_sti();
     init_all();
     put_str("init down!\n");
+    intr_enable(); /* 开中断 */
     while(1) /* 这个死循环不能少!!! */
     {
         ;
