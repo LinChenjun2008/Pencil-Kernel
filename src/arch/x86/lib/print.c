@@ -61,8 +61,24 @@ void put_str(char* str)
     return;
 }
 
-void put_uint_hex(unsigned int a)
+void put_int(unsigned int a)
 {
+    char buf[64] = {0};
+    int nr = 0;
+    int2str(a,&nr,buf);
+    put_str(buf);
+    return;
+}
+
+void int2str(int i,int* nr,char* buf)
+{
+    if((i / 10) > 9)
+    {
+        int2str(i,nr,buf);
+    }
+    buf[nr] = (i % 10) + '0';
+    (*nr)++;
+    return;
 }
 
 /* roll_screen
