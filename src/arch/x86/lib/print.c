@@ -77,7 +77,7 @@ static void int2str(int i,int* nr,char* buf)
     {
         int2str(i,nr,buf);
     }
-    buf[nr] = (i % 10) + '0';
+    buf[*nr] = (i % 10) + '0';
     (*nr)++;
     return;
 }
