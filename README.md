@@ -20,17 +20,16 @@ LICENSE:开源协议
 tools:开发工具(windows系统中)
 ```
 [详细信息](doc/question.md)
-### 目标
+### 目标 Goal
 - [x] 在文件系统中加载loader和内核
 - [ ] 实现GUI
 - [ ] 在物理电脑上运行
 - [ ] 实现微内核
 - [ ] ~~打倒Linux~~
-### 更多
-[[关于]](doc/about/dir.md)<br />
+### 更多 More
 [[运行截图 Run screenshot]](doc/image/Readme.md)<br />
 ***
-### 联系方式
+### 联系方式 Contact details
 网站: ~~https://pencil.cnurl.tk~~ (暂时关闭中)<br/>
 E-mail: zpojia@hotmail.com<br />
 bilibili: @Linevtnpu
