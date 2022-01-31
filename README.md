@@ -35,4 +35,4 @@ tools:开发工具(windows系统中)
 E-mail: zpojia@hotmail.com<br />
 bilibili: @Linevtnpu
 ***
-&copy; 2021-2022 Pencil-Kernel developers,All rights reserved
+&copy; 2021-2022 Pencil-Kernel developers,All rights reserved.
