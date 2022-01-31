@@ -61,6 +61,7 @@ void put_str(char* str)
     return;
 }
 
+static void int2str(int i,int* nr,char* buf);
 void put_int(unsigned int a)
 {
     char buf[64] = {0};
@@ -70,7 +71,7 @@ void put_int(unsigned int a)
     return;
 }
 
-void int2str(int i,int* nr,char* buf)
+static void int2str(int i,int* nr,char* buf)
 {
     if((i / 10) > 9)
     {
