@@ -64,7 +64,7 @@ void put_str(char* str)
 static void int2str(int i,int* nr,char* buf);
 void put_int(unsigned int a)
 {
-    char buf[64] = {0};
+    char buf[64 +2] = {0};
     int nr = 0;
     int2str(a,&nr,buf);
     put_str(buf);
