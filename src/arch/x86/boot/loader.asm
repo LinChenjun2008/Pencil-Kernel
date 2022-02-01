@@ -26,8 +26,13 @@ SelectorColorVideo equ (0x0004 << 3 | TI_GDT | RPL0)
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
 
-ards_buf times 0x40 db 0
-ards_nr dw 0
+;每个ards大小为20字节,据说BIOS一般只返回20个ards结构,
+;保守起见,这里预留32个ards结构的空间
+;就是20*32 = 640 = 0x280字节
+
+ards_buf times 0x280 db 0
+
+ards_nr dw 0 ;获取到的ards数量
 
 LoadStartMsg db "Loader";6
 MemErrMsg db "Get total memory bytes error!";29
