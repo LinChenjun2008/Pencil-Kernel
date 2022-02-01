@@ -3,7 +3,7 @@
 
 #include "bitmap.h"
 
-#define PG_SIZE 4096
+#define PG_SIZE 4096 /* 页表尺寸,4096字节,4KB */
 
 struct virtual_addr
 {
