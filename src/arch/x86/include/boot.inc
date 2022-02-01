@@ -28,12 +28,12 @@ LoaderStackTop equ 0x700
 ;Loader向内核传递的参数
 ;设备相关
 TotMem_l    equ 0x7c00 ; +  0 总内存容量低32位
-TotMem_h    equ 0x7c04 ; +  4 总内存容量高32位
+TotMem_h    equ 0x7c04 ; +  4 总内存容量高32位(对于32位系统,这个值没有意义)
 DiskNum     equ 0x7c08 ; +  8 磁盘数量
 ;显示相关
 DisplayMode equ 0x7c0c ; + 12 显示模式(文本(0)或图形(1))
-Vram_l      equ 0x7c0f ; + 16 显存低32位
-Vram_h      equ 0x7c10 ; + 20 显存高32位
+Vram_l      equ 0x7c0f ; + 16 显存地址低32位
+Vram_h      equ 0x7c10 ; + 20 显存地址高32位(对于32位系统,这个值没有意义)
 ScrnX       equ 0x7c14 ; + 24 对于文本模式,这是指列数;对于图形模式,这是指x轴方向上的像素数
 ScrnY       equ 0x7c18 ; + 28 对于文本模式,这是指行数;对于图形模式,这是指y轴方向上的像素数
 
