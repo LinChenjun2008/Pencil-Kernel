@@ -11,6 +11,10 @@
     SecPerCyc equ 18
 %endif
 
+;界面,同样只能选一个
+%define __UI_TEXT__
+;%define __UI_GRAPHIC__
+
 ;磁盘驱动器号
 DrvNum equ 0x00 ;软盘
 ;DrvNum equ 0x80 ;硬盘
