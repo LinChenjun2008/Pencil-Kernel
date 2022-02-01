@@ -15,7 +15,8 @@
 DrvNum equ 0x00 ;软盘
 ;DrvNum equ 0x80 ;硬盘
 
-;loader的信息
+;BootLoader的信息
+;以下内容的地址都是物理地址
 BaseOfBootStack equ 0x7c00  ;boot栈区起始地址
 
 LoaderStartSec equ 0x02       ;loader在2扇区(LBA)开始处
@@ -23,6 +24,19 @@ LoaderSectors equ 7           ;loader占用7扇区
 LoaderBaseAddress equ 0x1000  ;loader加载到0x1000地址处
 LoaderOffsetAddress equ 0x500 ;loader前0x4ff字节是数据,代码正式开始是0x500字节
 LoaderStackTop equ 0x700
+
+;Loader向内核传递的参数
+;设备相关
+TotMem_l    equ 0x7c00 ; +  0 总内存容量低32位
+TotMem_h    equ 0x7c04 ; +  4 总内存容量高32位
+DiskNum     equ 0x7c08 ; +  8 磁盘数量
+;显示相关
+DisplayMode equ 0x7c0c ; + 12 显示模式
+Vram_l      equ 0x7c0f ; + 16 显存低32位
+Vram_h      equ 0x7c10 ; + 20 显存高32位
+ScrnX       equ 0x7c14 ; + 24 对于文本模式,这是指列数;对于图形模式,这是指x轴方向上的像素数
+ScrnY       equ 0x7c18 ; + 28 对于文本模式,这是指行数;对于图形模式,这是指y轴方向上的像素数
+
 
 KernelStartSec equ 0x09       ;Kernel在9扇区(LBA)开始处
 KernelSectors equ 200         ;Kernel占用200扇区
