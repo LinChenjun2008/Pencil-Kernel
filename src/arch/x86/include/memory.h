@@ -4,6 +4,7 @@
 #include "bitmap.h"
 
 #define PG_SIZE 4096 /* 页表尺寸,4096字节,4KB */
+#define BitmapBaseAddress 0xc0100000 /* 内存bitmap的起始地址,0xc0100000~0xc0200000共计256页是bitmap,可管理4GB内存 */
 
 struct virtual_addr
 {
