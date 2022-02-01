@@ -26,16 +26,8 @@ SelectorColorVideo equ (0x0004 << 3 | TI_GDT | RPL0)
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
 
-times (0x300 - ($ - $$)) db 0
-
-;&total_memory_bytes = LoaderBaseAddress+0x300
-total_memory_bytes dq 0 ;内存大小(单位:字节)
-
-ards_buf times 240 db 0
+ards_buf times 0x40 db 0
 ards_nr dw 0
-
-kernel_offset_addr dd KernelBaseAddress ;内核的偏移地址
-kernel_sectors db 0 ;内核所用的扇区数
 
 LoadStartMsg db "Loader";6
 MemErrMsg db "Get total memory bytes error!";29
