@@ -176,7 +176,7 @@ Start:
         mov dword [ScrnY],25
     ;要向内核传递的其他参数
     mov eax,0
-    mov byte eax,[0x475]
+    mov byte al,[0x475]
     mov dword [DiskNum],eax
     ;进入32位模式
     SetProtectMode:
