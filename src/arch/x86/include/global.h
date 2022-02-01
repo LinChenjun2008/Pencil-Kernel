@@ -47,8 +47,15 @@
 * 要记得加上0xc0000000.
 */
 
-#define Total_memory_ptr (0xc0000000 + LoaderBaseAddress + LoaderOffsetAddress)
-
+#define TotalMem_l (*((uint32_t*)(0xc0000000 + 0x7c00)))
+#define TotalMem_h (*((uint32_t*)(0xc0000000 + 0x7c04)))
+#define DiskNum    (*((uint32_t*)(0xc0000000 + 0x7c08)))
+/* 显示相关 */
+#define DisplayMode (*((uint32_t*)(0xc0000000 + 0x7c0c)))
+#define Vram_l      (*((uint32_t*)(0xc0000000 + 0x7c0f)))
+#define Vram_h      (*((uint32_t*)(0xc0000000 + 0x7c10)))
+#define ScrnX       (*((uint32_t*)(0xc0000000 + 0x7c14)))
+#define ScrnY       (*((uint32_t*)(0xc0000000 + 0x7c18)))
 
 /* C语言实现bool */
 typedef uint32_t bool;
