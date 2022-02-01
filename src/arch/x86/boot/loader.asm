@@ -26,11 +26,10 @@ SelectorColorVideo equ (0x0004 << 3 | TI_GDT | RPL0)
 gdt_ptr dw GDT_LIMIT
         dd GDT_BASE
 
-;每个ards大小为20字节,据说BIOS一般只返回20个ards结构,
-;保守起见,这里预留32个ards结构的空间
-;就是20*32 = 640 = 0x280字节
+;这里预留16个ards结构的空间
+;就是20*16 = 320 = 0x140字节
 
-ards_buf times 0x280 db 0
+ards_buf times 0x140 db 0
 
 ards_nr dw 0 ;获取到的ards数量
 
@@ -128,7 +127,8 @@ Start:
                 int 0x10
                 jmp $        ;在此处死循环,停止启动
         .memory_get_success:
-            mov dword [total_memory_bytes],edx ;保存内存容量
+            mov dword [TotalMem_l],edx ;保存内存容量
+            mov dword [TotalMem_h],0
             ;显示一条信息,证明内存容量获取成功
             mov bp,MemSuccessMsg
             mov cx,31;31个字符
@@ -164,10 +164,20 @@ Start:
             mov bx,0x0002;第0页,黑底绿字
             mov dx,0x0400;4行,0列
             int 0x10
-    ;获取VBE信息
-    ;GetVbeInfo:
-    ;    mov ax,
-
+    ;设置显示模式
+    SetDisplayMode:
+        mov ax,0x4f02
+        mov bx,0xc108 ; or 0x4108?
+        int 0x10
+        mov dword [DisplayMode],0     ;文本模式
+        mov dword [Vram_l],0xc00b8000 ;显存地址(虚拟地址)
+        mov dword [Vram_h],0
+        mov dword [ScrnX],80
+        mov dword [ScrnY],25
+    ;要向内核传递的其他参数
+    mov eax,0
+    mov byte eax,[0x475]
+    mov dword [DiskNum],eax
     ;进入32位模式
     SetProtectMode:
         cli ;关闭中断
