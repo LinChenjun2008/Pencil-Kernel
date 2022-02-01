@@ -4,8 +4,8 @@
 #include "bitmap.h"
 
 #define PG_SIZE 4096 /* 页表尺寸,4096字节,4KB */
-#define MemBitmapBaseAddress 0xc0100000 /* 内存bitmap的起始地址,0xc0100000~0xc01fffff共计256页是bitmap,可管理4GB内存 */
-#define KernelHeapStart 0xc0200000 /* 内核堆起始地址 */
+#define MemBitmapBaseAddress 0xc0100000 /* 内存bitmap的起始地址,0xc0100000~0xc011fff共计32页是bitmap,可管理4GB内存 */
+#define KernelHeapStart 0xc0120000 /* 内核堆起始地址 */
 
 struct virtual_addr
 {
