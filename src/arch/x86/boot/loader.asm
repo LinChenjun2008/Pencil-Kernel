@@ -171,7 +171,7 @@ Start:
             mov bx,0xc108 ; or 0x4108?
             int 0x10
             mov dword [DisplayMode],0     ;文本模式
-            mov dword [Vram_l],0xc00b8000 ;显存地址(虚拟地址)
+            mov dword [Vram_l],0x000b8000 ;显存地址(虚拟地址)
             mov dword [Vram_h],0
             mov dword [ScrnX],80
             mov dword [ScrnY],25
