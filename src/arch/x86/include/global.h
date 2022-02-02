@@ -43,19 +43,18 @@
 #define LoaderBaseAddress 0x1000  /* loader加载到0x1000地址处 */
 #define LoaderOffsetAddress 0x500 /* loader前0x4ff字节是数据,代码正式开始是0x500字节 */
 
-/* loader向内核传递的参数的地址,
-* 要记得加上0xc0000000.
+/* loader向内核传递的参数的地址
 */
 
-#define TotalMem_l (*((uint32_t*)(0xc0000000 + 0x7c00)))
-#define TotalMem_h (*((uint32_t*)(0xc0000000 + 0x7c04)))
-#define DiskNum    (*((uint32_t*)(0xc0000000 + 0x7c08)))
+#define TotalMem_l (*((uint32_t*)(0x7c00 + 0x000)))
+#define TotalMem_h (*((uint32_t*)(0x7c00 + 0x004)))
+#define DiskNum    (*((uint32_t*)(0x7c00 + 0x008)))
 /* 显示相关 */
-#define DisplayMode (*((uint32_t*)(0xc0000000 + 0x7c0c)))
-#define Vram_l      (*((uint32_t*)(0xc0000000 + 0x7c0f)))
-#define Vram_h      (*((uint32_t*)(0xc0000000 + 0x7c10)))
-#define ScrnX       (*((uint32_t*)(0xc0000000 + 0x7c14)))
-#define ScrnY       (*((uint32_t*)(0xc0000000 + 0x7c18)))
+#define DisplayMode (*((uint32_t*)(0x7c00 + 0x00c)))
+#define Vram_l      (*((uint32_t*)(0x7c00 + 0x00f)))
+#define Vram_h      (*((uint32_t*)(0x7c00 + 0x010)))
+#define ScrnX       (*((uint32_t*)(0x7c00 + 0x014)))
+#define ScrnY       (*((uint32_t*)(0x7c00 + 0x018)))
 
 /* C语言实现bool */
 typedef uint32_t bool;
