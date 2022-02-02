@@ -62,7 +62,6 @@ void put_str(char* str)
     return;
 }
 
-void itoa(int a,char** buf,int base);
 void put_int(unsigned int a)
 {
     char buf[64 +2] = {0};
@@ -73,7 +72,7 @@ void put_int(unsigned int a)
 
 /* itoa
 * 功能:将a转为base进制的字符串写入buf地址
-* a    :要转换的数字
+* a    :要转换的数字(有符号)
 * str  :转换后的字符串的存储地址
 * base :进制,最高支持36进制
 */
@@ -101,9 +100,9 @@ void itoa(int a,char* str,int base)
         str[i] = '-';
         i++;
     }
-    buf[i] = '\0'; /* 加上字符串结尾 */
-    char* p = buf;
-    char* q = buf;
+    str[i] = '\0'; /* 加上字符串结尾 */
+    char* p = str;
+    char* q = str;
     char tmp;
     while(*q != '\0')
     {
