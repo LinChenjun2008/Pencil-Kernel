@@ -15,6 +15,10 @@
 %define __UI_TEXT__
 ;%define __UI_GRAPHIC__
 
+%ifdef __UI_GRAPHIC__
+    %define VBE_MODE 0x105
+%endif
+
 ;磁盘驱动器号
 DrvNum equ 0x00 ;软盘
 ;DrvNum equ 0x80 ;硬盘
