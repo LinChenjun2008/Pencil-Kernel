@@ -1,5 +1,6 @@
 #include "print.h"
 #include "config.h"
+#include "global.h"
 #include "io.h"
 
 static uint8_t color = 0x07;
@@ -23,26 +24,26 @@ void put_char(uint8_t char_ascii)
         /* 退格 */
         case '\b':
             cursor_pos--; /* 光标位置减1 */
-            *((uint8_t*)(VRAM + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
+            *((uint8_t*)(VRAM_l + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
             break;
         /* 回车和换行 */
         case '\n':
         case '\r':
-            cursor_pos -= (cursor_pos % ROW);
-            cursor_pos += ROW; /* 移动到下一行行首 */
+            cursor_pos -= (cursor_pos % ScrnX);
+            cursor_pos += ScrnX; /* 移动到下一行行首 */
             break;
         /* 普通字符 */
         default:
             font |= (char_ascii << 8);
-            *((uint8_t*)(VRAM + (cursor_pos * 2)) = char_ascii;
-            *((uint8_t*)(VRAM + (cursor_pos * 2) +1)) = color;
+            *((uint8_t*)(VRAM_l + (cursor_pos * 2)) = char_ascii;
+            *((uint8_t*)(VRAM_l + (cursor_pos * 2) +1)) = color;
             cursor_pos++;
             break;
     }
-    if(cursor_pos >= (ROW * COL))
+    if(cursor_pos >= (ScrnX * ScrnY))
     {
         roll_screen();
-        cursor_pos = ((ROW - 1) * COL);
+        cursor_pos = ((ScrnY - 1) * ScrnX);
     }
     set_cursor(cursor_pos); /* 重设光标 */
     return;
@@ -61,24 +62,26 @@ void put_str(char* str)
     return;
 }
 
-static void int2str(int i,int* nr,char* buf);
+void itoa(int a,char** buf,int base);
 void put_int(unsigned int a)
 {
     char buf[64 +2] = {0};
-    int nr = 0;
-    int2str(a,&nr,buf);
+    itoa(a,&buf,16);
     put_str(buf);
     return;
 }
 
-static void int2str(int i,int* nr,char* buf)
+void itoa(int a,char** buf,int base)
 {
-    if((i / 10) > 9)
+    char digits[37] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    uint32_t m = a / base;
+    uint32_t i = a % base;
+    if(m > (bade - 1))
     {
-        int2str(i,nr,buf);
+        itoa(m,buf,base);
     }
-    buf[*nr] = (i % 10) + '0';
-    (*nr)++;
+    *(*buf) = digits[i];
+    (*buf)++;
     return;
 }
 
