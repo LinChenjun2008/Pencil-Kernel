@@ -3,12 +3,6 @@
 
 #include "config.h"
 
-#ifdef __UI_TEXT__
-    #define VRAM (0xc0000000 + 0xb8000) /* 显存地址 */
-    #define ROW 25 /* 默认共25行 */
-    #define COL 80 /* 默认共80列 */
-#endif /* __UI_TEXT__ */
-
 // #include "stdint.h"
 
 
