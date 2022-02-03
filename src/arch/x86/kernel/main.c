@@ -12,7 +12,7 @@ int main()
     init_all();
     put_str("init down!\n");
     intr_enable(); /* 开中断 */
-    while(1) /* 这个死循环不能少!!! */
+    while(1) /* 这个死循环不能少思密达! CPU会跑没影地思密达! */
     {
         ;
     }
