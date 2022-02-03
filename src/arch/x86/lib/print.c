@@ -5,8 +5,6 @@
 
 static uint8_t color = 0x07;
 
-#ifdef __UI_TEXT__ /* 以下是文本界面的对应函数 */
-
 /* put_char
 * 功能:在光标位置显示一个字符
 */
@@ -174,7 +172,3 @@ void set_cursor(int cursor_pos)
     
     return;
 }
-
-#ifdef __UI_GRAPHIC__  /* 以下是图形界面中的对应函数 */
-
-#endif
