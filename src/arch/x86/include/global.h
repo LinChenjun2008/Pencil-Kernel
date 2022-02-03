@@ -56,6 +56,13 @@
 #define ScrnX       (*((uint32_t*)(0x7c00 + 0x014)))
 #define ScrnY       (*((uint32_t*)(0x7c00 + 0x018)))
 
+/* 参数的取值 */
+enum Display
+{
+    _TEXT = 0,
+    _GRAPHIC = 1, /* 图形界面,以后实现 */
+};
+
 /* C语言实现bool */
 typedef uint32_t bool;
 #define true 1
