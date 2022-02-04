@@ -188,15 +188,63 @@ Start:
             ;检查VBE版本号
             mov ax,[es:di + 4] ;这里是VBE模式号
             cmp ax,0x0200
-            jb .vbe_mode_too_old
+            jb .vbe_version_too_old
             ;设置VBE模式
-            .try_Mode1
+            .try_Mode1:
                 mov cx,VBE_MODE1
                 mov ax,0x4f01
                 int 0x10
                 cmp ax,0x004f
                 jne .try_Mode2
-                
+                ;检查画面模式
+                mov ax,[es:di + 0x00]
+                and ax,0x0080 ;检查线性帧缓冲是否有效
+                jz .try_Mode2
+                ;VBE模式切换
+                mov bx,VBE_MODE1 + 0x4000
+                jmp .set_vbe_mode
+            .try_Mode2:
+                mov cx,VBE_MODE2
+                mov ax,0x4f01
+                int 0x10
+                cmp ax,0x004f
+                jne .try_Mode3
+                ;检查画面模式
+                mov ax,[es:di + 0x00]
+                and ax,0x0080 ;检查线性帧缓冲是否有效
+                jz .try_Mode3
+                ;VBE模式切换
+                mov bx,VBE_MODE2 + 0x4000
+                jmp .set_vbe_mode
+            .try_Mode3:
+                mov cx,VBE_MODE3
+                mov ax,0x4f01
+                int 0x10
+                cmp ax,0x004f
+                jne .err
+                ;检查画面模式
+                mov ax,[es:di + 0x00]
+                and ax,0x0080 ;检查线性帧缓冲是否有效
+                jz .err
+                ;VBE模式切换
+                mov bx,VBE_MODE3 + 0x4000
+                jmp .set_vbe_mode
+            .without_vbe:
+            .vbe_version_too_old:
+            .err:
+                jmp $ ;悬停,暂时先这样
+            .set_vbe_mode:
+                mov ax,0x4f02
+                int 0x10
+                mov dword [DisplayMode],1
+                mov eax,0
+                mov ax,[es:di + 0x12]
+                mov dword [ScrnX],eax
+                mov ax,[es:di + 0x14]
+                mov dword [ScrnY],eax
+                mov eax,[es:di + 0x28]
+                mov dword [Vram_l],eax
+                mov dword [Vram_h],0
         %endif
     ;要向内核传递的其他参数
     mov eax,0
