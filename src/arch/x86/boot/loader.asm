@@ -177,7 +177,20 @@ Start:
             mov dword [ScrnY],25
         %endif
         %ifdef __UI_GRAPHIC__
-            ;...
+            ;检查VBE是否存在
+            mov ax,0x0500
+            mov es,ax
+            mov di,0 ;es:di是存放VBE信息的地方,这里是0x500~0x6ff
+            mov ax,0x4f00
+            int 0x10
+            cmp ax,0x004f ;如果有VBE,ax会变成0x004f
+            jz .without_vbe
+            ;检查VBE版本号
+            mov ax,[es:di + 4] ;这里是VBE模式号
+            cmp ax,0x0200
+            jb .vbe_mode_too_old
+            ;设置VBE模式
+            
         %endif
     ;要向内核传递的其他参数
     mov eax,0
