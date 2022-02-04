@@ -16,7 +16,9 @@
 ;%define __UI_GRAPHIC__
 
 %ifdef __UI_GRAPHIC__
-    %define VBE_MODE 0x105
+    VBE_MODE1 0x118 ;1024 * 768 32位色彩
+    VBE_MODE2 0x115 ;800 * 600 32位色彩
+    VBE_MODE3 0x112 ;640 * 480 32位色彩
 %endif
 
 ;磁盘驱动器号
