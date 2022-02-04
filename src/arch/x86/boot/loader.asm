@@ -190,7 +190,13 @@ Start:
             cmp ax,0x0200
             jb .vbe_mode_too_old
             ;设置VBE模式
-            
+            .try_Mode1
+                mov cx,VBE_MODE1
+                mov ax,0x4f01
+                int 0x10
+                cmp ax,0x004f
+                jne .try_Mode2
+                
         %endif
     ;要向内核传递的其他参数
     mov eax,0
