@@ -177,6 +177,7 @@ Start:
             mov dword [ScrnY],25
         %endif
         %ifdef __UI_GRAPHIC__
+            ;打算尝试三种显示模式:0x118 0x115和0x112
             ;检查VBE是否存在
             mov ax,0x0500
             mov es,ax
@@ -203,7 +204,7 @@ Start:
                 cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
                 jz .try_Mode2
                 ;VBE模式切换
-                mov bx,VBE_MODE1 + 0x4000
+                mov bx,VBE_MODE1 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
             .try_Mode2:
                 mov cx,VBE_MODE2
@@ -218,7 +219,7 @@ Start:
                 cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
                 jz .try_Mode3
                 ;VBE模式切换
-                mov bx,VBE_MODE2 + 0x4000
+                mov bx,VBE_MODE2 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
             .try_Mode3:
                 mov cx,VBE_MODE3
@@ -233,7 +234,7 @@ Start:
                 cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
                 jz .err
                 ;VBE模式切换
-                mov bx,VBE_MODE3 + 0x4000
+                mov bx,VBE_MODE3 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
             .without_vbe:
             .vbe_version_too_old:
