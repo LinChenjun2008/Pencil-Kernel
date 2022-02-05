@@ -39,6 +39,7 @@ tools:开发工具(windows系统中)
 |    |
 |    +---加载kernel
 |    +---运行kernel
+|
 +kernel.bin
 ...
 ```
