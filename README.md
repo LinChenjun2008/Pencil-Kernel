@@ -20,6 +20,28 @@ LICENSE:开源协议
 tools:开发工具(windows系统中)
 ```
 [详细信息](doc/question.md)
+### 启动流程
+```
++mbr.bin
+|
++boot.bin
+|
++loader.bin
+|    |
+|    +---检测内存大小
+|    +---加载setup
+|    +---设置VBE模式
+|    +---进入保护模式
+|    +---开启分页
+|    +---运行setup
+|
++setup.bin
+|    |
+|    +---加载kernel
+|    +---运行kernel
++kernel.bin
+...
+```
 ### 目标 Goal
 - [x] 在文件系统中加载loader和内核
 - [ ] 实现GUI
