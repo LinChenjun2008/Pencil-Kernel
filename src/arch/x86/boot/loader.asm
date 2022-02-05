@@ -200,6 +200,8 @@ Start:
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
                 jz .try_Mode2
+                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+                jz .try_Mode2
                 ;VBE模式切换
                 mov bx,VBE_MODE1 + 0x4000
                 jmp .set_vbe_mode
@@ -213,6 +215,8 @@ Start:
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
                 jz .try_Mode3
+                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+                jz .try_Mode3
                 ;VBE模式切换
                 mov bx,VBE_MODE2 + 0x4000
                 jmp .set_vbe_mode
@@ -225,6 +229,8 @@ Start:
                 ;检查画面模式
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
+                jz .err
+                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
                 jz .err
                 ;VBE模式切换
                 mov bx,VBE_MODE3 + 0x4000
