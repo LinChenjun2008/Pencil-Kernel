@@ -3,13 +3,30 @@
 
 ;大致的执行过程:
 ; 1. 初始化寄存器
-; 2. 把自己搬到0x7f00地址处(搬到哪无所谓,主要是腾出0x7c00~0x7eff这512字节)
+; 2. 把自己搬到0x7f00地址处,并跳过去执行(搬到哪无所谓,主要是腾出0x7c00~0x7eff这512字节)
 ; 3. 寻找可引导分区,把分区前512字节加载到0x7c00地址处
 ; 4. 跳转到0x7c00,mbr结束
 
 org 0x7c00
 [bits 16]
 Start:
+    ;初始化寄存器 (Initialize registers)
+    mov ax,cs
+    mov ds,ax
+    mov es,ax
+    mov ss,ax
+    mov fs,ax
+    mov sp,0x7f00
+    ;2.把自己搬到0x7f00地址处 
+    mov ax,0x7c0
+    mov ds,ax
+    mov ax,0x7f0
+    mov es,ax
+    mov cx,256
+    mov di,0
+    mov si,0
+    rep movw ;从ds:si复制一个字(word)到es:di,复制次数:cx的值
+             ;每次复制后,si和di的值会对应数据大小增加
     
 ;Function: ReadSector
 ;参数 (Input):
