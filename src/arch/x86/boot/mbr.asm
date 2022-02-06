@@ -40,12 +40,15 @@ Start:
         jnz .part2 ;第一分区不是EPFS,看看第二分区
         ;到了这里,就说明第一分区可引导,马上加载引导程序
         mov eax,[part1 + 8] ;分区起始lba扇区号
-        mov cx,1 ;1扇区
-        mov ax,0x7c0
-        mov es,ax
-        mov bx,0
-        call ReadSector
-        jmp 0x07c0:0x0000
+        jmp .load_boot
+        .load_boot
+            mov cx,1 ;1扇区
+            mov bx,0x7c0
+            mov es,bx
+            mov bx,0
+            call ReadSector
+            jmp 0x07c0:0x0000
+
 ;Function: ReadSector
 ;参数 (Input):
 ;eax   :扇区号(Sector Number)
