@@ -1,4 +1,5 @@
 ;Pencil-Kernel(PKn) loader.asm
+
 %include "boot.inc"
 org LoaderBaseAddress
 [bits 16]
@@ -177,7 +178,7 @@ Start:
             mov dword [ScrnY],25
         %endif
         %ifdef __UI_GRAPHIC__
-            ;打算尝试三种显示模式:0x118 0x115和0x112
+            ;打算尝试三种显示模式
             ;检查VBE是否存在
             mov ax,0x0500
             mov es,ax
