@@ -7,7 +7,7 @@
 ; 3. 寻找可引导分区,把分区前512字节加载到0x7c00地址处
 ; 4. 跳转到0x7c00,mbr结束
 
-org 0x7c00
+;org 0x7c00
 [bits 16]
 Start:
     ;初始化寄存器 (Initialize registers)
@@ -27,7 +27,25 @@ Start:
     mov si,0
     rep movw ;从ds:si复制一个字(word)到es:di,复制次数:cx的值
              ;每次复制后,si和di的值会对应数据大小增加
-    
+    jmp 0x7f0:next
+;org 0x7f00
+    next: ;这里就是复制到0x7f00后的mbr了
+        mov ax,0x7f0
+        mov ds,ax ;因为没有用org,所以要向ds载入段值
+          ;接下来要寻找活动分区
+        .part1
+        cmp byte [part1 + 0],0x80
+        jnz .part2 ;第一分区不是活动分区,看看第二分区
+        cmp byte [part1 + 4],0x95 ;分区类型,0x95是EPFS
+        jnz .part2 ;第一分区不是EPFS,看看第二分区
+        ;到了这里,就说明第一分区可引导,马上加载引导程序
+        mov eax,[part1 + 8] ;分区起始lba扇区号
+        mov cx,1 ;1扇区
+        mov ax,0x7c0
+        mov es,ax
+        mov bx,0
+        call ReadSector
+        jmp 0x07c0:0x0000
 ;Function: ReadSector
 ;参数 (Input):
 ;eax   :扇区号(Sector Number)
