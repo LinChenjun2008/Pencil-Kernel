@@ -1,6 +1,12 @@
 ;Pencil-Kernel mbr
 ;给硬盘使用的,软盘引导的话就不用写入这个文件.
 
+;大致的执行过程:
+; 1. 初始化寄存器
+; 2. 把自己搬到0x7f00地址处
+; 3. 寻找可引导分区,把分区前512字节加载到0x7c00地址处
+; 4. 跳转到0x7c00,mbr结束
+
 org 0x7c00
 [bits 16]
 Start:
@@ -81,7 +87,8 @@ DiskAddressPacket:
     dq 0    ;+10 64位缓冲区地址拓展 (未始用)(64-bit buffer address extension(unusing))
 
 
-times 446 - ($ - $$) db 0;硬盘分区表
+times 446 - ($ - $$) db 0
+;硬盘分区表
 part1:
     db 0x80 ;活动分区标记
     db 0
