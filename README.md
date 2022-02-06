@@ -35,7 +35,7 @@ tools:开发工具(windows系统中)
 |    +---开启分页
 |    +---运行setup
 |
-+setup.bin
++setup.bin(暂时没有)
 |    |
 |    +---加载kernel
 |    +---运行kernel
