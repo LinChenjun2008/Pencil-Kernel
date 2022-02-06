@@ -32,7 +32,8 @@ Start:
     next: ;这里就是复制到0x7f00后的mbr了
         mov ax,0x7f0
         mov ds,ax ;因为没有用org,所以要向ds载入段值
-          ;接下来要寻找活动分区
+        ;接下来要寻找活动分区
+        ;只管第一分区
         .part1
         cmp byte [part1 + 0],0x80
         jnz .part2 ;第一分区不是活动分区,看看第二分区
@@ -41,6 +42,8 @@ Start:
         ;到了这里,就说明第一分区可引导,马上加载引导程序
         mov eax,[part1 + 8] ;分区起始lba扇区号
         jmp .load_boot
+        .part2
+            jmp $
         .load_boot
             mov cx,1 ;1扇区
             mov bx,0x7c0
