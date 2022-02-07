@@ -414,37 +414,40 @@ SetupPage:
         ;将页目录0和0xc00存入第一个页表的地址
         or eax,PG_US_U | PG_RW_W | PG_P      ;用户属性,所有特权级都可以访问
         mov [PAGE_DIR_TABLE_POS + 0x000],eax ;写入第一个页目录项
-        mov [PAGE_DIR_TABLE_POS + 0xc00],eax ;写入最后一个个页目录项
+        mov [PAGE_DIR_TABLE_POS + 0xc00],eax ;写入最后一个页目录项
 
         sub eax,0x1000
         mov [PAGE_DIR_TABLE_POS + 0x1000],eax ;最后一个页目录指向页表本身
     ;3. 创建页表项
+    ;将低端1MB做固定映射
     mov ecx,256 ;低端1MB内存里有256页
     mov esi,0
     mov edx,PG_US_U | PG_RW_W | PG_P
     .create_pte:
         mov [ebx + esi * 4],edx ;ebx是第一个页表地址
-        add edx,4096
+        add edx,0x1000 ;指向下一个物理页地址
         inc esi
         loop .create_pte
+    ;专为图形模式写的,将第1016~1019的页表用于映射帧缓存区,共16MB
     %ifdef __UI_GRAPHIC__
         mov ecx,4096
-        mov esi,1016
-        mov edx,[Vram_l]
+        mov esi,0xfe0
+        mov edx,[Vram_l] ;帧缓存区地址(应该是在4KB边界处吧?不是也不管了)
         or edx,PG_US_U | PG_RW_W | PG_P
         .create_vram_pte:
             mov [ebx + esi * 4],edx
-            add edx,4096
+            add edx,0x1000
             inc esi
             loop .create_vram_pte
+        mov dword [Vram_l],0xfe000000 ;帧缓存区被映射了,载入映射后的线性地址
     %endif
     ;4. 创建内核其他页表的页目录项
     mov eax,PAGE_DIR_TABLE_POS
     add eax,0x2000 ;第二个页表
     or eax,PG_US_U | PG_RW_W | PG_P
     mov ebx,PAGE_DIR_TABLE_POS
-    mov ecx,254 ;769~1022的页目录项指向内核
-    mov esi,769 ;
+    mov ecx,254 ;769~1022的页目录项指向内核,共254页.(1023页目录指向页表本身)
+    mov esi,769 ;从790也就是0xc00开始
     .create_kernel_pde:
         mov [ebx + esi * 4],eax
         inc esi
