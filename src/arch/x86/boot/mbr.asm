@@ -25,8 +25,9 @@ Start:
     mov cx,256
     mov di,0
     mov si,0
+    cld      ;清零方向标志位df,df默认是0,所以不写也没问题,但还是写上放心
     rep movw ;从ds:si复制一个字(word)到es:di,复制次数:cx的值
-             ;每次复制后,si和di的值会对应数据大小增加
+             ;每次复制后,si和di的值会对应数据大小增加(df位为1时会减小)
     jmp 0x7f0:next
 ;org 0x7f00
     next: ;这里就是复制到0x7f00后的mbr了
