@@ -25,5 +25,11 @@ SECTIONS
         *(.rodata)
         _erodata = .;
     }
+    .bss :
+    {
+        _bss = .;
+        *(.bss)
+        _ebss = .;
+    }
 
 }
