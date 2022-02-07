@@ -186,7 +186,7 @@ Start:
             mov ax,0x4f00
             int 0x10
             cmp ax,0x004f ;如果有VBE,ax会变成0x004f
-            jne .without_vbe ;没有vbe(jne: jmp if not equals,不等于时跳转)
+            jne .without_vbe ;没有vbe(jne: jump if not equals,不等于时跳转)
             ;检查VBE版本号
             mov ax,[es:di + 4] ;这里是VBE版本号
             cmp ax,0x0200
@@ -194,52 +194,22 @@ Start:
             ;设置VBE模式
             .try_Mode1:
                 mov cx,VBE_MODE1
-                mov ax,0x4f01
-                int 0x10
-                cmp ax,0x004f
-                jne .try_Mode2
-                ;检查画面模式
-                cmp byte [es:di + 0x19],32 ;32位色彩
-                jne .try_Mode2
-                mov ax,[es:di + 0x00]
-                and ax,0x0080 ;检查线性帧缓冲是否有效
-                jz .try_Mode2
-                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                ; jne .try_Mode2
+                call Checking_VBE_Mode
+                jcxz .try_Mode2 ;jcxz: jump if cx is zero?,cx等于0则跳转
                 ;VBE模式切换
                 mov bx,VBE_MODE1 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
             .try_Mode2:
                 mov cx,VBE_MODE2
-                mov ax,0x4f01
-                int 0x10
-                cmp ax,0x004f
-                jne .try_Mode3
-                ;检查画面模式
-                cmp byte [es:di + 0x19],32 ;32位色彩
-                jne .try_Mode3
-                mov ax,[es:di + 0x00]
-                and ax,0x0080 ;检查线性帧缓冲是否有效
-                jz .try_Mode3
-                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                ; jne .try_Mode3
+                call Checking_VBE_Mode
+                jcxz .try_Mode3
                 ;VBE模式切换
                 mov bx,VBE_MODE2 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
             .try_Mode3:
                 mov cx,VBE_MODE3
-                mov ax,0x4f01
-                int 0x10
-                cmp ax,0x004f
-                jne .err
-                ;检查画面模式
-                cmp byte [es:di + 0x19],32 ;32位色彩
-                jne .err
-                mov ax,[es:di + 0x00]
-                and ax,0x0080 ;检查线性帧缓冲是否有效
-                jz .err
-                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                ; jne .err
+                call Checking_VBE_Mode
+                jcxz .err
                 ;VBE模式切换
                 mov bx,VBE_MODE3 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
@@ -259,7 +229,9 @@ Start:
                 mov eax,[es:di + 0x28]
                 mov dword [Vram_l],eax
                 mov dword [Vram_h],0
+                jmp .set_display_mode_next
         %endif
+    .set_display_mode_next:
     ;要向内核传递的其他参数
     mov eax,0
     mov byte al,[0x475]
@@ -280,6 +252,29 @@ Start:
         ;使用跳转指令清空流水线
         jmp dword SelectorCode32:ProtectModeStart
 ;16位函数定义部分:
+
+;检查画面模式的函数
+; cx:模式号
+; es:di :vbe画面信息存放处
+; 如果成功,cx不变
+; 失败,cx变为0
+Checking_VBE_Mode:
+    mov ax,0x4f01
+    int 0x10
+    cmp ax,0x004f
+    jne .fail
+    ;检查画面模式
+    cmp byte [es:di + 0x19],32 ;32位色彩
+    jne .fial
+    mov ax,[es:di + 0x00]
+    and ax,0x0080 ;检查线性帧缓冲是否有效
+    jz .fial
+    ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+    ; jne .try_Mode3
+    ret
+    .fail:
+        mov cx,0
+        ret
 
 ;下面的内容来自boot:
 ;Function: ReadSector
