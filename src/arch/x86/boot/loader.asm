@@ -270,7 +270,7 @@ Checking_VBE_Mode:
     and ax,0x0080 ;检查线性帧缓冲是否有效
     jz .fial
     ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-    ; jne .try_Mode3
+    ; jne .fail
     ret
     .fail:
         mov cx,0
