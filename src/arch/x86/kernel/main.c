@@ -11,8 +11,8 @@ int main()
     put_str("Pencil-Kernel (PKn) version 0.0.0 test\n");
     init_all();
     put_str("init down!\n");
-    intr_enable(); /* 开中断 */
-    while(1) /* 这个死循环不能少思密达! CPU会跑没影地思密达! */
+    //intr_enable(); /* 开中断 */
+    while(1) /* 这个死循环不能少 */
     {
         ;
     }
