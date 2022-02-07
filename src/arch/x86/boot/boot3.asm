@@ -48,7 +48,7 @@ Start:
 ;eax   :扇区号(Sector Number)
 ;cx    :要读取的扇区数
 ;es:bx :读取到的数据存放处
-;dx    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
+;dl    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
 ReadSector:
     ;为物理机准备的版本:
     %ifdef __BOOT_ON_PHY_MACHINE__
