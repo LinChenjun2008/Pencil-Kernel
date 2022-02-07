@@ -264,11 +264,11 @@ Checking_VBE_Mode:
     cmp ax,0x004f
     jne .fail
     ;检查画面模式
-    cmp byte [es:di + 0x19],32 ;32位色彩
-    jne .fial
+    ;cmp byte [es:di + 0x19],32 ;32位色彩
+    ;jne .fail
     mov ax,[es:di + 0x00]
     and ax,0x0080 ;检查线性帧缓冲是否有效
-    jz .fial
+    jz .fail
     ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
     ; jne .fail
     ret

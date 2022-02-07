@@ -12,8 +12,8 @@
 %endif
 
 ;界面,同样只能选一个
-%define __UI_TEXT__
-;%define __UI_GRAPHIC__
+;%define __UI_TEXT__
+%define __UI_GRAPHIC__
 
 %ifdef __UI_GRAPHIC__
     ;这里是VBE模式号
@@ -44,8 +44,8 @@ LoaderStackTop equ 0x700
 
 ;Loader向内核传递的参数
 ;设备相关
-TotMem_l    equ 0x7c00 ; +  0 总内存容量低32位
-TotMem_h    equ 0x7c04 ; +  4 总内存容量高32位(对于32位系统,这个值没有意义)
+TotalMem_l    equ 0x7c00 ; +  0 总内存容量低32位
+TotalMem_h    equ 0x7c04 ; +  4 总内存容量高32位(对于32位系统,这个值没有意义)
 DiskNum     equ 0x7c08 ; +  8 磁盘数量
 ;显示相关
 DisplayMode equ 0x7c0c ; + 12 显示模式(文本(0)或图形(1))
