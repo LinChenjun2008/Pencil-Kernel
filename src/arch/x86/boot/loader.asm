@@ -186,11 +186,11 @@ Start:
             mov ax,0x4f00
             int 0x10
             cmp ax,0x004f ;如果有VBE,ax会变成0x004f
-            jz .without_vbe
+            jne .without_vbe ;没有vbe(jne: jmp if not equals,不等于时跳转)
             ;检查VBE版本号
-            mov ax,[es:di + 4] ;这里是VBE模式号
+            mov ax,[es:di + 4] ;这里是VBE版本号
             cmp ax,0x0200
-            jb .vbe_version_too_old
+            jb .vbe_version_too_old ;如果ax小于0x0200,跳转到.vbe_version_too_old
             ;设置VBE模式
             .try_Mode1:
                 mov cx,VBE_MODE1
@@ -199,11 +199,13 @@ Start:
                 cmp ax,0x004f
                 jne .try_Mode2
                 ;检查画面模式
+                cmp byte [es:di + 0x19],32 ;32位色彩
+                jne .try_Mode2
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
                 jz .try_Mode2
-                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                jz .try_Mode2
+                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+                ; jne .try_Mode2
                 ;VBE模式切换
                 mov bx,VBE_MODE1 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
@@ -214,11 +216,13 @@ Start:
                 cmp ax,0x004f
                 jne .try_Mode3
                 ;检查画面模式
+                cmp byte [es:di + 0x19],32 ;32位色彩
+                jne .try_Mode3
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
                 jz .try_Mode3
-                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                jz .try_Mode3
+                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+                ; jne .try_Mode3
                 ;VBE模式切换
                 mov bx,VBE_MODE2 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
@@ -229,11 +233,13 @@ Start:
                 cmp ax,0x004f
                 jne .err
                 ;检查画面模式
+                cmp byte [es:di + 0x19],32 ;32位色彩
+                jne .err
                 mov ax,[es:di + 0x00]
                 and ax,0x0080 ;检查线性帧缓冲是否有效
                 jz .err
-                cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
-                jz .err
+                ; cmp byte [es:di + 0x1b],0x06 ;Direct Color模式
+                ; jne .err
                 ;VBE模式切换
                 mov bx,VBE_MODE3 + 0x4000 ;0x4000:使用线性帧缓存区
                 jmp .set_vbe_mode
