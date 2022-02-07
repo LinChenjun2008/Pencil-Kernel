@@ -180,9 +180,9 @@ Start:
         %ifdef __UI_GRAPHIC__
             ;打算尝试三种显示模式
             ;检查VBE是否存在
-            mov ax,0x0500
-            mov es,ax
-            mov di,0 ;es:di是存放VBE信息的地方,这里是0x500~0x6ff
+            mov ax,0x0050
+            mov es,ax ;eax左移4位后是0x500
+            mov di,0 ;es:di是存放VBE信息的地方,这里是0x500~0x6ff(别忘了基址会被左移4位)
             mov ax,0x4f00
             int 0x10
             cmp ax,0x004f ;如果有VBE,ax会变成0x004f
