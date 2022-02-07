@@ -425,6 +425,17 @@ SetupPage:
         add edx,4096
         inc esi
         loop .create_pte
+    %ifdef __UI_GRAPHIC__
+        mov ecx,4096
+        mov esi,1016
+        mov edx,[Vram_l]
+        or edx,PG_US_U | PG_RW_W | PG_P
+        .create_vram_pte:
+            mov [ebx + esi * 4],edx
+            add edx,4096
+            inc esi
+            loop .create_vram_pte
+    %endif
     ;4. 创建内核其他页表的页目录项
     mov eax,PAGE_DIR_TABLE_POS
     add eax,0x2000 ;第二个页表
@@ -437,4 +448,16 @@ SetupPage:
         inc esi
         add eax,0x1000
         loop .create_kernel_pde
+    %ifdef __UI_GRAPHIC__
+        mov eax,PAGE_DIR_TABLE_POS
+        add eax,0xfe0 * 0x1000
+        mov ebx,PAGE_DIR_TABLE_POS
+        mov ecx,4
+        mov esi,0xfe0 ;1016
+        .create_vram_pde:
+            mov [ebx + esi * 4],eax
+            inc esi
+            add eax,0x1000
+            loop .create_vram_pde
+    %endif
     ret
