@@ -5,6 +5,7 @@ TOOLPATH := ../../../tools/
 AS := $(TOOLPATH)as
 CC1 := $(TOOLPATH)cc1
 DD := $(TOOLPATH)dd
+GCC := $(TOOLPATH)gcc
 LD := $(TOOLPATH)ld
 MAKE := $(TOOLPATH)make
 NASM := $(TOOLPATH)nasm
@@ -14,10 +15,12 @@ OBJCOPY :=$(TOOLPATH)objcopy
 #src path
 BOOTPATH := boot/
 BUILD_DIR := build
+GRAPHIC := include/graphic/
 INCLUDE := include/
 KERNELPATH := kernel/
 DEVICE := device/
 LIB := lib/
+
 #exec
 #boot请使用boot3,boot只适合在物理机中引导,
 #而boot3即可以在物理机中引导,也可以在虚拟机中引导(要先配置boot.inc)
@@ -45,7 +48,7 @@ v_disk := a.img
 #other
 OBJ_FORMAT := elf32-i386
 K_VERSION := 0.0.0 test
-COPYRIGHT := 
+COPYRIGHT := Copyright 2021-2022 LinChenjun
 #command
 COPY := copy
 CD := cd
@@ -70,8 +73,9 @@ MAKE_DIR := md
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
-	$(CC1) -I $(INCLUDE) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
-	$(AS) -I $(INCLUDE) -I ../ -o $*.co $*.s
+	$(CC1) -I $(INCLUDE) -I $(GRAPHIC) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
+	$(AS) -I $(INCLUDE) -I $(GRAPHIC) -I ../ -o $*.co $*.s
+#	$(GCC) -I $(INCLUDE) -I $(GRAPHIC) -I ../ -m32 -fno-builtin -c $*.c -o $*.co
 
 #command:
 #all: make all
