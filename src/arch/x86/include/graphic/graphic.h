@@ -4,6 +4,9 @@
 #define rgb(R,G,B) ((uint32_t)(0x00000000 |( R << 16 | G << 8 | B << 0 )))
 #define rgba(R,G,B,A) ((uint32_t)(0x00000000 |( A << 24 | R << 16 | G << 8 | B << 0 )))
 
+/* Rectangle
+* 长方形,矩形
+*/
 struct Rectangle
 {
     uint32_t* vram;     /* 显示缓冲区地址 */
@@ -13,6 +16,6 @@ struct Rectangle
     uint32_t YPostiton; /* 左上y坐标 */
 };
 
-extern Rectangle Screen;
+extern Rectangle Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */
 
 #endif /* __GRAPHIC_H__ */
