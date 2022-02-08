@@ -18,4 +18,6 @@ struct Rectangle
 
 extern Rectangle Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */
 
+void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int x1,int y1);
+
 #endif /* __GRAPHIC_H__ */
