@@ -13,4 +13,6 @@ struct Rectangle
     uint32_t YPostiton; /* 左上y坐标 */
 };
 
+extern Rectangle Screen;
+
 #endif /* __GRAPHIC_H__ */
