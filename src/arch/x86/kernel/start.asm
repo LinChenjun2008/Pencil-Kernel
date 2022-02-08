@@ -3,6 +3,7 @@
 extern main
 [bits 32]
 section .text
+global _start
 _start:
     mov ax,SelectorVideo
     mov gs,ax
