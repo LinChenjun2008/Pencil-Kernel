@@ -344,6 +344,16 @@ ReadSector:
         ret
     %endif
 
+align 4
+DiskAddressPacket:
+    db 0x10 ;+ 0 硬盘地址包大小     (Size of DiskAddressPacket(bytes))
+    db 0    ;+ 1 保留,必须为0       (Reserved,must be 0)
+    dw 0    ;+ 2 扇区数             (Sector Count)
+    dw 0    ;+ 4 传送缓冲区偏移地址 (buf(offset))
+    dw 0    ;+ 6 传送缓冲区基地址   (buf(seg))
+    dq 0    ;+ 8 扇区起始号(LBA模式)(Start Sector number(LBA mode))
+    dq 0    ;+10 64位缓冲区地址拓展 (未始用)(64-bit buffer address extension(unusing))
+
 [bits 32]
 
     ProtectModeStart:
