@@ -478,17 +478,25 @@ SetupPage:
     ;         loop .create_vram_pde
     ; %endif
     %ifdef __UI_GRAPHIC__
-        mov eax,PAGE_DIR_TABLE_POS
+        mov eax,PAGE_DIR_TABLE_POS + 0x1000
         add eax,0xfe0 * 0x1000
-        add eax,0x1000
         or eax,PG_US_S | PG_RW_W | PG_P
-        mov [PAGE_DIR_TABLE_POS + 0xfe0],eax
-        add eax,0x1000
-        mov [PAGE_DIR_TABLE_POS + 0xfe4],eax
-        add eax,0x1000
-        mov [PAGE_DIR_TABLE_POS + 0xfe8],eax
-        add eax,0x1000
-        mov [PAGE_DIR_TABLE_POS + 0xfec],eax
+        ; mov [PAGE_DIR_TABLE_POS + 0xfe0],eax
+        ; add eax,0x1000
+        ; mov [PAGE_DIR_TABLE_POS + 0xfe4],eax
+        ; add eax,0x1000
+        ; mov [PAGE_DIR_TABLE_POS + 0xfe8],eax
+        ; add eax,0x1000
+        ; mov [PAGE_DIR_TABLE_POS + 0xfec],eax
+        
+        mov ebx,PAGE_DIR_TABLE_POS
+        mov esi,1016
+        mov ecx,16
+        .create_vram_pde:
+            mov [ebx + esi * 4],eax
+            add eax,0x1000
+            inc esi
+            loop .create_vram_pde
         
         mov ebx,PAGE_DIR_TABLE_POS + 0x1000 + 0xfe0 * 0x1000
         mov ecx,4096
