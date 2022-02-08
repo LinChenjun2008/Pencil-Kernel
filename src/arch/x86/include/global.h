@@ -51,10 +51,10 @@
 #define DiskNum    (*((uint32_t*)(0x7c00 + 0x008)))
 /* 显示相关 */
 #define DisplayMode (*((uint32_t*)(0x7c00 + 0x00c)))
-#define Vram_l      (*((uint32_t*)(0x7c00 + 0x00f)))
-#define Vram_h      (*((uint32_t*)(0x7c00 + 0x010)))
-#define ScrnX       (*((uint32_t*)(0x7c00 + 0x014)))
-#define ScrnY       (*((uint32_t*)(0x7c00 + 0x018)))
+#define Vram_l      (*((uint32_t*)(0x7c00 + 0x010)))
+#define Vram_h      (*((uint32_t*)(0x7c00 + 0x014)))
+#define ScrnX       (*((uint32_t*)(0x7c00 + 0x018)))
+#define ScrnY       (*((uint32_t*)(0x7c00 + 0x01c)))
 
 /* 参数的取值 */
 enum Display
