@@ -44,6 +44,13 @@ tools:开发工具(windows系统中)
 ...
 
 ```
+### 编译命令
+```bash
+> make all   # 编译全部内容
+> make build # 同样是编译全部内容
+> make clean # 删除编译的中间文件
+> make run   # 启动qemu运行Pencil-Kernel
+```
 ### 制作进度
 #### 2022.2.6
 正在进行的是内存管理,但这个有些复杂,所以现在打算先进行图形模式的研究.<br />
