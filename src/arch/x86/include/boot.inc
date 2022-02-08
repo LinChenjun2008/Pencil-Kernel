@@ -8,8 +8,13 @@
 %define __BOOT_ON_VIR_MACHINE__
 
 %ifdef __BOOT_ON_VIR_MACHINE__
-    SecPerCyc equ 18
+    SecPerCyc equ 18 ;软盘用
+    ;SecPerCyc equ 63 ;硬盘用
 %endif
+
+;磁盘驱动器号
+DrvNum equ 0x00 ;软盘
+;DrvNum equ 0x80 ;硬盘
 
 ;界面,同样只能选一个
 ;%define __UI_TEXT__
@@ -29,10 +34,6 @@
     VBE_MODE2 equ 0x144 ;备选号1: 1024 * 768 32位色彩
     VBE_MODE3 equ 0x143 ;备选号2: 800 * 600 32位色彩
 %endif
-
-;磁盘驱动器号
-DrvNum equ 0x00 ;软盘
-;DrvNum equ 0x80 ;硬盘
 
 ;BootLoader的信息
 ;以下内容的地址都是物理地址
