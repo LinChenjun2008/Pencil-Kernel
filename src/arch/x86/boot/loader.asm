@@ -433,7 +433,7 @@ SetupPage:
         mov ecx,4096
         mov esi,0xfe0
         mov edx,[Vram_l] ;帧缓存区地址(应该是在4KB边界处吧?不是也不管了)
-        or edx,PG_US_U | PG_RW_W | PG_P
+        or edx,PG_US_S | PG_RW_W | PG_P ;帧缓存区不能被3特权级的程序访问
         .create_vram_pte:
             mov [ebx + esi * 4],edx
             add edx,0x1000
@@ -456,6 +456,7 @@ SetupPage:
     %ifdef __UI_GRAPHIC__
         mov eax,PAGE_DIR_TABLE_POS
         add eax,0xfe0 * 0x1000
+        or eax,PG_US_S | PG_RW_W | PG_P
         mov ebx,PAGE_DIR_TABLE_POS
         mov ecx,4
         mov esi,0xfe0 ;1016
