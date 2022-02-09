@@ -24,6 +24,7 @@ LIB_DIR := lib/
 #exec
 #boot请使用boot3,boot只适合在物理机中引导,
 #而boot3即可以在物理机中引导,也可以在虚拟机中引导(要先配置boot.inc)
+MBR := $(BOOT_DIR)mbr.bin
 BOOT := $(BOOT_DIR)boot3.bin
 LOADER := $(BOOT_DIR)loader.bin
 
@@ -84,20 +85,25 @@ MAKE_DIR := md
 #clean: delet all obj file
 #debug: debug kernel
 #mkdir: make build/ dir
-#mkvd: make a virtual disk
 #run: start qenu
+#vhd: make a virtual disk
 
-.PHONY: all build clean debug logo mkdir mkvd run system
-all: $(BOOT) $(LOADER) $(OBJ_FILE)
+.PHONY: all build clean debug logo mkdir run system  vhd
+all: $(MBR) $(BOOT) $(LOADER) $(OBJ_FILE) $(v_disk)
 
-build: all system mkvd
+build: all system $(v_disk)
+#	$(DD) if=$(MBR) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
 	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
-	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=2 conv=notrunc
-	$(DD) if=$(KERNEL) of=$(v_disk) bs=512 count=200 seek=9 conv=notrunc
+#	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=63 conv=notrunc
+#	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=2 conv=notrunc
+	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=65 conv=notrunc
+	$(DD) if=$(KERNEL) of=$(v_disk) bs=512 count=200 seek=72 conv=notrunc
 clean:
 	$(CD) $(BOOT_DIR) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.o
+	$(CD) $(DEVICE_DIR) && $(DELET) *.s
+	$(CD) $(DEVICE_DIR) && $(DELET) *.co
 	$(CD) $(GRAPHIC_DIR) && $(DELET) *.s
 	$(CD) $(GRAPHIC_DIR) && $(DELET) *.co
 	$(CD) $(KERNEL_DIR) && $(DELET) *.ao
@@ -111,6 +117,9 @@ clean:
 
 debug: build
 	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
+
+img: img.asm
+	$(NASM) -o $(v_disk) img.asm
 
 logo:
 	@$(ECHO) .................
@@ -137,7 +146,8 @@ mkvd:
 	$(NASM) -o $(v_disk) vhd.asm
 
 run: build
-	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
+#	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
+	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,media=disk,format=raw -boot c
 #	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
 #	$(MAKE) -r -C $(TOOL_DIR)qemu
 system: mkdir $(OBJ_FILE)
@@ -170,3 +180,6 @@ system: mkdir $(OBJ_FILE)
 	@$(ECHO) version: $(K_VERSION)
 	@$(ECHO) $(COPYRIGHT)
 	@$(ECHO) --------------------------
+
+vhd: vhd.asm
+	$(NASM) -o $(v_disk) vhd.asm
