@@ -4,9 +4,9 @@
 ;只能选一个
 
 ;物理机
-;%define __BOOT_ON_PHY_MACHINE__
+%define __BOOT_ON_PHY_MACHINE__
 ;虚拟机
-%define __BOOT_ON_VIR_MACHINE__
+;%define __BOOT_ON_VIR_MACHINE__
 ;软盘
 ;%define __BOOT_FLOPPY__
 ;硬盘

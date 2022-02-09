@@ -1,6 +1,7 @@
 #ifndef __GRAPHIC_H__
 #define __GRAPHIC_H__
 
+#include "list.h"
 #include "stdint.h"
 
 #define rgb(R,G,B) ((uint32_t)(0x00000000 |( R << 16 | G << 8 | B << 0 )))
@@ -16,6 +17,7 @@ struct Rectangle
     uint32_t ysize;     /* y长度 */
     uint32_t XPostiton; /* 左上x坐标 */
     uint32_t YPostiton; /* 左上y坐标 */
+    struct list_elem list_tag; /* 所在的链表(矩形最终要在一个窗口中,链表用来连接所有图形) */
 };
 
 extern struct Rectangle Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */

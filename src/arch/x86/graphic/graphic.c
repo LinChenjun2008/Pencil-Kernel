@@ -6,10 +6,14 @@ struct Rectangle Screen;
 
 void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int x1,int y1)
 {
-    if(DisplayMode == _GRAPHIC)
+    if(DisplayMode != _GRAPHIC)
     {
-        int x;
-        int y;
+        return;
+    }
+    int x;
+    int y;
+    if((color & 0xff000000) != 0xff000000)
+    {
         for(y = y0;y < y1;y++)
         {
             for(x = x0;x < x1;x++)
@@ -48,4 +52,15 @@ void init_screen(struct Rectangle* scrn)
     RectangleFill(scrn,0x00848484,50 + offset,ScrnY - 40 + offset,55 + offset,ScrnY - 10 + offset);
     RectangleFill(scrn,0x00ffffff,50,ScrnY - 40,55,ScrnY - 10);
     return;
+}
+
+void logo()
+{
+    struct Rectangle scrn;
+    init_Rectangle(&scrn,(uint32_t*)0xfe000000,ScrnX,ScrnY,0,0);
+    RectangleFill(&scrn,0x00ffffff,(ScrnX / 2) - 130,(ScrnY / 2) - 130,(ScrnX / 2) + 130,(ScrnY / 2) + 130);
+    // while(1)
+    // {
+    //     ;
+    // }
 }

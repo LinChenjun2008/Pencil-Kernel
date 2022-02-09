@@ -29,6 +29,7 @@ LOADER := $(BOOT_DIR)loader.bin
 #obj
 LIBS := $(LIB_DIR)bitmap.co \
 $(KERNEL_DIR)debug.co       \
+$(LIB_DIR)font.co           \
 $(GRAPHIC_DIR)graphic.co    \
 $(KERNEL_DIR)init.co        \
 $(KERNEL_DIR)interrupt.ao   \

@@ -1,9 +1,31 @@
 #include "print.h"
 #include "config.h"
 #include "global.h"
+#include "graphic.h"
 #include "io.h"
 
 static uint8_t color = 0x02;
+
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* font)
+{
+	int i;
+	uint32_t *p;
+    uint8_t d;
+	for (i = 0; i < 16; i++)
+	{
+		p = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
+		d = font[i];
+		if ((d & 0x80) != 0) { p[0] = c; }
+		if ((d & 0x40) != 0) { p[1] = c; }
+		if ((d & 0x20) != 0) { p[2] = c; }
+		if ((d & 0x10) != 0) { p[3] = c; }
+		if ((d & 0x08) != 0) { p[4] = c; }
+		if ((d & 0x04) != 0) { p[5] = c; }
+		if ((d & 0x02) != 0) { p[6] = c; }
+		if ((d & 0x01) != 0) { p[7] = c; }
+	}
+	return;
+}
 
 /* put_char
 * 功能:在光标位置显示一个字符
@@ -59,6 +81,17 @@ void put_str(char* str)
     {
         put_char(*str);
         str++;
+    }
+    return;
+}
+
+void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* str)
+{
+    int i;
+    for(i=0;str[i] != 0x00;i++)
+    {
+        put_char_graphic(rectangle,x,y,c,PKnFont[str[i]]);
+        x+=10;
     }
     return;
 }
@@ -146,7 +179,7 @@ void roll_screen()
 */
 int get_cursor()
 {
-    int cursor_pos;
+    int cursor_pos = 0;
     /* 1. 获取高8位 */
     io_out8(0x03d4,0x0e);
     cursor_pos |= io_in8(0x03d5) << 8;

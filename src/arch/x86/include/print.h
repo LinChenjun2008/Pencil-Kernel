@@ -13,8 +13,14 @@
 // void set_cursor(int row,int col);
 
 #include "stdint.h"
+#include "graphic.h"
+
+extern char PKnFont[256][16];
+
 void put_char(uint8_t char_asci);
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* font);
 void put_str(char* message);
+void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* str);
 void put_int(int num);	 // 以16进制打印
 void roll_screen();
 void itoa(int a,char* str,int base);
