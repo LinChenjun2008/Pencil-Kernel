@@ -437,20 +437,7 @@ SetupPage:
         add edx,0x1000 ;指向下一个物理页地址
         inc esi
         loop .create_pte
-    ;专为图形模式写的,将第1016~1019页目录指向的页表用于映射帧缓存区,共16MB
-    ; %ifdef __UI_GRAPHIC__
-    ;     mov ecx,4096 ;16MB显存4096页
-    ;     mov esi,1016 ;第1016页
-    ;     mov edx,[Vram_l] ;帧缓存区地址(应该是在4KB边界处吧?不是也不管了)
-    ;     or edx,PG_US_S | PG_RW_W | PG_P ;帧缓存区不能被3特权级的程序访问
-    ;     ;mov ebx,PAGE_DIR_TABLE_POS
-    ;     .create_vram_pte:
-    ;         mov [ebx + esi * 4],edx
-    ;         add edx,0x1000
-    ;         inc esi
-    ;         loop .create_vram_pte
-    ;     ; mov dword [Vram_l],0xfe000000 ;帧缓存区被映射了,载入映射后的线性地址
-    ; %endif
+
     ;4. 创建内核其他页表的页目录项
     mov eax,PAGE_DIR_TABLE_POS
     add eax,0x2000 ;第二个页表
@@ -464,20 +451,8 @@ SetupPage:
         inc esi
         add eax,0x1000
         loop .create_kernel_pde
-    ; %ifdef __UI_GRAPHIC__
-    ;     mov eax,PAGE_DIR_TABLE_POS
-    ;     add eax,0xfe0 * 0x1000
-    ;     or eax,PG_US_S | PG_RW_W | PG_P
-    ;     mov ebx,PAGE_DIR_TABLE_POS
-    ;     mov ecx,4
-    ;     mov esi,0xfe0 ;1016
-    ;     .create_vram_pde:
-    ;         mov [ebx + esi * 4],eax
-    ;         inc esi
-    ;         add eax,0x1000
-    ;         loop .create_vram_pde
-    ; %endif
     %ifdef __UI_GRAPHIC__
+        ;为显示缓存区映射
         mov eax,PAGE_DIR_TABLE_POS + 0x1000
         add eax,0xfe0 * 0x1000
         or eax,PG_US_S | PG_RW_W | PG_P
@@ -491,7 +466,7 @@ SetupPage:
         
         mov ebx,PAGE_DIR_TABLE_POS
         mov esi,1016
-        mov ecx,16
+        mov ecx,4
         .create_vram_pde:
             mov [ebx + esi * 4],eax
             add eax,0x1000

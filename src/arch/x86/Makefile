@@ -16,7 +16,7 @@ OBJCOPY :=$(TOOL_DIR)objcopy
 BOOT_DIR := boot/
 BUILD_DIR := build
 DEVICE_DIR := device/
-GRAPHIC_DIR := include/graphic/
+GRAPHIC_DIR := graphic/
 INCLUDE_DIR := include/
 KERNEL_DIR := kernel/
 LIB_DIR := lib/
@@ -30,6 +30,7 @@ LOADER := $(BOOT_DIR)loader.bin
 #obj
 LIBS := $(LIB_DIR)bitmap.co \
 $(KERNEL_DIR)debug.co       \
+$(GRAPHIC_DIR)graphic.co    \
 $(KERNEL_DIR)init.co        \
 $(KERNEL_DIR)interrupt.ao   \
 $(KERNEL_DIR)interrupt.co   \
@@ -73,9 +74,9 @@ MAKE_DIR := md
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
-	$(CC1) -I $(INCLUDE_DIR) -I $(GRAPHIC) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
-	$(AS) -I $(INCLUDE_DIR) -I $(GRAPHIC) -I ../ -o $*.co $*.s
-#	$(GCC) -I $(INCLUDE_DIR) -I $(GRAPHIC) -I ../ -m32 -fno-builtin -c $*.c -o $*.co
+	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
+	$(AS) -I $(INCLUDE_DIR) -I ../ -o $*.co $*.s
+#	$(GCC) -I $(INCLUDE_DIR) -I ../ -m32 -fno-builtin -c $*.c -o $*.co
 
 #command:
 #all: make all
@@ -97,6 +98,8 @@ clean:
 	$(CD) $(BOOT_DIR) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.o
+	$(CD) $(GRAPHIC_DIR) && $(DELET) *.s
+	$(CD) $(GRAPHIC_DIR) && $(DELET) *.co
 	$(CD) $(KERNEL_DIR) && $(DELET) *.ao
 	$(CD) $(KERNEL_DIR) && $(DELET) *.co
 	$(CD) $(KERNEL_DIR) && $(DELET) *.s
