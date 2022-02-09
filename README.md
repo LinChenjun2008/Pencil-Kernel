@@ -50,6 +50,14 @@ tools:开发工具(windows系统中)
 > make build # 同样是编译全部内容
 > make clean # 删除编译的中间文件
 > make run   # 启动qemu运行Pencil-Kernel
+> #具体请看Makefile
+```
+下载源代码后从编译到运行应使用的命令
+```bash
+> make vhd   #或make img(make vhd是硬盘,make img是软盘)
+>            #make run包含了make build,所以下面两步可以只使用make run
+> make build #或make all
+> make run
 ```
 ### 制作进度
 #### 2022.2.6
@@ -64,6 +72,11 @@ tools:开发工具(windows系统中)
 想到了一个解决方法:目前支持的最大分辨率的VBE模式帧缓冲区大概有16MB,
 相当于4096页,那么在映射时把第1016到1019个页目录分配给帧缓存区,
 就可以通过0xfe000000~0xfebfffff这段内存来访问帧缓存区了,问题应该会解决,下午进行测试.
+#### 2022.2.9
+今天有以下更新:<br />
+(1)文本模式下的print相关函数用C语言版来替换汇编版.
+(2)成功进入图形模式并显示出画面.
+(3)在图形界面和文本界面的相关函数中添加对当前显示模式的判断.
 ### 目标 Goal
 - [x] 在文件系统中加载loader和内核
 - [ ] 实现GUI(快了)
