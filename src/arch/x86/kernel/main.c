@@ -7,7 +7,8 @@
 
 int main()
 {
-    put_char('\n');
+    set_cursor(ScrnX * 8);
+    //put_char('\n');
     put_str("Pencil-Kernel (PKn) version 0.0.0 test\n");
     init_all();
     put_str("init down!\n");

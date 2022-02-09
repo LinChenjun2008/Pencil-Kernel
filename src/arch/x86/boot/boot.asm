@@ -1,94 +1,122 @@
-;boot.asm
+;Pencil-Kernel (PKn) boot3
+
 org 0x7c00
 [bits 16]
+
 %include "boot.inc"
 
-;初始化寄存器
-mov ax,cs
-mov ds,ax
-mov es,ax
-mov ss,ax
-mov fs,ax
+Start:
+    ;初始化寄存器 (Initialize registers)
+    mov ax,cs
+    mov ds,ax
+    mov es,ax
+    mov ss,ax
+    mov fs,ax
+    mov sp,BaseOfBootStack
 
-;栈指针寄存器初始化为0x7c00
-mov sp,0x7c00
+    ;清除屏幕 (Clean screen)
+    mov ax,0x0600 ;ah = 0x60,al = 0
+    mov bx,0x0700 ;bh = 0x07
+    mov cx,0x0000 ;ch = 左上角坐标列号(x),cl = 左上角坐标行号(y)
+    mov dx,0x184f ;dh = 右下角坐标列号(x),cl = 右下角坐标行号(y)
+    int 0x10
 
-;向gs段寄存器写入0xb800(显存)
-mov ax,0xb800
-mov gs,ax
+    ;设置光标位置 (Set focus)
+    mov ax,0x0200 ;ah = 0x20 ,al = 0
+    mov bx,0x0000 ;bh = 页码 (Page Number)
+    mov dx,0x0000 ;dh = 列 (col),dl = 行 (row)
+    int 0x10
 
-;清屏
+    ;在屏幕上显示:Starting (Display on screen:Starting)
+    mov bp,StartMsg
+    mov cx,8      ;8个字符 (chars:8)
+    mov ax,0x1301
+    mov bx,0x0007 ;第0页,黑底白字 (Page:0,Background color:black)
+    mov dx,0x0000 ;行,列 (row and col)
+    int 0x10
 
-mov ax,0x600
-mov bx,0x700
-mov cx,0
-mov dx,0x184f
-;int 0x10
+    ;加载loader.bin (Load Loader.bin)
+    mov eax,LoaderStartSec
+    mov cx,LoaderSectors
+    mov bx,LoaderBaseAddress
+    call ReadSector
+    ;跳转到loader.bin,boot的使命到此结束
+    jmp LoaderBaseAddress+LoaderOffsetAddress
 
-;显示一条信息
-mov bp,bootmsg
-mov cx,8;8个字符
-mov ax,0x1301
-mov bx,0x0007;第0页,黑底白字
-mov dx,0x0000;行,列
-int 0x10
+;Function: ReadSector
+;参数 (Input):
+;eax   :扇区号(Sector Number)
+;cx    :要读取的扇区数
+;es:bx :读取到的数据存放处
+;dl    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
+ReadSector:
+    ;为物理机准备的版本:
+    %ifdef __BOOT_ON_PHY_MACHINE__
+        .ReadOneSector:
+            ;备份寄存器
+            push dword eax
+            push bx
+            push dx
+            push es
+            mov word  [DiskAddressPacket + 2],1  ;一次一扇区
+            mov word  [DiskAddressPacket + 4],bx ;看ReadSector和DiskAddressPacket的说明
+            mov word  [DiskAddressPacket + 6],es ;同上
+            mov dword [DiskAddressPacket + 8],eax;同上
+            mov dl,DrvNum ;驱动器号
+            mov ah,0x42
+            mov si,DiskAddressPacket
+            int 0x13
+            ;恢复寄存器
+            pop es
+            pop dx
+            pop bx
+            pop dword eax
+            inc eax
+            add bx,512 ;下512字节
+            loop .ReadOneSector
+            ret
+    %endif
+    ;为虚拟机准备的版本
+    %ifdef __BOOT_ON_VIR_MACHINE__
+        push bp
+        mov bp,sp
+        sub esp,2
+        mov byte [bp - 2],cl ;要读入的扇区数
+        push bx ;备份
+        ;将LBA模式转换为CHS模式
+        ;LBA扇区号/每磁道扇区数
+        ;商 >> 1 = 柱面(磁道)号
+        ;商 & 1 = 磁头号
+        ;余数 + 1 = 扇区号
+        mov bl,SecPerCyc
+        div bl    ;被除数:ax,除数:bl,商:al,余数:ah
+        inc ah    ;余数 + 1 = 扇区号
+        mov cl,ah ;cl是扇区号
+        mov dh,al ;暂时用dh保存商
+        shr al,1  ;商 >> 1 = 柱面(磁道)号
+        mov ch,al ;ch是柱面(磁道)号
+        and dh,1  ;商 & 1 = 磁头号
+        pop bx    ;恢复bx
+        mov dl,DrvNum;驱动器号
+        .readloop:
+            mov ah,0x02
+            mov al, byte [bp - 2]
+            int 0x13
+            jc .readloop
+        add esp,2
+        pop bp
+        ret
+    %endif
+StartMsg db "Starting"
+align 4
+DiskAddressPacket:
+    db 0x10 ;+ 0 硬盘地址包大小     (Size of DiskAddressPacket(bytes))
+    db 0    ;+ 1 保留,必须为0       (Reserved,must be 0)
+    dw 0    ;+ 2 扇区数             (Sector Count)
+    dw 0    ;+ 4 传送缓冲区偏移地址 (buf(offset))
+    dw 0    ;+ 6 传送缓冲区基地址   (buf(seg))
+    dq 0    ;+ 8 扇区起始号(LBA模式)(Start Sector number(LBA mode))
+    dq 0    ;+10 64位缓冲区地址拓展 (未始用)(64-bit buffer address extension(unusing))
 
-Loadfile:
-    ;加载loader
-    mov eax,0x02 ;第2扇区(LBA)
-    mov bx,LoaderBaseAddress ;读取到内存0x700地址处
-    mov cx,5 ;读取的扇区数
-    ;ReadSector:读取磁盘
-    ;参数:
-    ;eax   :扇区号
-    ;cx    :要读取的扇区数
-    ;es:bx :读取到的数据存放处
-    ;dl    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
-    ReadSector:
-                       ;int 0x13 ah=0x42:扩展硬盘读取功能
-                       ;eax:扇区号
-                       ;cx:扇区数
-                       ;bx:传输缓冲区(偏移)
-                       ;es,传输缓冲区(段)
-                       ;创建硬盘地址包
-        push dword 0x00;64位传送缓冲区地址(0x00)
-        push dword eax ;扇区起始号(LBA模式)
-        push word  es  ;传输缓冲区段
-        push word  bx  ;传输缓冲区地址偏移
-        push word  cx  ;传输的扇区数
-        push word  0x10;偏移0x00 和 偏移0x01:硬盘地址包大小:0x10,保留值0
-                       ;为int 0x13准备参数
-        mov  ah,0x42   ;代表读
-                       ;dx为驱动器号,0x00为第一个软盘,0x80为主硬盘驱动器
-                       ;不必担心是否是主硬盘/软盘,mbr所在的磁盘默认为是主硬盘/软盘
-        mov  dl,0x00   ;驱动器号
-        mov  si,sp     ;DS:SI是硬盘地址包
-        int 0x13       ;调用扩展硬盘读取功能
-        jc load_error  ;读取错误
-        add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
-        jmp load_success
-        load_error:    ;读取失败
-            add  sp,0x10   ;将栈指针上移16B(0x10),相当于释放硬盘地址包占用的栈空间
-            ;显示一个'.',代表错误了一次.如果一直错误就满屏都是"........"
-            mov ah,0x0e
-            mov al,'.'
-            mov bx,0x0c
-            int 0x10
-            jmp Loadfile ;重新读取,直到成功
-    load_success:
-        ;读取结束后显示一条信息,代表将要执行loader
-        mov bp,loaderstartmsg
-        mov cx,16;16个字符
-        mov ax,0x1301
-        mov bx,0x0007;第0页,黑底白字
-        mov dx,0x0100;行,列
-        int 0x10
-        ;跳转到loader,boot到此结束
-        jmp LoaderBaseAddress+LoaderOffsetAddress
-
-;其他数据
-bootmsg db "Starting"
-loaderstartmsg db "Go to Loader.bin"
-
-times 510 -($ - $$) db 0x00
+times 510 - ($ - $$) db 0
 db 0x55,0xaa

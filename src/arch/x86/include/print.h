@@ -15,7 +15,10 @@
 #include "stdint.h"
 void put_char(uint8_t char_asci);
 void put_str(char* message);
-void put_int(uint32_t num);	 // 以16进制打印
+void put_int(int num);	 // 以16进制打印
+void roll_screen();
+void itoa(int a,char* str,int base);
+int get_cursor();
 void set_cursor(uint32_t cursor_pos);
 void cls_screen(void);
 

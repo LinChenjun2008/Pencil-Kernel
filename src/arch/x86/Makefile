@@ -22,10 +22,8 @@ KERNEL_DIR := kernel/
 LIB_DIR := lib/
 
 #exec
-#boot请使用boot3,boot只适合在物理机中引导,
-#而boot3即可以在物理机中引导,也可以在虚拟机中引导(要先配置boot.inc)
 MBR := $(BOOT_DIR)mbr.bin
-BOOT := $(BOOT_DIR)boot3.bin
+BOOT := $(BOOT_DIR)boot.bin
 LOADER := $(BOOT_DIR)loader.bin
 
 #obj
@@ -37,7 +35,7 @@ $(KERNEL_DIR)interrupt.ao   \
 $(KERNEL_DIR)interrupt.co   \
 $(LIB_DIR)io.ao             \
 $(LIB_DIR)list.co           \
-$(LIB_DIR)print.ao          \
+$(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
 $(DEVICE_DIR)timer.co
 
@@ -58,7 +56,7 @@ DELET := del
 ECHO := echo
 MAKE_DIR := md
 #.asm to .bin
-%.bin: %.asm
+%.bin: %.asm $(INCLUDE_DIR)boot.inc
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
@@ -116,7 +114,8 @@ clean:
 #	$(DELET) $(v_disk).lock
 
 debug: build
-	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
+#	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
+	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,media=disk,format=raw -boot c -S
 
 img: img.asm
 	$(NASM) -o $(v_disk) img.asm

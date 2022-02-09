@@ -41,6 +41,7 @@ MemErrMsg db "Get total memory bytes error!";29
 MemSuccessMsg db "Get total memory bytes success!";31
 LoadKernelMsg db "Loading Kernel...";17
 LoadKernelSuccessMsg db "Load Kernel success!";20
+
 times (LoaderOffsetAddress - ($ - $$)) db 0;将start对齐到文件起始LoaderOffsetAddress处
 
 ;loader从此处开始执行
@@ -218,7 +219,16 @@ Start:
             .without_vbe:
             .vbe_version_too_old:
             .err:
-                jmp $ ;悬停,暂时先这样
+                ;用不了图形界面,进入文本模式
+                mov ax,0x4f02
+                mov bx,0xc108 ; or 0x4108?
+                int 0x10
+                mov dword [DisplayMode],0     ;文本模式
+                mov dword [Vram_l],0x000b8000 ;显存地址(虚拟地址)
+                mov dword [Vram_h],0
+                mov dword [ScrnX],80
+                mov dword [ScrnY],25
+                jmp .set_display_mode_next
             .set_vbe_mode:
                 mov ax,0x4f02
                 int 0x10

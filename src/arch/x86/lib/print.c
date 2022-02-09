@@ -3,47 +3,50 @@
 #include "global.h"
 #include "io.h"
 
-static uint8_t color = 0x07;
+static uint8_t color = 0x02;
 
 /* put_char
 * 功能:在光标位置显示一个字符
 */
 void put_char(uint8_t char_ascii)
 {
-    font |= color;
-    int cursor_pos;
-    cursor_pos = get_cursor();
-    switch(char_ascii)
+    if(DisplayMode == _TEXT)
     {
-        /* 先是控制字符 */
-        /* 空字符,什么也不做 */
-        case '\0':
-            break;
-        /* 退格 */
-        case '\b':
-            cursor_pos--; /* 光标位置减1 */
-            *((uint8_t*)(VRAM_l + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
-            break;
-        /* 回车和换行 */
-        case '\n':
-        case '\r':
-            cursor_pos -= (cursor_pos % ScrnX);
-            cursor_pos += ScrnX; /* 移动到下一行行首 */
-            break;
-        /* 普通字符 */
-        default:
-            font |= (char_ascii << 8);
-            *((uint8_t*)(VRAM_l + (cursor_pos * 2)) = char_ascii;
-            *((uint8_t*)(VRAM_l + (cursor_pos * 2) +1)) = color;
-            cursor_pos++;
-            break;
+        uint16_t font = color;
+        int cursor_pos;
+        cursor_pos = get_cursor();
+        switch(char_ascii)
+        {
+            /* 先是控制字符 */
+            /* 空字符,什么也不做 */
+            case '\0':
+                break;
+            /* 退格 */
+            case '\b':
+                cursor_pos--; /* 光标位置减1 */
+                *((uint8_t*)(Vram_l + cursor_pos * 2)) = ' '; /* 在光标位置显示一个空格 */
+                break;
+            /* 回车和换行 */
+            case '\n':
+            case '\r':
+                cursor_pos -= (cursor_pos % ScrnX);
+                cursor_pos += ScrnX; /* 移动到下一行行首 */
+                break;
+            /* 普通字符 */
+            default:
+                font |= (char_ascii << 8);
+                *((uint8_t*)(Vram_l + (cursor_pos * 2))) = char_ascii;
+                *((uint8_t*)(Vram_l + (cursor_pos * 2) +1)) = color;
+                cursor_pos++;
+                break;
+        }
+        if(cursor_pos >= (ScrnX * ScrnY))
+        {
+            roll_screen();
+            cursor_pos = ((ScrnY - 1) * ScrnX);
+        }
+        set_cursor(cursor_pos); /* 重设光标 */
     }
-    if(cursor_pos >= (ScrnX * ScrnY))
-    {
-        roll_screen();
-        cursor_pos = ((ScrnY - 1) * ScrnX);
-    }
-    set_cursor(cursor_pos); /* 重设光标 */
     return;
 }
 
@@ -54,16 +57,16 @@ void put_str(char* str)
 {
     while(*str != '\0')
     {
-        put_char(*str)
+        put_char(*str);
         str++;
     }
     return;
 }
 
-void put_int(unsigned int a)
+void put_int(int a)
 {
     char buf[64 +2] = {0};
-    itoa(a,&buf,16);
+    itoa(a,buf,16);
     put_str(buf);
     return;
 }
@@ -126,10 +129,10 @@ void roll_screen()
 {
     uint16_t* src;
     uint16_t* dst;
-    src = ((uint16_t*)(VRAM + ROW * 2)); /* 第一行行首 */
-    dst = ((uint16_t*)(VRAM)); /* 第0行行首 */
+    src = ((uint16_t*)(Vram_l + ScrnX * 2)); /* 第一行行首 */
+    dst = ((uint16_t*)(Vram_l)); /* 第0行行首 */
     int i;
-    for(i = 0;i < ((ROW - 1) * COL);i++)
+    for(i = 0;i < ((ScrnX - 1) * ScrnY);i++)
     {
         *dst = *src;
         dst++;
@@ -160,7 +163,7 @@ int get_cursor()
 * row :光标行号
 * col :光标列号
 */
-void set_cursor(int cursor_pos)
+void set_cursor(uint32_t cursor_pos)
 {
     /* 1. 设置高8位 */
     io_out8(0x03d4,0x0e);

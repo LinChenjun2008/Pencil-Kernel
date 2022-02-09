@@ -86,6 +86,10 @@ void general_intr_handler(uint8_t vector_nr)
     put_str("intr:");
     put_int(vector_nr);
     put_char(' ');
+    if(vector_nr >= 0 && vector_nr <= 20)
+    {
+        put_str(intr_name[vector_nr]);
+    }
     return;
 }
 
