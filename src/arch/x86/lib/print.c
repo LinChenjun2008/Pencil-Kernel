@@ -6,25 +6,47 @@
 
 static uint8_t color = 0x02;
 
-void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* font)
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* ch)
 {
-	int i;
-	uint32_t *p;
+    /*
+    int i;
+    uint32_t *p;
     uint8_t d;
-	for (i = 0; i < 16; i++)
-	{
-		p = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
-		d = font[i];
-		if ((d & 0x80) != 0) { p[0] = c; }
-		if ((d & 0x40) != 0) { p[1] = c; }
-		if ((d & 0x20) != 0) { p[2] = c; }
-		if ((d & 0x10) != 0) { p[3] = c; }
-		if ((d & 0x08) != 0) { p[4] = c; }
-		if ((d & 0x04) != 0) { p[5] = c; }
-		if ((d & 0x02) != 0) { p[6] = c; }
-		if ((d & 0x01) != 0) { p[7] = c; }
-	}
-	return;
+    for (i = 0; i < 16; i++)
+    {
+        p = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
+        d = font[i];
+        if ((d & 0x80) != 0) { p[0] = c; }
+        if ((d & 0x40) != 0) { p[1] = c; }
+        if ((d & 0x20) != 0) { p[2] = c; }
+        if ((d & 0x10) != 0) { p[3] = c; }
+        if ((d & 0x08) != 0) { p[4] = c; }
+        if ((d & 0x04) != 0) { p[5] = c; }
+        if ((d & 0x02) != 0) { p[6] = c; }
+        if ((d & 0x01) != 0) { p[7] = c; }
+    }
+    */
+    int i;
+    int j;
+    uint32_t* address;
+    uint8_t* font;
+    uint8_t key;
+    font = PKnFont[ch];
+    for(i = 0;i < 16;i++)
+    {
+        address = ((rectangle->vram) + (((rectangle->xsize) * (y + i)) + x));
+        key = 0xff
+        for(j = 0;j < 8;j++)
+        {
+            if(*font & key != 0)
+            {
+                *address = color;
+            }
+            address++;
+        }
+        font++;
+    }
+    return;
 }
 
 /* put_char
