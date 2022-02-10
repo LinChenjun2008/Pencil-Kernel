@@ -65,13 +65,13 @@ void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,cha
         put = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
         data = font[i];
         if((data & 0x80) != 0){put[0] = color;}
-        if((data & 0x40) != 0){put[0] = color;}
-        if((data & 0x20) != 0){put[0] = color;}
-        if((data & 0x10) != 0){put[0] = color;}
-        if((data & 0x08) != 0){put[0] = color;}
-        if((data & 0x04) != 0){put[0] = color;}
-        if((data & 0x02) != 0){put[0] = color;}
-        if((data & 0x01) != 0){put[0] = color;}
+        if((data & 0x40) != 0){put[1] = color;}
+        if((data & 0x20) != 0){put[2] = color;}
+        if((data & 0x10) != 0){put[3] = color;}
+        if((data & 0x08) != 0){put[4] = color;}
+        if((data & 0x04) != 0){put[5] = color;}
+        if((data & 0x02) != 0){put[6] = color;}
+        if((data & 0x01) != 0){put[7] = color;}
     }
     return;
 }
