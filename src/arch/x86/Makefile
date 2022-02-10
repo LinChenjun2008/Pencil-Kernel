@@ -92,7 +92,7 @@ MAKE_DIR := md
 #vhd: make a virtual disk
 
 .PHONY: all build clean debug dump logo mkdir run system  vhd
-all: $(MBR) $(BOOT) $(LOADER) $(OBJ_FILE) $(v_disk)
+all: $(BOOT) $(LOADER) $(OBJ_FILE) $(v_disk)
 
 build: all system $(v_disk)
 #	$(DD) if=$(MBR) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc

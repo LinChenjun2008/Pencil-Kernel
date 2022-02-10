@@ -14,13 +14,13 @@ void init_memory()
 {
     uint32_t k_Total;
     uint32_t u_Total;
-    k_Total = (TotalMen_l - 0x00102000)/2;
-    u_Total = Total_l - k_Total;
-    mem_free_page(kernel_pool,0x00102000,k_Total);
-    mem_free_page(kernel_pool,0x00102000,k_Total);
+    k_Total = (TotalMem_l - 0x00102000)/2;
+    u_Total = TotalMem_l - k_Total;
+    mem_free_page(&kernel_pool,(void*)0x00102000,k_Total);
+    mem_free_page(&user_pool,(void*)(0x00102000 + k_Total),u_Total);
 
-    mem_free_page(kernel_vaddr,0x00000000,0x00100000);
-    mem_free_page(kernel_vaddr,0xc0000000,0x3fffffff);
+    mem_free_page(&kernel_vaddr,(void*)0x00000000,0x00100000);
+    mem_free_page(&kernel_vaddr,(void*)0xc0000000,0x3fffffff);
     return;
 }
 

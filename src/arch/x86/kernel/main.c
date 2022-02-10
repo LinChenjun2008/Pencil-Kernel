@@ -7,12 +7,15 @@
 #include "print.h"
 #include "string.h"
 
-void logo();
 int main()
 {
-    //logo();
-    char buf[100];
+    char buf[100] = {"Pencil-Kernel (PKn)"};
     set_cursor(ScrnX * 8);
+    int i;
+    for(i = 0;i < 100;i++)
+    {
+        put_char(buf[i]);
+    }
     put_char('P');
     put_char('e');
     put_char('n');
