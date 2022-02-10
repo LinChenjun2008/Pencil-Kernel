@@ -17,7 +17,17 @@ struct Rectangle
     uint32_t ysize;     /* y长度 */
     uint32_t XPostiton; /* 左上x坐标 */
     uint32_t YPostiton; /* 左上y坐标 */
-    struct list_elem list_tag; /* 所在的链表(矩形最终要在一个窗口中,链表用来连接所有图形) */
+    struct list_elem tag; /* 所在的链表(矩形最终要在一个窗口中,链表用来连接所有图形) */
+};
+
+/* 窗口
+*/
+struct window
+{
+    struct Rectangle win; /* 窗口本体 */
+    struct list graphic;  /* 窗口中的图形 */
+    struct Rectangle map; /* 刷新图形的用的map */
+    uint32_t graphics;    /* 图形数量 */
 };
 
 extern struct Rectangle Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */
