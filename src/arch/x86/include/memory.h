@@ -1,28 +1,39 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
-#include "bitmap.h"
+#include "stdint.h"
 
-#define PG_SIZE 4096 /* 页表尺寸,4096字节,4KB */
-#define MemBitmapBaseAddress 0xc0100000 /* 内存bitmap的起始地址,0xc0100000~0xc011fff共计32页是bitmap,可管理4GB内存 */
-#define KernelHeapStart 0xc0120000 /* 内核堆起始地址 */
+#define MEMMAN_MAX 4000
 
-struct virtual_addr
+struct MEMINFO
 {
-    struct bitmap vaddr_bitmap; /* 虚拟地址用到的内存bitmap */
-    void* vaddr_start;          /* 虚拟地址起始处.因为是地址,所以用指针 */
+    void* addr;    /* 一块内存的起始地址物理地址 */
+    uint32_t size; /* 大小(单位:页) */
 };
 
-struct pool
+struct MEMMAN
 {
-    struct bitmap pool_bitmap;  /* 用于管理物理内存的bitmao */
-    void* phy_address_start;    /* 所管理的物理内存起始地址,因为是地址,所以用指针 */
-    uint64_t pool_size;         /* 内存池字节容量 */
+    uint32_t frees;                  /* 可用内存信息数量 */
+    uint32_t maxfrees;               /* frees到达过的最大值(越大,内存越分散) */
+    uint32_t lostsize;               /* 回收失败的内存大小 */
+    uint32_t lostcnt;                /* 回收失败的次数 */
+    struct MEMINFO free[MEMMAN_MAX]; /* 内存使用信息 */
 };
 
-extern struct pool kernel_pool;
-extern struct pool user_pool;
+/* 物理地址管理 */
+extern struct MEMMAN kernel_pool;
+extern struct MEMMAN user_pool;
 
-void init_mem();
+/* 虚拟地址管理 */
+extern struct MEMMAN kernel_vaddr;
+extern struct MEMMAN user_vaddr;
+
+void init_memory();
+void init_memman(struct MEMMAN* memman);
+uint32_t TotalFreeSize(struct MEMMAN* memman);
+void* mem_alloc(struct MEMMAN* memman,uint32_t size);
+void* mem_alloc_page(struct MEMMAN* memman,uint32_t size);
+int mem_free(struct MEMMAN* memman,void* addr,uint32_t size);
+int mem_free_page(struct MEMMAN* memman,void* addr,uint32_t size);
 
 #endif /* __MEMORY_H__ */

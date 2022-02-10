@@ -4,9 +4,9 @@
 #include "graphic.h"
 #include "io.h"
 
-static uint8_t color = 0x02;
+static uint8_t fcolor = 0x07;
 
-void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* ch)
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char ch)
 {
     if(DisplayMode == _GRAPHIC)
     {
@@ -15,18 +15,20 @@ void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,cha
         uint32_t* address;
         uint8_t* font;
         uint8_t key;
-        font = PKnFont[ch];
+        font = PKnFont[(int)ch];
         for(i = 0; i < 16; i++)
         {
+            //font = PKnFont[ch][i];
             address = ((rectangle->vram) + (((rectangle->xsize) * (y + i)) + x));
             key = 0xff;
             for(j = 0; j < 8; j++)
             {
-                if(*font & key != 0)
+                if((*font & key) != 0)
                 {
                     *address = color;
                 }
                 address++;
+                key = key >> 1;
             }
             font++;
         }
@@ -42,7 +44,7 @@ void put_char(uint8_t char_ascii)
 {
     if(DisplayMode == _TEXT)
     {
-        uint16_t font = color;
+        uint16_t font = fcolor;
         int cursor_pos;
         cursor_pos = get_cursor();
         switch(char_ascii)
@@ -66,7 +68,7 @@ void put_char(uint8_t char_ascii)
             default:
                 font |= (char_ascii << 8);
                 *((uint8_t*)(Vram_l + (cursor_pos * 2))) = char_ascii;
-                *((uint8_t*)(Vram_l + (cursor_pos * 2) +1)) = color;
+                *((uint8_t*)(Vram_l + (cursor_pos * 2) +1)) = fcolor;
                 cursor_pos++;
                 break;
         }
@@ -98,7 +100,7 @@ void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* st
     int i;
     for(i=0;str[i] != 0x00;i++)
     {
-        put_char_graphic(rectangle,x,y,c,PKnFont[str[i]]);
+        put_char_graphic(rectangle,x,y,c,str[i]);
         x+=10;
     }
     return;
@@ -113,7 +115,7 @@ void put_int(int a)
 }
 
 /* itoa
-* 功能:将a转为base进制的字符串写入buf地址
+* 功能:将a转为base进制的字符串写入str地址
 * a    :要转换的数字(有符号)
 * str  :转换后的字符串的存储地址
 * base :进制,最高支持36进制
@@ -149,7 +151,7 @@ void itoa(int a,char* str,int base)
     while(*q != '\0')
     {
         q++;
-    }
+    } 
     q--;
     /* 把字符串倒过来 */
     while(q > p)

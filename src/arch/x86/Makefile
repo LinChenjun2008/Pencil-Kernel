@@ -10,6 +10,7 @@ LD := $(TOOL_DIR)ld
 MAKE := $(TOOL_DIR)make
 NASM := $(TOOL_DIR)nasm
 OBJCOPY :=$(TOOL_DIR)objcopy
+OBJDUMP :=$(TOOL_DIR)objdump
 #IMGCOPY := $(TOOL_DIR)/imgcopy/imgcopy
 
 #src path
@@ -36,6 +37,7 @@ $(KERNEL_DIR)interrupt.ao   \
 $(KERNEL_DIR)interrupt.co   \
 $(LIB_DIR)io.ao             \
 $(LIB_DIR)list.co           \
+$(KERNEL_DIR)memory.co      \
 $(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
 $(DEVICE_DIR)timer.co
@@ -75,6 +77,7 @@ MAKE_DIR := md
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
 	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
+#	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -quiet -fno-builtin -o $*.s $*.c
 	$(AS) -I $(INCLUDE_DIR) -I ../ -o $*.co $*.s
 #	$(GCC) -I $(INCLUDE_DIR) -I ../ -m32 -fno-builtin -c $*.c -o $*.co
 
@@ -83,11 +86,12 @@ MAKE_DIR := md
 #build: compile all file
 #clean: delet all obj file
 #debug: debug kernel
+#dump
 #mkdir: make build/ dir
 #run: start qenu
 #vhd: make a virtual disk
 
-.PHONY: all build clean debug logo mkdir run system  vhd
+.PHONY: all build clean debug dump logo mkdir run system  vhd
 all: $(MBR) $(BOOT) $(LOADER) $(OBJ_FILE) $(v_disk)
 
 build: all system $(v_disk)
@@ -117,6 +121,10 @@ clean:
 debug: build
 #	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
 	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,media=disk,format=raw -boot c -S
+
+dump: $(KERNEL_OBJ_FILE)
+#	$(OBJDUMP) -D $(KERNEL_OBJ_FILE) -M intel > $(BUILD_DIR)/kernel.dmp
+	..\..\..\tools\objdump -D $(KERNEL_OBJ_FILE) -M intel > $(BUILD_DIR)/kernel.asm
 
 img: img.asm
 	$(NASM) -o $(v_disk) img.asm

@@ -179,6 +179,7 @@ Start:
             mov dword [Vram_h],0
             mov dword [ScrnX],80
             mov dword [ScrnY],25
+            jmp .set_display_mode_next
         %endif
         %ifdef __UI_GRAPHIC__
             ;打算尝试三种显示模式
@@ -466,14 +467,6 @@ SetupPage:
         mov eax,PAGE_DIR_TABLE_POS + 0x1000
         add eax,0xfe0 * 0x1000
         or eax,PG_US_S | PG_RW_W | PG_P
-        ; mov [PAGE_DIR_TABLE_POS + 0xfe0],eax
-        ; add eax,0x1000
-        ; mov [PAGE_DIR_TABLE_POS + 0xfe4],eax
-        ; add eax,0x1000
-        ; mov [PAGE_DIR_TABLE_POS + 0xfe8],eax
-        ; add eax,0x1000
-        ; mov [PAGE_DIR_TABLE_POS + 0xfec],eax
-        
         mov ebx,PAGE_DIR_TABLE_POS
         mov esi,1016
         mov ecx,4
