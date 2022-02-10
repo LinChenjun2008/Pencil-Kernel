@@ -3,7 +3,7 @@
 #include "stdint.h"
 
 struct Rectangle Screen;
-
+extern unsigned char PKnFont[256][16];
 void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int x1,int y1)
 {
     if(DisplayMode != _GRAPHIC)
@@ -54,13 +54,24 @@ void init_screen(struct Rectangle* scrn)
     return;
 }
 
-void logo()
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char _font)
 {
-    struct Rectangle scrn;
-    init_Rectangle(&scrn,(uint32_t*)0xfe000000,ScrnX,ScrnY,0,0);
-    RectangleFill(&scrn,0x00ffffff,(ScrnX / 2) - 130,(ScrnY / 2) - 130,(ScrnX / 2) + 130,(ScrnY / 2) + 130);
-    // while(1)
-    // {
-    //     ;
-    // }
+    int i;
+    uint32_t* put;
+    uint32_t data;
+    char* font = PKnFont[_font];
+    for(i = 0;i < 16;i++)
+    {
+        put = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
+        data = font[i];
+        if((data & 0x80) != 0){put[0] = color;}
+        if((data & 0x40) != 0){put[0] = color;}
+        if((data & 0x20) != 0){put[0] = color;}
+        if((data & 0x10) != 0){put[0] = color;}
+        if((data & 0x08) != 0){put[0] = color;}
+        if((data & 0x04) != 0){put[0] = color;}
+        if((data & 0x02) != 0){put[0] = color;}
+        if((data & 0x01) != 0){put[0] = color;}
+    }
+    return;
 }
