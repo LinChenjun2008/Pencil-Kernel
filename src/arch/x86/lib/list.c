@@ -1,5 +1,7 @@
 #include "list.h"
+#include "interrupt.h"
 #include "global.h"
+
 /* list_init
 * 初始化链表
 * L :链表指针
@@ -20,10 +22,14 @@ void list_init(struct list* L)
 */
 void list_in(struct list_elem* elem,struct list_elem* in_before)
 {
+    enum intr_status status= intr_disable();
+
     elem->prev = in_before->prev;
     elem->next = in_before;
     (in_before->prev)->next = elem;
     in_before->prev = elem;
+
+    intr_set_status(status);
     return;
 }
 
@@ -56,6 +62,7 @@ void list_append(struct list* L,struct list_elem* elem)
 */
 struct list_elem* list_remove(struct list_elem* elem)
 {
+    enum intr_status status = intr_disable();
     /* prev和next都不能为NULL, 因为上一个节点或下一个节点为NULL的元素不在链表中 */
     if(elem->prev != NULL && elem->next != NULL)
     {
@@ -64,6 +71,8 @@ struct list_elem* list_remove(struct list_elem* elem)
         elem->prev = NULL;
         elem->next = NULL;
     }
+
+    intr_set_status(status);
     return elem;
 }
 
