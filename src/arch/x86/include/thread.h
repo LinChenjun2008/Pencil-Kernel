@@ -60,11 +60,11 @@ struct thread_stack
 /* 程序控制块pcb */
 struct task_struct
 {
-    uint32_t* self_kstack;
-    enum task_status status;
-    uint8_t priority;
-    char name[16];
-    uint32_t stack_magic;
+    uint32_t* self_kstack;   /* 线程内核栈 */
+    enum task_status status; /* 状态 */
+    uint8_t priority;        /* 优先级 */
+    char name[16];           /* 名称 */
+    uint32_t stack_magic;    /* 用于检测是否栈溢出 */
 };
 
 void init_thread(struct task_struct* thread,char* name,uint8_t priority);
