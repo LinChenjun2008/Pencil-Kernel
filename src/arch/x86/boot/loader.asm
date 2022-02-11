@@ -297,8 +297,8 @@ Checking_VBE_Mode:
 ;es:bx :读取到的数据存放处
 ;dl    :驱动器号,0x00~0x7f:软盘 0x80~0xff:硬盘
 ReadSector:
-    ;为物理机准备的版本:
-    %ifdef __BOOT_ON_PHY_MACHINE__
+    ;为硬盘准备的版本:
+    %ifdef __BOOT_HARDDISK__
         .ReadOneSector:
             ;备份寄存器
             push dword eax
@@ -323,8 +323,8 @@ ReadSector:
             loop .ReadOneSector
             ret
     %endif
-    ;为虚拟机准备的版本
-    %ifdef __BOOT_ON_VIR_MACHINE__
+    ;为软盘准备的版本
+    %ifdef __BOOT_FLOPPY__
         push bp
         mov bp,sp
         sub esp,2
@@ -354,7 +354,6 @@ ReadSector:
         pop bp
         ret
     %endif
-
 align 4
 DiskAddressPacket:
     db 0x10 ;+ 0 硬盘地址包大小     (Size of DiskAddressPacket(bytes))
