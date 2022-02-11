@@ -22,7 +22,7 @@ struct Rectangle
 
 /* 窗口
 */
-struct window
+struct Window
 {
     struct Rectangle win; /* 窗口本体 */
     struct list graphic;  /* 窗口中的图形 */
@@ -30,9 +30,11 @@ struct window
     uint32_t graphics;    /* 图形数量 */
 };
 
-extern struct Rectangle Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */
+extern struct Window Screen;/* 屏幕定义为矩形,不支持奇形怪状的屏幕 */
 
 void init_Rectangle(struct Rectangle* rectangle,uint32_t* vram,int xsize,int ysize,int x,int y);
 void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int x1,int y1);
-
+void init_screen(struct Window* scrn);
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char _font);
+void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str);
 #endif /* __GRAPHIC_H__ */

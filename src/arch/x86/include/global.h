@@ -40,6 +40,15 @@
 #define AR_IDT_DESC_DPL0 (AR_P | AR_DPL_0 | AR_DESC_32)
 #define AR_IDT_DESC_DPL3 (AR_P | AR_DPL_3 | AR_DESC_32)
 
+#define PG_SIZE 4096
+
+#define PG_P 0x1
+#define PG_RW_R 0x0
+#define PG_RW_W 0x2
+#define PG_US_S 0x0
+#define PG_US_U 0x4
+
+
 #define LoaderBaseAddress 0x1000  /* loader加载到0x1000地址处 */
 #define LoaderOffsetAddress 0x500 /* loader前0x4ff字节是数据,代码正式开始是0x500字节 */
 
@@ -60,7 +69,7 @@
 enum Display
 {
     _TEXT = 0,
-    _GRAPHIC = 1, /* 图形界面,以后实现 */
+    _GRAPHIC = 1, /* 图形界面 */
 };
 
 /* C语言实现bool */

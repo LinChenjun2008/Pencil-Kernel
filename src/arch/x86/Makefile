@@ -21,6 +21,7 @@ GRAPHIC_DIR := graphic/
 INCLUDE_DIR := include/
 KERNEL_DIR := kernel/
 LIB_DIR := lib/
+THREAD_DIR := thread/
 
 #exec
 MBR := $(BOOT_DIR)mbr.bin
@@ -40,6 +41,7 @@ $(LIB_DIR)list.co           \
 $(KERNEL_DIR)memory.co      \
 $(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
+$(THREAD_DIR)thread.co      \
 $(DEVICE_DIR)timer.co
 
 OBJ_FILE := $(KERNEL_DIR)start.ao $(KERNEL_DIR)main.co $(LIBS)
@@ -72,14 +74,17 @@ MAKE_DIR := md
 	$(NASM) -f elf -I $(INCLUDE_DIR) -I ../ -o $*.ao $*.asm
 
 #.c to .co (elf)
+# cc1 参数说明:
+# -Os:启用优化,优化等级介于-O2和-O3之间
+# -Wall:发出警告
+# -quiet: 不显示多余的信息?
+# -fno-builtin: 不识别内建函数
 %.co: %.c
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
 	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
-#	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -quiet -fno-builtin -o $*.s $*.c
 	$(AS) -I $(INCLUDE_DIR) -I ../ -o $*.co $*.s
-#	$(GCC) -I $(INCLUDE_DIR) -I ../ -m32 -fno-builtin -c $*.c -o $*.co
 
 #command:
 #all: make all
@@ -115,6 +120,8 @@ clean:
 	$(CD) $(LIB_DIR) && $(DELET) *.ao
 	$(CD) $(LIB_DIR) && $(DELET) *.co
 	$(CD) $(LIB_DIR) && $(DELET) *.s
+	$(CD) $(THREAD_DIR) && $(DELET) *.co
+	$(CD) $(THREAD_DIR) && $(DELET) *.s
 #	$(DELET) $(v_disk)
 #	$(DELET) $(v_disk).lock
 

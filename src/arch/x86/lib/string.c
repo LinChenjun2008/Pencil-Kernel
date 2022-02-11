@@ -70,7 +70,13 @@ int32_t memcmp(const void* p1__,void* p2__,uint32_t size)
     return (*p1 < *p2 ? -1 : *p1 > *p2);
 }
 
-char* strcpy(char* dst__,const char* src__);
+char* strcpy(char* dst__,const char* src__)
+{
+/* 将字符串从src_复制到dst_ */
+   char* r = dst__;		       // 用来返回目的字符串起始地址
+   while((*dst__++ = *src__++));
+   return r;
+}
 uint32_t strlen(const char* str);
 int32_t strcmp(const char* str_a__,const char* str_b__);
 char* strchr(const char* str,const uint8_t ch);
