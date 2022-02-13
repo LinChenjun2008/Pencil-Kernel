@@ -1,12 +1,7 @@
 ;引导启动阶段的配置文件
-;启动平台:虚拟机还是物理机
 ;启动设备:磁盘还是硬盘
 ;只能选一个
 
-;物理机
-%define __BOOT_ON_PHY_MACHINE__
-;虚拟机
-;%define __BOOT_ON_VIR_MACHINE__
 ;软盘
 ;%define __BOOT_FLOPPY__
 ;硬盘
@@ -29,9 +24,9 @@
     DrvNum equ 0x80 ;硬盘
 %endif
 
-;界面,同样只能选一个
-%define __UI_TEXT__
-;%define __UI_GRAPHIC__
+;界面,同样只能选一个,同时选择将使用文本界面
+;%define __UI_TEXT__
+%define __UI_GRAPHIC__
 
 %ifdef __UI_GRAPHIC__
     ;这里是VBE模式号

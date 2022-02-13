@@ -2,7 +2,8 @@
 #define __IO_H__
 
 /* io端口操作函数 内联汇编版(还是用了内联汇编...)
-* 注:io.asm已经不用了
+* 由于函数都是static和inline,所以直接写在了头文件里
+* 注:io.asm已经不用了,可以删了
 */
 #include "stdint.h"
 
@@ -60,9 +61,9 @@ static inline uint32_t io_in8(uint32_t port)
     uint32_t data;
     asm volatile
     (
-        "inb %w1,%b0;"
-        :"=a"(data)
-        :"dx"(port)
+        "inb %w[port],%b[data];"
+        :[data]"=a"(data)
+        :[port]"dx"(port)
         :"memory"
     );
     return data;
@@ -73,9 +74,9 @@ static inline uint32_t io_in16(uint32_t port)
     uint32_t data;
     asm volatile
     (
-        "inb %w1,%w0;"
-        :"=ax"(data)
-        :"dx"(port)
+        "inw %w[port],%w[data];"
+        :[data]"=a"(data)
+        :[port]"dx"(port)
         :"memory"
     );
     return data;
@@ -86,9 +87,9 @@ static inline uint32_t io_in32(uint32_t port)
     uint32_t data;
     asm volatile
     (
-        "inb %w1,%l0;" /* 看清楚!是%l0,l0不是数字10,大写是L0! */
-        :"=eax"(data)
-        :"dx"(port)
+        "inl %w[port],%l[data];"
+        :[data]"=a"(data)
+        :[port]"dx"(port)
         :"memory"
     );
     return data;
@@ -100,9 +101,9 @@ static inline void io_out8(uint32_t port,uint32_t data)
 {
     asm volatile
     (
-        "outb %b0,%w1;"
+        "outb %b[data],%w[port];"
         :
-        :"a"(data),"dx"(port)
+        :[data]"a"(data),[port]"dx"(port)
         :"memory"
     );
 }
@@ -111,9 +112,9 @@ static inline void io_out16(uint32_t port,uint32_t data)
 {
     asm volatile
     (
-        "outw %w0,%w1;"
+        "outw %w[data],%w[port];"
         :
-        :"ax"(data),"dx"(port)
+        :[data]"ax"(data),[port]"dx"(port)
         :"memory"
     );
 }
@@ -122,9 +123,9 @@ static inline void io_out32(uint32_t port,uint32_t data)
 {
     asm volatile
     (
-        "outw %l0,%w1;"
+        "outl %l[data],%w[port];"
         :
-        :"eax"(data),"dx"(port)
+        :[data]"eax"(data),[port]"dx"(port)
         :"memory"
     );
 }
@@ -134,9 +135,9 @@ static inline uint32_t get_flages()
     uint32_t flages;
     asm volatile
     (
-        "pushf;"
-        "popl %%eax;"
-        :"=eax"(flages)
+        "pushf;"      /* 将flage寄存器压栈 */
+        "popl %[flages];" 
+        :[flages]"=m"(flages)
         :
         :"memory"
     );
