@@ -1,4 +1,5 @@
 #include "timer.h"
+#include "io.h"
 
 void init_pit(void)
 {

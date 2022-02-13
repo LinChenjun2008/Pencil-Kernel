@@ -36,7 +36,6 @@ $(GRAPHIC_DIR)graphic.co    \
 $(KERNEL_DIR)init.co        \
 $(KERNEL_DIR)interrupt.ao   \
 $(KERNEL_DIR)interrupt.co   \
-$(LIB_DIR)io.ao             \
 $(LIB_DIR)list.co           \
 $(KERNEL_DIR)memory.co      \
 $(LIB_DIR)print.co          \

@@ -11,10 +11,13 @@
 void k_thread_a(void* arg)
 {
     //char a = *(char*)arg;
+    uint32_t i = 0;
     while(1)
     {
         put_char('B');
         put_char(' ');
+        put_char_graphic(&(Screen.win),50,50,i,'P');
+        i++;
     }
 }
 

@@ -45,7 +45,14 @@ struct task_struct* thread_start(char* name,uint8_t priority,thread_function fun
     struct task_struct* thread = (struct task_struct*)get_kernel_page(1);
     init_thread(thread,name,priority);
     thread_create(thread,func,arg);
-    asm volatile ("movl %0,%%esp;pop %%ebp;pop %%ebx;pop %%edi;pop %%esi;ret"::"g"(thread->self_kstack):"memory");
+    asm volatile (
+                    "movl %0,%%esp \n\t" \
+                    "pop %%ebp     \n\t" \
+                    "pop %%ebx     \n\t" \
+                    "pop %%edi     \n\t" \
+                    "pop %%esi     \n\t" \
+                    "ret"
+    ::"g"(thread->self_kstack):"memory");
     return thread;
 
 }
