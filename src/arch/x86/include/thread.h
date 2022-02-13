@@ -35,12 +35,12 @@ struct intr_stack
     uint32_t es;
     uint32_t ds;
     /* 以下由cpu特权级由低到高时自动压入 */
-    uint32_t err_code;
-    void (*eip) (void);
-    uint32_t cs;
-    uint32_t eflags;
-    void* esp;
-    uint32_t ss;
+    uint32_t err_code;  /* 错误码 */
+    void (*eip) (void); /* eip指针 */
+    uint32_t cs;        /* cs寄存器 */
+    uint32_t eflags;    /* eflages寄存器 */
+    void* esp;          /* 栈指针寄存器 */
+    uint32_t ss;        /* ss段寄存器 */
 };
 
 /* 线程栈 */
@@ -60,11 +60,11 @@ struct thread_stack
 /* 程序控制块pcb */
 struct task_struct
 {
-    uint32_t* self_kstack;
-    enum task_status status;
-    uint8_t priority;
-    char name[16];
-    uint32_t stack_magic;
+    uint32_t* self_kstack;   /* 线程内核栈 */
+    enum task_status status; /* 状态 */
+    uint8_t priority;        /* 优先级 */
+    char name[16];           /* 名称 */
+    uint32_t stack_magic;    /* 用于检测是否栈溢出 */
 };
 
 void init_thread(struct task_struct* thread,char* name,uint8_t priority);
