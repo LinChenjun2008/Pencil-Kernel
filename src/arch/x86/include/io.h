@@ -87,8 +87,8 @@ static inline uint32_t io_in32(uint32_t port)
     uint32_t data;
     asm volatile
     (
-        "inl %w[port],%l[data];"
-        :[data]"=a"(data)
+        "inl %w[port],%k[data];"
+        :[data]"=eax"(data)
         :[port]"dx"(port)
         :"memory"
     );
@@ -123,7 +123,7 @@ static inline void io_out32(uint32_t port,uint32_t data)
 {
     asm volatile
     (
-        "outl %l[data],%w[port];"
+        "outl %k[data],%w[port];"
         :
         :[data]"eax"(data),[port]"dx"(port)
         :"memory"
