@@ -63,7 +63,7 @@ static inline uint32_t io_in8(uint32_t port)
     (
         "inb %w[port],%b[data];"
         :[data]"=a"(data)
-        :[port]"dx"(port)
+        :[port]"d"(port)
         :"memory"
     );
     return data;
@@ -76,7 +76,7 @@ static inline uint32_t io_in16(uint32_t port)
     (
         "inw %w[port],%w[data];"
         :[data]"=a"(data)
-        :[port]"dx"(port)
+        :[port]"d"(port)
         :"memory"
     );
     return data;
@@ -88,8 +88,8 @@ static inline uint32_t io_in32(uint32_t port)
     asm volatile
     (
         "inl %w[port],%k[data];"
-        :[data]"=eax"(data)
-        :[port]"dx"(port)
+        :[data]"=a"(data)
+        :[port]"d"(port)
         :"memory"
     );
     return data;
@@ -103,7 +103,7 @@ static inline void io_out8(uint32_t port,uint32_t data)
     (
         "outb %b[data],%w[port];"
         :
-        :[data]"a"(data),[port]"dx"(port)
+        :[data]"a"(data),[port]"d"(port)
         :"memory"
     );
 }
@@ -114,7 +114,7 @@ static inline void io_out16(uint32_t port,uint32_t data)
     (
         "outw %w[data],%w[port];"
         :
-        :[data]"ax"(data),[port]"dx"(port)
+        :[data]"a"(data),[port]"d"(port)
         :"memory"
     );
 }
@@ -125,7 +125,7 @@ static inline void io_out32(uint32_t port,uint32_t data)
     (
         "outl %k[data],%w[port];"
         :
-        :[data]"eax"(data),[port]"dx"(port)
+        :[data]"a"(data),[port]"d"(port)
         :"memory"
     );
 }
