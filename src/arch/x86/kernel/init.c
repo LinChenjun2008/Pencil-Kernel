@@ -2,6 +2,7 @@
 #include "graphic.h"
 #include "interrupt.h"
 #include "memory.h"
+#include "thread.h"
 #include "timer.h"
 
 void init_all()

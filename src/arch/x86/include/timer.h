@@ -13,5 +13,6 @@
 #define PIT_CONTROL_PORT 0x43
 
 void init_pit(void);
+void intr0x20_handler(uint32_t* esp);
 
 #endif /* __TIMER_H__ */

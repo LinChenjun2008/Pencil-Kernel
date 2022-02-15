@@ -40,6 +40,7 @@ $(LIB_DIR)list.co           \
 $(KERNEL_DIR)memory.co      \
 $(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
+$(THREAD_DIR)thread.ao      \
 $(THREAD_DIR)thread.co      \
 $(DEVICE_DIR)timer.co
 
@@ -119,6 +120,7 @@ clean:
 	$(CD) $(LIB_DIR) && $(DELET) *.ao
 	$(CD) $(LIB_DIR) && $(DELET) *.co
 	$(CD) $(LIB_DIR) && $(DELET) *.s
+	$(CD) $(THREAD_DIR) && $(DELET) *.ao
 	$(CD) $(THREAD_DIR) && $(DELET) *.co
 	$(CD) $(THREAD_DIR) && $(DELET) *.s
 #	$(DELET) $(v_disk)

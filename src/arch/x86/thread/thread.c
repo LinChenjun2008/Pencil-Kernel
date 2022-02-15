@@ -7,7 +7,7 @@
 void init_thread(struct task_struct* thread,char* name,uint8_t priority)
 {
     memset(thread,0,sizeof(*thread));
-    //strcpy(thread->name,name);
+    strcpy(thread->name,name);
     thread->status = TASK_RUNNING;
     thread->priority = priority;
     thread->self_kstack = ((uint32_t*)(((uint32_t)thread) + PG_SIZE));
@@ -45,14 +45,17 @@ struct task_struct* thread_start(char* name,uint8_t priority,thread_function fun
     struct task_struct* thread = (struct task_struct*)get_kernel_page(1);
     init_thread(thread,name,priority);
     thread_create(thread,func,arg);
-    asm volatile (
-                    "movl %0,%%esp \n\t" \
-                    "pop %%ebp     \n\t" \
-                    "pop %%ebx     \n\t" \
-                    "pop %%edi     \n\t" \
-                    "pop %%esi     \n\t" \
-                    "ret"
-    ::"g"(thread->self_kstack):"memory");
+    asm volatile
+    (
+        "movl %[kstack],%%esp;"
+        "pop %%ebp;"
+        "pop %%ebx;"
+        "pop %%edi;"
+        "pop %%esi;"
+        "ret"
+        :
+        :[kstack]"g"(thread->self_kstack)
+        :
+    );
     return thread;
-
 }

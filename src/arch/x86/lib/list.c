@@ -104,3 +104,34 @@ bool list_find(struct list* L,struct list_elem* obj_elem)
     }
     return false;
 }
+
+void list_traversal(struct list* L,func function,int arg)
+{
+    struct list_elem* elem = L->head.next;
+    while(elem != &(L->tail))
+    {
+        if(function(elem,arg))
+        {
+            return elem;
+        }
+        elem = elem->next;
+    }
+    return NULL;
+}
+
+int list_len(struct list* L)
+{
+    struct list_elem* elem = L->head.next;
+    int len = 0;
+    while(elem != &(L->tail))
+    {
+        len++;
+        elem = elem->next;
+    }
+    return len;
+}
+
+bool list_empty(struct list* L)
+{
+    return (L->head.next == &(L->tail) ? true : false);
+}
