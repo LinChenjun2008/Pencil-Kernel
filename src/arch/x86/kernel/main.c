@@ -8,6 +8,7 @@
 #include "print.h"
 #include "string.h"
 #include "thread.h"
+#include "time.h"
 
 void k_thread_a(void* arg)
 {
@@ -34,6 +35,9 @@ void k_thread_a(void* arg)
 
 int main()
 {
+    init_all();
+    intr_enable(); /* 开中断 */
+
     put_char('P');
     put_char('e');
     put_char('n');
@@ -54,7 +58,7 @@ int main()
     put_char('n');
     put_char(')');
     put_char('\n');
-    init_all();
+
     //put_str("hello word!\n"); //显示不出来,why?
     
     //put_str("init down!\n");
@@ -74,7 +78,6 @@ int main()
     put_char_graphic(&(Screen.win),140,20,0x00ffffff,'l');
     put_char_graphic(&(Screen.win),150,20,0x00ffffff,' ');
 
-    intr_enable(); /* 开中断 */
     thread_start("k_a",31,k_thread_a,0);
 
     while(1) /* 这个死循环不能少 */

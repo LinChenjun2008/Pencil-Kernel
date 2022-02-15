@@ -83,11 +83,11 @@ void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,cha
 void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str)
 {
     int i;
-	for(i = 0;str[i] != 0;i++)
-	{
-		put_char_graphic(rectangle,x,y,color,str[i]);
-		x+=10;
-	}
+    for(i = 0;str[i] != 0;i++)
+    {
+        put_char_graphic(rectangle,x,y,color,str[i]);
+        x+=10;
+    }
     
-	return;
+    return;
 }

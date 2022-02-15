@@ -42,6 +42,7 @@ $(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
 $(THREAD_DIR)thread.ao      \
 $(THREAD_DIR)thread.co      \
+$(DEVICE_DIR)time.co        \
 $(DEVICE_DIR)timer.co
 
 OBJ_FILE := $(KERNEL_DIR)start.ao $(KERNEL_DIR)main.co $(LIBS)
