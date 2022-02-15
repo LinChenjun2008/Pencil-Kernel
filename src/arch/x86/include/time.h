@@ -13,4 +13,6 @@ struct TIME
     uint32_t year;//09 + 32
 };
 
+void get_time(struct TIME* time);
+
 #endif

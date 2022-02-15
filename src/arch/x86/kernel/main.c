@@ -10,26 +10,34 @@
 #include "thread.h"
 #include "time.h"
 
+struct TIME time;
+
 void k_thread_a(void* arg)
 {
-    uint32_t i = 0;
+    uint32_t i = 0x00000000;
     while(1)
     {
-        put_char_graphic(&(Screen.win),20,50,i,'P');
-        put_char_graphic(&(Screen.win),30,50,i,'e');
-        put_char_graphic(&(Screen.win),40,50,i,'n');
-        put_char_graphic(&(Screen.win),50,50,i,'c');
-        put_char_graphic(&(Screen.win),60,50,i,'i');
-        put_char_graphic(&(Screen.win),70,50,i,'l');
-        put_char_graphic(&(Screen.win),80,50,i,'-');
-        put_char_graphic(&(Screen.win),90,50,i,'K');
-        put_char_graphic(&(Screen.win),100,50,i,'e');
-        put_char_graphic(&(Screen.win),110,50,i,'r');
-        put_char_graphic(&(Screen.win),120,50,i,'n');
-        put_char_graphic(&(Screen.win),130,50,i,'e');
-        put_char_graphic(&(Screen.win),140,50,i,'l');
-        put_char_graphic(&(Screen.win),150,50,i,' ');
-        i++;
+        get_time(&time);
+        RectangleFill(&(Screen.win), 0x00c6c6c6,ScrnX - 202,ScrnY - 30,ScrnX - 12,ScrnY - 14);
+        put_char_graphic(&(Screen.win), ScrnX - 202,ScrnY - 30,i,(((time.year & 0x0000f000) >> 12) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 192,ScrnY - 30,i,(((time.year & 0x00000f00) >> 8) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 182,ScrnY - 30,i,(((time.year & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 172,ScrnY - 30,i,(((time.year & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 162,ScrnY - 30,i,' ');
+        put_char_graphic(&(Screen.win), ScrnX - 152,ScrnY - 30,i,(((time.month & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 142,ScrnY - 30,i,(((time.month & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 132,ScrnY - 30,i,' ');
+        put_char_graphic(&(Screen.win), ScrnX - 122,ScrnY - 30,i,(((time.day & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 112,ScrnY - 30,i,(((time.day & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 102,ScrnY - 30,i,' ');
+        put_char_graphic(&(Screen.win), ScrnX -  92,ScrnY - 30,i,(((time.hour & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX -  82,ScrnY - 30,i,(((time.hour & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX -  72,ScrnY - 30,i,':');
+        put_char_graphic(&(Screen.win), ScrnX -  62,ScrnY - 30,i,(((time.minuet & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX -  52,ScrnY - 30,i,(((time.minuet & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX -  42,ScrnY - 30,i,':');
+        put_char_graphic(&(Screen.win), ScrnX -  32,ScrnY - 30,i,(((time.second & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX -  22,ScrnY - 30,i,(((time.second & 0x0000000f) >> 0) + '0'));
     }
 }
 
