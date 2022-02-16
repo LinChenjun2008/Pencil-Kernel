@@ -19,7 +19,6 @@ src:源代码
 LICENSE:开源协议
 tools:开发工具(windows系统中)
 ```
-[详细信息](doc/question.md)
 ### 启动流程
 ```
 +mbr.bin(仅限硬盘)
