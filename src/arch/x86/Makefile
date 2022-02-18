@@ -174,22 +174,6 @@ system: mkdir $(OBJ_FILE)
 
 	$(LD) -b $(OBJ_FORMAT) -z muldefs -o $(KERNEL_OBJ_FILE) $(OBJ_FILE) -T kernel.lds
 	$(OBJCOPY) -I $(OBJ_FORMAT) -S -R ".eh_frame" -R ".comment" -O binary $(KERNEL_OBJ_FILE) $(KERNEL)
-	
-	@$(ECHO) .................
-	@$(ECHO) . ############# .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #   #####   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #########   # .
-	@$(ECHO) . ##  #       # .
-	@$(ECHO) . # # #       # .
-	@$(ECHO) . #  ##       # .
-	@$(ECHO) . ############# .
-	@$(ECHO) .................
 
 	@$(ECHO) --------------------------
 	@$(ECHO) --- Pencil-kernel      ---
