@@ -4,6 +4,11 @@
 #ifndef __BITMAP_H_
 #define __BITMAP_H_
 
+#ifdef __cplusplus
+    extern "C"
+    {
+#endif
+
 #include "global.h"
 #include "stdint.h"
 
@@ -19,5 +24,9 @@ void bitmap_init(struct bitmap* btmp);
 bool bitmap_scan_test(struct bitmap* btmp,uint32_t bit_index);
 signed int bitmap_alloc(struct bitmap* btmp,uint32_t cnt);
 void bitmap_set(struct bitmap* btmp,uint32_t bit_index,uint8_t value);
+
+#ifdef __cplusplus
+    }
+#endif
 
 #endif /* __BITMAP_H_ */
