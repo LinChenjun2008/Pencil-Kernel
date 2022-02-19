@@ -1,6 +1,11 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
+#ifdef __cplusplus
+    extern "C"
+    {
+#endif
+
 #include "stdint.h"
 
 typedef void thread_function(void*);
@@ -78,5 +83,9 @@ void init_thread(struct task_struct* thread,char* name,uint8_t priority);
 void kernel_thread(thread_function* func,void* arg);
 void thread_create(struct task_struct* thread,thread_function func,void* arg);
 struct task_struct* thread_start(char* name,uint8_t priority,thread_function func,void* arg);
+
+#ifdef __cplusplus
+    }
+#endif
 
 #endif /* __THREAD_H__ */
