@@ -145,3 +145,7 @@ static inline uint32_t get_flages()
 }
 
 #endif /* __IO_H__ */
+
+/* 内联汇编 格式
+   asm [volatile](汇编代码:输出部分:输入部分:损坏部分);
+*/
