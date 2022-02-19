@@ -4,6 +4,11 @@
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
+#ifdef __cplusplus
+    extern "C"
+    {
+#endif
+
 void panic_spin(const char* file,int line,const char* func,const char* condition);
 
 #ifndef NDEBUG
@@ -20,4 +25,9 @@ void panic_spin(const char* file,int line,const char* func,const char* condition
 #else
     #define ASSRET(CONDITION) ((void)0)
 #endif /* NDEBUG */
+
+#ifdef __cplusplus
+    }
+#endif
+
 #endif /* __DEBUG_H__ */
