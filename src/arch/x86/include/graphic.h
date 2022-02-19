@@ -1,6 +1,11 @@
 #ifndef __GRAPHIC_H__
 #define __GRAPHIC_H__
 
+#if (defined(__cplusplus))
+    extern "C"
+    {
+#endif
+
 #include "list.h"
 #include "stdint.h"
 
@@ -37,4 +42,9 @@ void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int 
 void init_screen(struct Window* scrn);
 void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char _font);
 void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str);
+
+#if (defined(__cplusplus))
+    }
+#endif
+
 #endif /* __GRAPHIC_H__ */
