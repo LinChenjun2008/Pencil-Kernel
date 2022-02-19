@@ -1,6 +1,11 @@
 #ifndef __GLOBAL_H_
 #define __GLOBAL_H_
 
+#ifdef __cplusplus
+    extern "C"
+    {
+#endif
+
 #include "stdint.h"
 
 /* 和boot.inc中一样的数据 */
@@ -73,10 +78,18 @@ enum Display
 };
 
 /* C语言实现bool */
-typedef uint32_t bool;
-#define true 1
-#define false 0
+#ifndef __cplusplus
+    typedef uint32_t bool;
+    #define true 1
+    #define false 0
+#endif
 
-#define NULL ((void*)0)
+#ifndef NULL
+    #define NULL ((void*)0)
+#endif
+
+#ifdef __cplusplus
+    }
+#endif
 
 #endif /* __GLOBAL_H_ */
