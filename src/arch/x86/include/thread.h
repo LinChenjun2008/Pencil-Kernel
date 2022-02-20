@@ -8,9 +8,11 @@ typedef void thread_function(void*);
 /* 线程状态 */
 enum task_status
 {
-    TASK_RUNNING, /* 运行态 */
-    TASK_READY,   /* 就绪态 */
-    TASK_BLOCKED, /* 阻塞态 */
+    TASK_RUNNING,   /* 运行态 */
+    TASK_READY,     /* 就绪态 */
+    TASK_BLOCKED,   /* 阻塞态 */
+    TASK_SENDING,   /* 发送消息状态 */
+    TASK_RECEIVING, /* 接收消息状态 */
     TASK_WAITING,
     TASK_HANGING,
     TASK_DIED,
