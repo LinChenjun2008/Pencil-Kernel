@@ -8,17 +8,7 @@ Pencil-Kernel
 `Pencil-Kernel`,abbreviation `PKn`,it is a tiny operating system kernel.
 `Pencil-Kernel`is designed to a multiple platforms kernels,
 current support:`x86` <br />
-### 文件结构
-```
-doc:相关文档
-src:源代码
- |
- +--arch:平台
-     |
-     +--x86:Intel 80x86平台
-LICENSE:开源协议
-tools:开发工具(windows系统中)
-```
+
 ### 启动流程
 ```
 +mbr.bin(仅限硬盘)
@@ -32,7 +22,7 @@ tools:开发工具(windows系统中)
 |    +---设置VBE模式
 |    +---进入保护模式
 |    +---开启分页
-|    +---运行setup
+|    +---进入内核
 |
 +setup.bin(暂时没有)
 |    |
