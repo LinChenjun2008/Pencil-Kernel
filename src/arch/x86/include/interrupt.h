@@ -1,11 +1,6 @@
 #ifndef __INTERRUPT_H__
 #define __INTERRUPT_H__
 
-#if (defined(__cplusplus))
-    extern "C"
-    {
-#endif
-
 #include "stdint.h"
 
 #define PIC_M_CTRL 0x20	/* 8259A主片的控制端口是0x20 */
@@ -47,9 +42,5 @@ enum intr_status intr_set_status(enum intr_status status);
 enum intr_status intr_get_status();
 
 extern void asm_intr0x20_handler();
-
-#if (defined(__cplusplus))
-    }
-#endif
 
 #endif /* __INTERRUPT_H__ */
