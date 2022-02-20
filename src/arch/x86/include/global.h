@@ -1,11 +1,6 @@
 #ifndef __GLOBAL_H_
 #define __GLOBAL_H_
 
-#ifdef __cplusplus
-    extern "C"
-    {
-#endif
-
 #include "stdint.h"
 
 /* 和boot.inc中一样的数据 */
@@ -86,10 +81,6 @@ enum Display
 
 #ifndef NULL
     #define NULL ((void*)0)
-#endif
-
-#ifdef __cplusplus
-    }
 #endif
 
 #endif /* __GLOBAL_H_ */
