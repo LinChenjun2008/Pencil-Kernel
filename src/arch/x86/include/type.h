@@ -4,6 +4,7 @@
 
 #include "stdint.h"
 
+/* message参考了MINIX */
 struct msg1
 {
     uint32_t m1i1;
@@ -30,6 +31,8 @@ struct msg3
     uint64_t m3l2;
     void* m3p1;
     void* m3p2;
-}
+};
+
+
 
 #endif /* __TYPE_H__ */
