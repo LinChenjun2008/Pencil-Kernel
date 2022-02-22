@@ -18,4 +18,17 @@ static inline double sqrt(double x)
     return result;
 }
 
+static inline sdouble in(double x)
+{
+    double result;
+    ask volatile
+    (
+        "fsin"
+        :"=t"(result)
+        :"t"(x)
+        :"memory"
+    );
+    return result;
+}
+
 #endif /* __MATH_H__ */
