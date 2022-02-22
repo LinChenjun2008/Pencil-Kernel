@@ -33,6 +33,18 @@ struct msg3
     void* m3p2;
 };
 
+typedef struct
+{
+    uint32_t source;
+    uint32_t type;
+    union
+    {
+        struct msg1;
+        struct msg2;
+        struct msg3;
+    }msg;
+}MESSAGE;
+
 
 
 #endif /* __TYPE_H__ */
