@@ -84,6 +84,7 @@ enum Display
 #endif
 
 /* 其余的宏定义 */
+/* __asm__ 和 __volatile__ 一般gcc会定义 */
 #ifndef __asm__
     #define __asm__ asm
 #endif
@@ -92,4 +93,10 @@ enum Display
     #define __volatile__ volatile
 #endif
 
+#ifndef PUBLIC
+    #define PUBLIC
+#endif
+#ifndef PRIVATE
+    #define PRIVATE static
+#endif
 #endif /* __GLOBAL_H_ */
