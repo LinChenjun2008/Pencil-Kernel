@@ -83,4 +83,13 @@ enum Display
     #define NULL ((void*)0)
 #endif
 
+/* 其余的宏定义 */
+#ifndef __asm__
+    #define __asm__ asm
+#endif
+
+#ifndef __volatile__
+    #define __volatile__ volatile
+#endif
+
 #endif /* __GLOBAL_H_ */
