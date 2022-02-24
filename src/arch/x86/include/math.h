@@ -1,6 +1,8 @@
 #ifndef __MATH_H__
 #define __MATH_H__
 
+#include "global.h"
+
 /* sqrt
 * 平方根
 * "t"是第一个浮点数寄存器
@@ -8,7 +10,7 @@
 static inline double sqrt(double x)
 {
     double result;
-    asm volatile
+    __asm__ __volatile__
     (
         "fsqrt"
         :"=t"(result)
@@ -21,7 +23,7 @@ static inline double sqrt(double x)
 static inline sdouble in(double x)
 {
     double result;
-    ask volatile
+    __asm__ __volatile__
     (
         "fsin"
         :"=t"(result)
