@@ -1,6 +1,8 @@
 #ifndef __IO_H__
 #define __IO_H__
 
+#include "global.h"
+
 /* io端口操作函数 内联汇编版(还是用了内联汇编...)
 * 由于函数都是static和inline,所以直接写在了头文件里
 * 注:io.asm已经不用了,可以删了
@@ -9,7 +11,7 @@
 
 static inline void io_hlt(void)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "hlt"
         :
@@ -21,7 +23,7 @@ static inline void io_hlt(void)
 
 static inline void io_sti(void)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "sti;"
         :
@@ -33,7 +35,7 @@ static inline void io_sti(void)
 
 static inline void io_cli(void)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "cli;"
         :
@@ -45,7 +47,7 @@ static inline void io_cli(void)
 
 static inline void io_stihlt(void)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "sti;"
         "hlt;"
@@ -59,7 +61,7 @@ static inline void io_stihlt(void)
 static inline uint32_t io_in8(uint32_t port)
 {
     uint32_t data;
-    asm volatile
+    __asm__ __volatile__
     (
         "inb %w[port],%b[data];"
         :[data]"=a"(data)
@@ -72,7 +74,7 @@ static inline uint32_t io_in8(uint32_t port)
 static inline uint32_t io_in16(uint32_t port)
 {
     uint32_t data;
-    asm volatile
+    __asm__ __volatile__
     (
         "inw %w[port],%w[data];"
         :[data]"=a"(data)
@@ -85,7 +87,7 @@ static inline uint32_t io_in16(uint32_t port)
 static inline uint32_t io_in32(uint32_t port)
 {
     uint32_t data;
-    asm volatile
+    __asm__ __volatile__
     (
         "inl %w[port],%k[data];"
         :[data]"=a"(data)
@@ -99,7 +101,7 @@ static inline uint32_t io_in32(uint32_t port)
 
 static inline void io_out8(uint32_t port,uint32_t data)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "outb %b[data],%w[port];"
         :
@@ -110,7 +112,7 @@ static inline void io_out8(uint32_t port,uint32_t data)
 
 static inline void io_out16(uint32_t port,uint32_t data)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "outw %w[data],%w[port];"
         :
@@ -121,7 +123,7 @@ static inline void io_out16(uint32_t port,uint32_t data)
 
 static inline void io_out32(uint32_t port,uint32_t data)
 {
-    asm volatile
+    __asm__ __volatile__
     (
         "outl %k[data],%w[port];"
         :
@@ -133,7 +135,7 @@ static inline void io_out32(uint32_t port,uint32_t data)
 static inline uint32_t get_flages()
 {
     uint32_t flages;
-    asm volatile
+    __asm__ __volatile__
     (
         "pushf;"      /* 将flage寄存器压栈 */
         "popl %[flages];" 
