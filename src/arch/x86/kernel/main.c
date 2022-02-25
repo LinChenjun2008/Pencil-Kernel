@@ -15,9 +15,12 @@ struct TIME time;
 void k_thread_a(void* arg)
 {
     uint32_t i = 0x00000000;
+    int sec;
     while(1)
     {
         get_time(&time);
+        sec = time.second;
+//        RectangleFill(&(Screen.win), 0x00ffffff,ScrnX - 212,ScrnY - 40,ScrnX - 6,ScrnY - 7);
         RectangleFill(&(Screen.win), 0x00c6c6c6,ScrnX - 202,ScrnY - 30,ScrnX - 12,ScrnY - 14);
         put_char_graphic(&(Screen.win), ScrnX - 202,ScrnY - 30,i,(((time.year & 0x0000f000) >> 12) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 192,ScrnY - 30,i,(((time.year & 0x00000f00) >> 8) + '0'));
@@ -38,6 +41,10 @@ void k_thread_a(void* arg)
         put_char_graphic(&(Screen.win), ScrnX -  42,ScrnY - 30,i,':');
         put_char_graphic(&(Screen.win), ScrnX -  32,ScrnY - 30,i,(((time.second & 0x000000f0) >> 4) + '0'));
         put_char_graphic(&(Screen.win), ScrnX -  22,ScrnY - 30,i,(((time.second & 0x0000000f) >> 0) + '0'));
+        while(time.second == sec)
+        {
+        	get_time(&time);
+		}
     }
 }
 

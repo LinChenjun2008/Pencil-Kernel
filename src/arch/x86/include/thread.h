@@ -75,9 +75,9 @@ struct task_struct
 
     uint8_t priority;        /* 优先级 */
     uint8_t ticks;           /* 在CPU上运行的时间 */
-    uint32_t elapsed_ticks   /* 总共运行的时间 */
+    uint32_t elapsed_ticks;  /* 总共运行的时间 */
 
-    uint32_t* page_dir       /* 线程的页表 */
+    uint32_t* page_dir;      /* 线程的页表 */
 
     uint32_t stack_magic;    /* 用于检测是否栈溢出 */
 };
