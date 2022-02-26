@@ -72,9 +72,10 @@ current support:`x86` <br />
 - [x] 在文件系统中加载loader和内核
 - [x] 在虚拟机中通过硬盘启动
 - [ ] 实现GUI(快了)
+- [ ] 实现线程切换
 - [ ] 支持ACPI关机
 - [ ] 在物理电脑上运行
-- [ ] 实现微内核
+- [ ] 微内核
 - [ ] ~~打倒Linux~~
 ### 更多 More
 [[运行截图 Run screenshot]](doc/image/Readme.md)<br />
