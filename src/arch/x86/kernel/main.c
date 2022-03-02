@@ -48,7 +48,7 @@ void k_thread_a(void* arg)
     }
 }
 
-int main()
+int kernel_main()
 {
     init_all();
     intr_enable(); /* 开中断 */
