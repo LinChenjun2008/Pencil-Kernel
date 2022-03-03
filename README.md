@@ -4,6 +4,11 @@ Pencil-Kernel
 `Pencil-Kernel`,简称`PKn`,是一个小型的操作系统内核.
 `Pencil-Kernel`被设计为一个跨平台内核,
 当前支持平台:`x86` <br />
+在`Pencil-Kernel`开发完成时,预计是一个由硬盘引导、
+页式内存管理,有键盘、鼠标等设备的驱动程序、
+支持用户进程、有自己的文件系统,使用图形界面和文本界面作为交互方式的
+32位分时多任务微内核操作系统.
+
 ***
 `Pencil-Kernel`,abbreviation `PKn`,it is a tiny operating system kernel.
 `Pencil-Kernel`is designed to a multiple platforms kernels,
