@@ -36,7 +36,7 @@
 * DataStartSec        :数据区起始扇区
 */
 
-struct index_block
+struct super_block
 {
     /* 基本信息 */
     uint8_t Magic[8];             /* 用于识别文件系统 */
@@ -46,9 +46,9 @@ struct index_block
 
     /* inode信息 */
     uint32_t InodeCnt;            /* inode数量 */
-    uint32_t InodeStartSec        /* inode起始扇区 */
-    uint32_t InodeSectors         /* inode占用扇区数 */
-    uint32_t RootDirInodeNo       /* 根目录的inode编号 */
+    uint32_t InodeStartSec;       /* inode起始扇区 */
+    uint32_t InodeSectors;        /* inode占用扇区数 */
+    uint32_t RootDirInodeNo;      /* 根目录的inode编号 */
 
     /* bitmap */
     uint32_t BlockBitmapStartSec; /* 用于记录块使用信息的bitmap */
