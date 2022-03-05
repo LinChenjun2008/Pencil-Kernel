@@ -79,8 +79,7 @@ struct inode
     uint8_t f_type;     /* 文件类型(普通文件还是目录) */
     uint32_t f_size;    /* 文件大小 */
     uint16_t year;      /* 最后一次写入的年份 */
-    uint8_t date;       /* 最后一次写入的日期(高4位是月份,低4位是天) */
-    uint16_t time;      /* 最后一次写入的时间(距离当天早上00:00的秒数) */
+    uint32_t time;      /* 0~3bit:十毫秒 4~9bit:秒 10~15bit:分 16~21bit:时 22~27bit:日 28~31bit:月 */
     uint32_t index[12]; /* 文件索引,就是文件在磁盘的扇区号(存储的是 实际扇区号-分区起始扇区号) */
 }PACKED;/* 一个inode刚好64字节,一个扇区放8个inode */
 
