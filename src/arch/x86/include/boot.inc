@@ -1,19 +1,17 @@
 ;引导启动阶段的配置文件
 ;启动设备:磁盘还是硬盘
 ;只能选一个
-
+%define __BOOT_ON_VIR_MACHINE__
 ;软盘
 ;%define __BOOT_FLOPPY__
 ;硬盘
 %define __BOOT_HARDDISK__
 
-%ifdef __BOOT_ON_VIR_MACHINE__
-    %ifdef __BOOT_FLOPPY__
-        SecPerCyc equ 18 ;软盘用
-    %endif
-    %ifdef __BOOT_HARDDISK__
-        SecPerCyc equ 63 ;硬盘用
-    %endif
+%ifdef __BOOT_FLOPPY__
+    SecPerCyc equ 18 ;软盘用
+%endif
+%ifdef __BOOT_HARDDISK__
+    SecPerCyc equ 63 ;硬盘用
 %endif
 
 ;磁盘驱动器号
@@ -38,9 +36,13 @@
     ;0x145,1280 * 1024
     ;0x18c,2560 * 1600
     ;这里挑3个来尝试,总会有一个可以的吧？
-    VBE_MODE1 equ 0x145 ;首选模式号:1024 * 768 32位色彩
-    VBE_MODE2 equ 0x143 ;备选号1: 800 * 600 32位色彩
-    VBE_MODE3 equ 0x142 ;备选号2: 640 * 480 32位色彩
+    %ifdef __BOOT_ON_VIR_MACHINE__
+        VBE_MODE1 equ 0x142 ;首选模式号:1024 * 768 32位色彩
+        VBE_MODE2 equ 0x143 ;备选号1: 800 * 600 32位色彩
+        VBE_MODE3 equ 0x142 ;备选号2: 640 * 480 32位色彩
+    %else
+        VBE_MODE1 equ 0x118
+    %endif
 %endif
 
 ;BootLoader的信息
@@ -63,7 +65,7 @@ LoaderStackTop equ 0x700
 ;设备相关
 TotalMem_l    equ 0x7c00 ; +  0 总内存容量低32位
 TotalMem_h    equ 0x7c04 ; +  4 总内存容量高32位(对于32位系统,这个值没有意义)
-DiskNum     equ 0x7c08 ; +  8 磁盘数量
+DiskCnt       equ 0x7c08 ; +  8 磁盘数量
 ;显示相关
 DisplayMode equ 0x7c0c ; + 12 显示模式(文本(0)或图形(1))
 Vram_l      equ 0x7c10 ; + 16 显存地址低32位

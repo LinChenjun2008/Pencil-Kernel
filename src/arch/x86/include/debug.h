@@ -20,4 +20,5 @@ void panic_spin(const char* file,int line,const char* func,const char* condition
 #else
     #define ASSRET(CONDITION) ((void)0)
 #endif /* NDEBUG */
+
 #endif /* __DEBUG_H__ */

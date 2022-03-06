@@ -40,7 +40,9 @@ $(LIB_DIR)list.co           \
 $(KERNEL_DIR)memory.co      \
 $(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
+$(THREAD_DIR)thread.ao      \
 $(THREAD_DIR)thread.co      \
+$(DEVICE_DIR)time.co        \
 $(DEVICE_DIR)timer.co
 
 OBJ_FILE := $(KERNEL_DIR)start.ao $(KERNEL_DIR)main.co $(LIBS)
@@ -119,6 +121,7 @@ clean:
 	$(CD) $(LIB_DIR) && $(DELET) *.ao
 	$(CD) $(LIB_DIR) && $(DELET) *.co
 	$(CD) $(LIB_DIR) && $(DELET) *.s
+	$(CD) $(THREAD_DIR) && $(DELET) *.ao
 	$(CD) $(THREAD_DIR) && $(DELET) *.co
 	$(CD) $(THREAD_DIR) && $(DELET) *.s
 #	$(DELET) $(v_disk)
@@ -171,22 +174,6 @@ system: mkdir $(OBJ_FILE)
 
 	$(LD) -b $(OBJ_FORMAT) -z muldefs -o $(KERNEL_OBJ_FILE) $(OBJ_FILE) -T kernel.lds
 	$(OBJCOPY) -I $(OBJ_FORMAT) -S -R ".eh_frame" -R ".comment" -O binary $(KERNEL_OBJ_FILE) $(KERNEL)
-	
-	@$(ECHO) .................
-	@$(ECHO) . ############# .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #           # .
-	@$(ECHO) . #   #####   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #   #   #   # .
-	@$(ECHO) . #########   # .
-	@$(ECHO) . ##  #       # .
-	@$(ECHO) . # # #       # .
-	@$(ECHO) . #  ##       # .
-	@$(ECHO) . ############# .
-	@$(ECHO) .................
 
 	@$(ECHO) --------------------------
 	@$(ECHO) --- Pencil-kernel      ---

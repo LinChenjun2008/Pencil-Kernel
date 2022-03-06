@@ -248,7 +248,7 @@ Start:
     ;要向内核传递的其他参数
     mov eax,0
     mov byte al,[0x475]
-    mov dword [DiskNum],eax
+    mov dword [DiskCnt],eax
     ;进入32位模式
     SetProtectMode:
         cli ;关闭中断
@@ -277,8 +277,8 @@ Checking_VBE_Mode:
     cmp ax,0x004f
     jne .fail
     ;检查画面模式
-    cmp byte [es:di + 0x19],32 ;32位色彩
-    jne .fail
+    ;cmp byte [es:di + 0x19],32 ;32位色彩
+    ;jne .fail
     mov ax,[es:di + 0x00]
     and ax,0x0080 ;检查线性帧缓冲是否有效
     jz .fail

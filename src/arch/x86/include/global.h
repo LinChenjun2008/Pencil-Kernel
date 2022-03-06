@@ -73,10 +73,30 @@ enum Display
 };
 
 /* C语言实现bool */
-typedef uint32_t bool;
-#define true 1
-#define false 0
+#ifndef __cplusplus
+    typedef uint32_t bool;
+    #define true 1
+    #define false 0
+#endif
 
-#define NULL ((void*)0)
+#ifndef NULL
+    #define NULL ((void*)0)
+#endif
 
+/* 其余的宏定义 */
+/* __asm__ 和 __volatile__ 一般gcc会定义 */
+#ifndef __asm__
+    #define __asm__ asm
+#endif
+
+#ifndef __volatile__
+    #define __volatile__ volatile
+#endif
+
+#ifndef PUBLIC
+    #define PUBLIC
+#endif
+#ifndef PRIVATE
+    #define PRIVATE static
+#endif
 #endif /* __GLOBAL_H_ */

@@ -19,7 +19,8 @@ enum intr_status
 };
 
 /*中断门描述符结构体*/
-struct gate_desc {
+struct gate_desc
+{
    uint16_t offset_low; /* 偏移15~0 */
    uint16_t selector;   /* 目标代码段选择子 */
    uint8_t dcount;      /* 保留值和空值 */
@@ -33,9 +34,13 @@ void idt_desc_init(void);
 void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar);
 void init_idt();
 void exception_init();
+void register_handler(int vector_no,void* func);
 
 enum intr_status intr_enable();
 enum intr_status intr_disable();
 enum intr_status intr_set_status(enum intr_status status);
 enum intr_status intr_get_status();
+
+extern void asm_intr0x20_handler();
+
 #endif /* __INTERRUPT_H__ */

@@ -9,22 +9,24 @@
 struct gate_desc idt[IDT_DESC_CNT];         /* idt描述符 */
 extern void* intr_entry_table[IDT_DESC_CNT];/* interrupt.asm中的中断程序入口地址表 */
 char* intr_name[IDT_DESC_CNT];              /* 保存异常的名字 */
-void* idt_table[IDT_DESC_CNT];              /* 处理中断的函数 */
 
 void init_pic()
 {
-    io_out8(PIC_M_CTRL, 0x11  ); /* 边沿触发模式 */
-    io_out8(PIC_M_DATA, 0x20  ); /* IRQ0-7由INT20-27接收 */
-    io_out8(PIC_M_DATA, 1 << 2); /* PIC1由IRQ2连接*/
-    io_out8(PIC_M_DATA, 0x01  );
+    io_out8(PIC_M_DATA, 0xff ); /*  */
+    io_out8(PIC_S_DATA, 0xff ); /* 11111111 禁止所有中断 */
 
-    io_out8(PIC_S_CTRL, 0x11  ); /* 与上方类似 */
-    io_out8(PIC_S_DATA, 0x28  ); /* IRQ8-15 INT28-2f */
-    io_out8(PIC_S_DATA, 2     ); /* PIC1 IRQ2 */
-    io_out8(PIC_S_DATA, 0x01  );
+    io_out8(PIC_M_CTRL, 0x11 ); /* 边沿触发模式 */
+    io_out8(PIC_M_DATA, 0x20 ); /* IRQ0-7由INT20-27接收 */
+    io_out8(PIC_M_DATA, 0x04 ); /* PIC1由IRQ2连接*/
+    io_out8(PIC_M_DATA, 0x01 ); /* 无缓冲区模式 */
 
-    io_out8(PIC_M_DATA,  0xfe  ); /*  */
-    io_out8(PIC_S_DATA,  0xff  ); /* 11111111 禁止所有中断 */
+    io_out8(PIC_S_CTRL, 0x11 ); /* 与上方类似 */
+    io_out8(PIC_S_DATA, 0x28 ); /* IRQ8-15 INT28-2f */
+    io_out8(PIC_S_DATA, 0x02 ); /* PIC1 IRQ2 */
+    io_out8(PIC_S_DATA, 0x01 ); /* 无缓冲区模式 */
+
+    io_out8(PIC_M_DATA, 0xfe ); /* 11111110 只打开时间中断 */
+    io_out8(PIC_S_DATA, 0xff ); /* 11111111 禁止所有中断 */
 
     return;
 }
@@ -35,6 +37,7 @@ void init_pic()
 void idt_desc_init(void)
 {
     int i;
+    intr_entry_table[0x20] = asm_intr0x20_handler;
     for(i = 0;i < IDT_DESC_CNT;i++)
     {
         set_gatedesc(&idt[i],intr_entry_table[i],SelectorCode32,AR_IDT_DESC_DPL0);
@@ -69,8 +72,6 @@ void init_idt()
     init_pic();
     uint64_t idt_ptr = ((sizeof(idt)-1) | ((uint64_t)(((uint32_t)idt) << 16)));
     exception_init();
-    load_idt((sizeof(idt)-1),((uint32_t)idt));
-    /* 以下是加载idt的内联汇编,这种格式很恶心,就是个四不像.目前是本系统唯一一条内联汇编,以后尽量不使用内联汇编 */
     asm volatile("lidt %0"::"m"(idt_ptr));
     return;
 }
@@ -81,8 +82,9 @@ void init_idt()
 */
 void general_intr_handler(uint8_t vector_nr)
 {
-    io_out8(PIC_S_CTRL,0x20);
     io_out8(PIC_M_CTRL,0x20);
+    io_out8(PIC_S_CTRL,0x20);
+
     put_str("intr:");
     put_int(vector_nr);
     put_char(' ');
@@ -98,12 +100,6 @@ void general_intr_handler(uint8_t vector_nr)
 */
 void exception_init()
 {
-    int i;
-    for (i = 0; i < IDT_DESC_CNT; i++)
-    {
-        idt_table[i] = general_intr_handler;
-        intr_name[i] = "unknown";
-    }
     intr_name[0] = "#DE Divide Error";
     intr_name[1] = "#DB Debug Exception";
     intr_name[2] = "NMI Interrupt";
