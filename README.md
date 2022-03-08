@@ -4,22 +4,16 @@ Pencil-Kernel
 `Pencil-Kernel`,简称`PKn`,是一个小型的操作系统内核.
 `Pencil-Kernel`被设计为一个跨平台内核,
 当前支持平台:`x86` <br />
+在`Pencil-Kernel`开发完成时,预计是一个由硬盘引导、
+页式内存管理,有键盘、鼠标等设备的驱动程序、
+支持用户进程、有自己的文件系统,使用图形界面和文本界面作为交互方式的
+32位分时多任务微内核操作系统.
+
 ***
 `Pencil-Kernel`,abbreviation `PKn`,it is a tiny operating system kernel.
 `Pencil-Kernel`is designed to a multiple platforms kernels,
 current support:`x86` <br />
-### 文件结构
-```
-doc:相关文档
-src:源代码
- |
- +--arch:平台
-     |
-     +--x86:Intel 80x86平台
-LICENSE:开源协议
-tools:开发工具(windows系统中)
-```
-[详细信息](doc/question.md)
+
 ### 启动流程
 ```
 +mbr.bin(仅限硬盘)
@@ -33,7 +27,7 @@ tools:开发工具(windows系统中)
 |    +---设置VBE模式
 |    +---进入保护模式
 |    +---开启分页
-|    +---运行setup
+|    +---进入内核
 |
 +setup.bin(暂时没有)
 |    |
@@ -59,31 +53,15 @@ tools:开发工具(windows系统中)
 > make build #或make all
 > make run
 ```
-### 制作进度
-#### 2022.2.6
-正在进行的是内存管理,但这个有些复杂,所以现在打算先进行图形模式的研究.<br />
-还有,进入图形模式后可以显示中文,
-但要显示中文的话要载入字库,字库会用掉磁盘很大空间,所以打算接着实现硬盘启动和完善EPFS(EPFS是Pencil-Kernel专用文件系统)
-以便加载字库.
-#### 2022.2.7
-成功进入图形模式.但一往帧缓存写数据就会重启,猜测是帧缓存区映射的问题.
-看来要修改页表的映射关系了.
-#### 2022.2.8
-将虚拟地址0xfe000000开始的16MB映射为帧缓存
-#### 2022.2.9
-今天有以下更新:<br />
-(1)文本模式下的print相关函数用C语言版来替换汇编版.
-(2)成功进入图形模式并显示出画面.
-(3)在图形界面和文本界面的相关函数中添加对当前显示模式的判断.
-#### 2022.2.10
-成功创建并执行了一个线程.
+
 ### 目标 Goal
 - [x] 在文件系统中加载loader和内核
 - [x] 在虚拟机中通过硬盘启动
 - [ ] 实现GUI(快了)
+- [ ] 实现线程切换
 - [ ] 支持ACPI关机
 - [ ] 在物理电脑上运行
-- [ ] 实现微内核
+- [ ] 微内核
 - [ ] ~~打倒Linux~~
 ### 更多 More
 [[运行截图 Run screenshot]](doc/image/Readme.md)<br />
@@ -92,5 +70,7 @@ tools:开发工具(windows系统中)
 网站: ~~https://pencil.cnurl.tk~~ (暂时关闭中)<br/>
 E-mail: zpojia@hotmail.com<br />
 bilibili: @Linevtnpu
+***
+(注意:LICENSE不适用于tools目录中的程序)
 ***
 &copy; 2021-2022 Pencil-Kernel developers,All rights reserved.

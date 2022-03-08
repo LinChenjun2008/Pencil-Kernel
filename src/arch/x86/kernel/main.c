@@ -16,9 +16,15 @@ void k_thread_a(void* arg)
 {
     uint32_t i = 0x00000000;
     int sec;
+<<<<<<< HEAD
     while(1)
     {
         get_time(&time);
+=======
+    get_time(&time);
+    while(1)
+    {
+>>>>>>> 901ead3a75d814a48782172ec2bc8293267414bd
         sec = time.second;
 //        RectangleFill(&(Screen.win), 0x00ffffff,ScrnX - 212,ScrnY - 40,ScrnX - 6,ScrnY - 7);
         RectangleFill(&(Screen.win), 0x00c6c6c6,ScrnX - 202,ScrnY - 30,ScrnX - 12,ScrnY - 14);
@@ -26,10 +32,17 @@ void k_thread_a(void* arg)
         put_char_graphic(&(Screen.win), ScrnX - 192,ScrnY - 30,i,(((time.year & 0x00000f00) >> 8) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 182,ScrnY - 30,i,(((time.year & 0x000000f0) >> 4) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 172,ScrnY - 30,i,(((time.year & 0x0000000f) >> 0) + '0'));
+<<<<<<< HEAD
         put_char_graphic(&(Screen.win), ScrnX - 162,ScrnY - 30,i,'/');
         put_char_graphic(&(Screen.win), ScrnX - 152,ScrnY - 30,i,(((time.month & 0x000000f0) >> 4) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 142,ScrnY - 30,i,(((time.month & 0x0000000f) >> 0) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 132,ScrnY - 30,i,'/');
+=======
+        put_char_graphic(&(Screen.win), ScrnX - 162,ScrnY - 30,i,' ');
+        put_char_graphic(&(Screen.win), ScrnX - 152,ScrnY - 30,i,(((time.month & 0x000000f0) >> 4) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 142,ScrnY - 30,i,(((time.month & 0x0000000f) >> 0) + '0'));
+        put_char_graphic(&(Screen.win), ScrnX - 132,ScrnY - 30,i,' ');
+>>>>>>> 901ead3a75d814a48782172ec2bc8293267414bd
         put_char_graphic(&(Screen.win), ScrnX - 122,ScrnY - 30,i,(((time.day & 0x000000f0) >> 4) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 112,ScrnY - 30,i,(((time.day & 0x0000000f) >> 0) + '0'));
         put_char_graphic(&(Screen.win), ScrnX - 102,ScrnY - 30,i,' ');
@@ -41,14 +54,21 @@ void k_thread_a(void* arg)
         put_char_graphic(&(Screen.win), ScrnX -  42,ScrnY - 30,i,':');
         put_char_graphic(&(Screen.win), ScrnX -  32,ScrnY - 30,i,(((time.second & 0x000000f0) >> 4) + '0'));
         put_char_graphic(&(Screen.win), ScrnX -  22,ScrnY - 30,i,(((time.second & 0x0000000f) >> 0) + '0'));
+<<<<<<< HEAD
         while(time.second == sec)
         {
         	get_time(&time);
 		}
+=======
+        while(time.second == sec) /* 时间发生变化时再刷新 */
+        {
+        get_time(&time);
+        }
+>>>>>>> 901ead3a75d814a48782172ec2bc8293267414bd
     }
 }
 
-int main()
+int kernel_main()
 {
     init_all();
     intr_enable(); /* 开中断 */
@@ -88,6 +108,7 @@ int main()
     put_char_graphic(&(Screen.win),100,20,0x00ffffff,'L');
     put_char_graphic(&(Screen.win),110,20,0x00ffffff,'i');
     put_char_graphic(&(Screen.win),120,20,0x00ffffff,'n');
+<<<<<<< HEAD
     put_char_graphic(&(Screen.win),130,20,0x00ffffff,'C');
     put_char_graphic(&(Screen.win),140,20,0x00ffffff,'h');
     put_char_graphic(&(Screen.win),150,20,0x00ffffff,'e');
@@ -95,6 +116,12 @@ int main()
     put_char_graphic(&(Screen.win),170,20,0x00ffffff,'j');
     put_char_graphic(&(Screen.win),180,20,0x00ffffff,'u');
     put_char_graphic(&(Screen.win),190,20,0x00ffffff,'n');
+=======
+    put_char_graphic(&(Screen.win),130,20,0x00ffffff,' ');
+    put_char_graphic(&(Screen.win),140,20,0x00ffffff,' ');
+    put_char_graphic(&(Screen.win),150,20,0x00ffffff,' ');
+
+>>>>>>> 901ead3a75d814a48782172ec2bc8293267414bd
     thread_start("k_a",31,k_thread_a,0);
 
     while(1) /* 这个死循环不能少 */
