@@ -36,7 +36,6 @@
     ;0x145,1280 * 1024
     ;0x18c,2560 * 1600
     ;这里挑3个来尝试,总会有一个可以的吧？
-<<<<<<< HEAD
     %ifdef __BOOT_ON_VIR_MACHINE__
         VBE_MODE1 equ 0x142 ;首选模式号:1024 * 768 32位色彩
         VBE_MODE2 equ 0x143 ;备选号1: 800 * 600 32位色彩
@@ -44,11 +43,6 @@
     %else
         VBE_MODE1 equ 0x118
     %endif
-=======
-    VBE_MODE1 equ 0x142 ;首选模式号:1024 * 768 32位色彩
-    VBE_MODE2 equ 0x143 ;备选号1: 800 * 600 32位色彩
-    VBE_MODE3 equ 0x142 ;备选号2: 640 * 480 32位色彩
->>>>>>> 901ead3a75d814a48782172ec2bc8293267414bd
 %endif
 
 ;BootLoader的信息

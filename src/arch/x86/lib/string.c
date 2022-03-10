@@ -12,7 +12,7 @@
 */
 void memset(void* dst__,uint8_t value,uint32_t size)
 {
-    ASSRET(dst__ != NULL)
+    ASSERT(dst__ != NULL);
     uint8_t* dst = (uint8_t*)dst__;
     int i;
     for(i = 0;i < size;i++)
@@ -31,7 +31,7 @@ void memset(void* dst__,uint8_t value,uint32_t size)
 */
 void memcpy(void* dst__,const void* src__,uint32_t size)
 {
-    ASSRET(dst__ != NULL && src__ != NULL)
+    ASSERT(dst__ != NULL && src__ != NULL);
     uint8_t* dst = (uint8_t*)dst__;
     uint8_t* src = (uint8_t*)src__;
     int i;
@@ -56,7 +56,7 @@ void memcpy(void* dst__,const void* src__,uint32_t size)
 */
 int32_t memcmp(const void* p1__,void* p2__,uint32_t size)
 {
-    ASSRET(p1__ != NULL && p2__ != NULL)
+    ASSERT(p1__ != NULL && p2__ != NULL);
     uint8_t* p1 = (uint8_t*)p1__;
     uint8_t* p2 = (uint8_t*)p2__;
     int i;
