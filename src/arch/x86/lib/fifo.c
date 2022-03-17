@@ -2,6 +2,10 @@
 
 #include "stdint.h"
 
+
+/* init_fifo
+* 初始化fifo缓冲区
+*/
 void init_fifo(struct FIFO* fifo,void* buf,int type,int size)
 {
     fifo->type = type;
