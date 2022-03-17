@@ -11,7 +11,7 @@ struct FIFO
         uint16_t* buf16;
         uint32_t* buf32;
         uint64_t* buf64;
-    }buf;
+    };
     int type;
     int size;
     int nr;
