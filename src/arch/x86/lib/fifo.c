@@ -5,6 +5,9 @@
 
 /* init_fifo
 * 初始化fifo缓冲区
+* fifo :指向fifo缓冲区地址
+* type :fifo类型,只能是8,16,32,64之一
+* size :缓冲区大小(可容纳的元素数)
 */
 void init_fifo(struct FIFO* fifo,void* buf,int type,int size)
 {
@@ -15,9 +18,14 @@ void init_fifo(struct FIFO* fifo,void* buf,int type,int size)
     fifo->nw = 0;
 }
 
+/* fifo_put
+* 向缓冲区中存放数据
+* fifo :指向fifo缓冲区
+* data :要存放的数据
+*/
 int fifo_put(struct FIFO* fifo,void* data)
 {
-    if(fifo->free == 0)
+    if(fifo->free == 0) /* 没有空余 */
     {
         fifo->flage = 0x01;
         return -1
@@ -27,6 +35,15 @@ int fifo_put(struct FIFO* fifo,void* data)
         case 8:
             fifo->buf8[fifo->nw] = *((uint8_t*)data);
             break;
+        case 16:
+            fifo->buf16[fifo->nw] = *((uint16_t*)data);
+            break;
     }
+    fifo->nw++;
+    if(fifo->nw == fifo->size)
+    {
+        fifo->nw = 0;
+    }
+    fifo->free--;
     return 0;
 }
