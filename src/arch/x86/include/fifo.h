@@ -1,6 +1,7 @@
 #ifndef __FIFO_H__
 #define __FIFO_H__
 
+#include "global.h"
 #include "stdint.h"
 
 struct FIFO
@@ -21,5 +22,8 @@ struct FIFO
 
 void init_fifo(struct FIFO* fifo,void* buf,int type,int size);
 int fifo_put(struct FIFO* fifo,void* data);
+
+int fifo_get(struct FIFO* fifo,void* data);
+bool fifo_empty(struct FIFO* fifo);
 
 #endif /* __FIFO_H__ */
