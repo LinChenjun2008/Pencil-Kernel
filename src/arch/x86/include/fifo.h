@@ -19,4 +19,7 @@ struct FIFO
     int flage; /* 状态标记 */
 };
 
+void init_fifo(struct FIFO* fifo,void* buf,int type,int size);
+int fifo_put(struct FIFO* fifo,void* data);
+
 #endif /* __FIFO_H__ */
