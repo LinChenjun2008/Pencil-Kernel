@@ -20,7 +20,7 @@ static inline double sqrt(double x)
     return result;
 }
 
-static inline sdouble in(double x)
+static inline double sin(double x)
 {
     double result;
     __asm__ __volatile__
