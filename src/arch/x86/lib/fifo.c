@@ -48,6 +48,6 @@ int fifo_put(struct FIFO* fifo,void* data)
         default:
             return -1;
     }
-    fifo->nw = (fifo->nw + 1 == fifo->size ? 0 : fifo->nw + 1)
+    fifo->nw = (fifo->nw + 1 == fifo->size ? 0 : fifo->nw + 1);
     return 0;
 }
