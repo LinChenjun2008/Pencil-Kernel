@@ -28,8 +28,9 @@ int fifo_put(struct FIFO* fifo,void* data)
     if(fifo->free == 0) /* 没有空余 */
     {
         fifo->flage = 0x01;
-        return -1
+        return -1;
     }
+    fifo->free--;
     switch(fifo->type)
     {
         case 8:
@@ -38,12 +39,15 @@ int fifo_put(struct FIFO* fifo,void* data)
         case 16:
             fifo->buf16[fifo->nw] = *((uint16_t*)data);
             break;
+        case 32:
+            fifo->buf32[fifo->nw] = *((uint32_t*)data);
+            break;
+        case 64:
+            fifo->buf64[fifo->nw] = *((uint64_t*)data);
+            break;
+        default:
+            return -1;
     }
-    fifo->nw++;
-    if(fifo->nw == fifo->size)
-    {
-        fifo->nw = 0;
-    }
-    fifo->free--;
+    fifo->nw = (fifo->nw + 1 == fifo->size ? 0 : fifo->nw + 1)
     return 0;
 }
