@@ -138,8 +138,8 @@ static inline uint32_t get_flages()
     __asm__ __volatile__
     (
         "pushf;"      /* 将flage寄存器压栈 */
-        "popl %[flages];" 
-        :[flages]"=m"(flages)
+        "popl %k[flages];" 
+        :[flages]"=a"(flages)
         :
         :"memory"
     );
