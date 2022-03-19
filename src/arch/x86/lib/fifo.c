@@ -51,3 +51,19 @@ int fifo_put(struct FIFO* fifo,void* data)
     fifo->nw = (fifo->nw + 1 == fifo->size ? 0 : fifo->nw + 1);
     return 0;
 }
+
+
+int fifo_get(struct FIFO* fifo,void* data)
+{
+    if(fifo->free == fifo->size)
+    {
+        return -1;
+    }
+    fifo->free++;
+    switch(fifo->type)
+    {
+        case 8:
+            *((uint8_t*)data) = fifo->buf8[fifo->nr];
+            break;
+    }
+}
