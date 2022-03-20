@@ -65,5 +65,10 @@ int fifo_get(struct FIFO* fifo,void* data)
         case 8:
             *((uint8_t*)data) = fifo->buf8[fifo->nr];
             break;
+        case 16:
+            *((uint16_t*)data) = fifo->buf16[fifo->nr];
+            break;
     }
+    fifo->nr = (fifo->nr + 1 == fifo->size ? 0 : fifo->nr + 1);
+    return 0;
 }
