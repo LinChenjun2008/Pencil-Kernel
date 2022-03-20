@@ -36,11 +36,15 @@ Start:
         mov dx,0x0000 ;行,列 (row and col)
         int 0x10
 
-    jmp 0x7f0:next
-;org 0x7f00
+    jmp next
+Go equ $
+org 0x7f00 + Go
     next: ;这里就是复制到0x7f00后的mbr了
-        mov ax,0x7f0
-        mov ds,ax ;因为没有用org,所以要向ds载入段值
+        mov ax,cs
+        mov ds,ax ;向ds载入段值
+        mov es,ax
+        mov ss,ax
+        mov fs,ax
 
         mov bp,Msg
         mov cx,3      ;3个字符 (chars:3)
@@ -51,15 +55,15 @@ Start:
 
         ;接下来要寻找活动分区
         ;只管第一分区
-        .part1
-        cmp byte [part1 + 0],0x80
-        jnz .part2 ;第一分区不是活动分区,看看第二分区
-        cmp byte [part1 + 4],0x95 ;分区类型,0x95是EPFS
-        jnz .part2 ;第一分区不是EPFS,看看第二分区
-        ;到了这里,就说明第一分区可引导,马上加载引导程序
-        mov eax,[part1 + 8] ;分区起始lba扇区号
-        jmp .load_boot
-        .part2;暂时不管第二分区
+        .check_part1:
+            cmp byte [part1 + 0],0x80
+            jnz .part2 ;第一分区不是活动分区,看看第二分区
+            cmp byte [part1 + 4],0x95 ;分区类型,0x95是EPFS
+            jnz .part2 ;第一分区不是EPFS,看看第二分区
+            ;到了这里,就说明第一分区可引导,马上加载引导程序
+            mov eax,[part1 + 8] ;分区起始lba扇区号
+            jmp .load_boot
+        .check_part2:;暂时不管第二分区
             mov ax,0xb800
             mov gs,ax
         mov byte [gs: 0x00],'E'
