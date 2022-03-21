@@ -14,13 +14,16 @@
     SecPerCyc equ 63 ;硬盘用
 %endif
 
-磁盘驱动器号
-%ifdef __BOOT_FLOPPY__
-    DrvNum equ 0x00 ;软盘
-%endif
-%ifdef __BOOT_HARDDISK__
-    DrvNum equ 0x80 ;硬盘
-%endif
+;磁盘驱动器号
+;%ifdef __BOOT_FLOPPY__
+;    DrvNum equ 0x00 ;软盘
+;%endif
+;%ifdef __BOOT_HARDDISK__
+;    DrvNum equ 0x80 ;硬盘
+;%endif
+
+DrvNum equ 0x7e00 ;存储启动设备号
+
 
 ;界面,同样只能选一个,同时选择将使用文本界面
 ;%define __UI_TEXT__

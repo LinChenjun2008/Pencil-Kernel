@@ -6,6 +6,7 @@ org 0x7c00
 %include "boot.inc"
 
 Start:
+    mov [DrvNum],dl
     ;初始化寄存器 (Initialize registers)
     mov ax,cs
     mov ds,ax
@@ -62,7 +63,7 @@ ReadSector:
             mov word  [DiskAddressPacket + 4],bx ;看ReadSector和DiskAddressPacket的说明
             mov word  [DiskAddressPacket + 6],es ;同上
             mov dword [DiskAddressPacket + 8],eax;同上
-            mov dl,DrvNum ;驱动器号
+            mov dl,[DrvNum] ;驱动器号
             mov ah,0x42
             mov si,DiskAddressPacket
             int 0x13
@@ -97,7 +98,7 @@ ReadSector:
         mov ch,al ;ch是柱面(磁道)号
         and dh,1  ;商 & 1 = 磁头号
         pop bx    ;恢复bx
-        mov dl,DrvNum;驱动器号
+        mov dl,[DrvNum];驱动器号
         .readloop:
             mov ah,0x02
             mov al, byte [bp - 2]
