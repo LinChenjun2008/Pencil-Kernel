@@ -72,7 +72,13 @@ void init_idt()
     init_pic();
     uint64_t idt_ptr = ((sizeof(idt)-1) | ((uint64_t)(((uint32_t)idt) << 16)));
     exception_init();
-    asm volatile("lidt %0"::"m"(idt_ptr));
+    __asm__ __volatile__
+    (
+        "lidt %0"
+        :
+        :"m"(idt_ptr)
+        :
+    );
     return;
 }
 

@@ -15,6 +15,7 @@ struct FIFO
     };
     int type; /* 类型(8,16,32或64) */
     int size; /* 大小(最大元素数) */
+    int free;
     int nr;
     int nw;
     int flage; /* 状态标记 */

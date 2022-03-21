@@ -1,5 +1,5 @@
 #include "fifo.h"
-
+#include "global.h"
 #include "stdint.h"
 
 
@@ -68,7 +68,18 @@ int fifo_get(struct FIFO* fifo,void* data)
         case 16:
             *((uint16_t*)data) = fifo->buf16[fifo->nr];
             break;
+        case 32:
+            *((uint32_t*)data) = fifo->buf32[fifo->nr];
+            break;
+        case 64:
+            *((uint64_t*)data) = fifo->buf64[fifo->nr];
+            break;
     }
     fifo->nr = (fifo->nr + 1 == fifo->size ? 0 : fifo->nr + 1);
     return 0;
+}
+
+bool fifo_empty(struct FIFO* fifo)
+{
+    return (fifo->free == fifo->size ? true : false);
 }

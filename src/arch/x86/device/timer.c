@@ -21,6 +21,17 @@ void init_pit(void)
 
 void intr0x20_handler(uint32_t* esp)
 {
-    io_out8(PIC_M_CTRL,0x60);
+    io_out8(PIC_M_CTRL,0x20); /* EIO */
+    struct task_struct* cur_thread = running_thread();
+    cur_thread->elapsed_ticks++;
+    ticks++;
+    if(cur_thread->ticks == 0)
+    {
+        schedule();
+    }
+    else
+    {
+        cur_thread->ticks--;
+    }
     return;
 }

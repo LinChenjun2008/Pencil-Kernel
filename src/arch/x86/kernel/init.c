@@ -10,6 +10,7 @@ void init_all()
     init_idt();
     init_pit();
     init_memory();
+    init_thread();
     init_screen(&Screen);
     return;
 }

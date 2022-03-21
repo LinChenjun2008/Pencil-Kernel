@@ -18,8 +18,8 @@
 DrvNum equ 0x7b00
 
 ;界面,同样只能选一个,同时选择将使用文本界面
-;%define __UI_TEXT__
-%define __UI_GRAPHIC__
+%define __UI_TEXT__
+;%define __UI_GRAPHIC__
 
 %ifdef __UI_GRAPHIC__
     ;这里是VBE模式号

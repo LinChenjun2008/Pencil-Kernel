@@ -31,6 +31,7 @@ LOADER := $(BOOT_DIR)loader.bin
 #obj
 LIBS := $(LIB_DIR)bitmap.co \
 $(KERNEL_DIR)debug.co       \
+$(LIB_DIR)fifo.co           \
 $(LIB_DIR)font.co           \
 $(GRAPHIC_DIR)graphic.co    \
 $(KERNEL_DIR)init.co        \
@@ -61,12 +62,14 @@ CD := cd
 DELET := del
 ECHO := echo
 MAKE_DIR := md
+
 #.asm to .bin
 %.bin: %.asm $(INCLUDE_DIR)boot.inc
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
 	$(NASM) -I $(INCLUDE_DIR) -I ../ -o $*.bin $*.asm
+
 #.asm to .ao (elf)
 %.ao: %.asm
 	@$(ECHO) -----------
@@ -76,15 +79,17 @@ MAKE_DIR := md
 
 #.c to .co (elf)
 # cc1 参数说明:
-# -Os:启用优化,优化等级介于-O2和-O3之间
-# -Wall:发出警告
-# -quiet: 不显示多余的信息?
 # -fno-builtin: 不识别内建函数
+# -m32: 编译32位代码
+# -Os:启用优化,优化等级介于-O2和-O3之间
+# -quiet: 不显示多余的信息?
+# -Wall:发出警告
+
 %.co: %.c
 	@$(ECHO) -----------
 	@$(ECHO) --- compile $<
 	@$(ECHO) -----------
-	$(CC1) -I $(INCLUDE_DIR) -I ../ -Os -Wall -quiet -fno-builtin -o $*.s $*.c
+	$(CC1) -I $(INCLUDE_DIR) -I ../  -fno-builtin -m32 -Os -quiet -Wall  -o $*.s $*.c
 	$(AS) -I $(INCLUDE_DIR) -I ../ -o $*.co $*.s
 
 #command:
@@ -101,12 +106,9 @@ MAKE_DIR := md
 all: $(BOOT) $(LOADER) $(OBJ_FILE) $(v_disk)
 
 build: all system $(v_disk)
-#	$(DD) if=$(MBR) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
-	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
-#	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=63 conv=notrunc
-#	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=2 conv=notrunc
 	$(DD) if=$(LOADER) of=$(v_disk) bs=512 count=7 seek=65 conv=notrunc
 	$(DD) if=$(KERNEL) of=$(v_disk) bs=512 count=200 seek=72 conv=notrunc
+
 clean:
 	$(CD) $(BOOT_DIR) && $(DELET) *.bin
 	$(CD) $(BUILD_DIR) && $(DELET) *.bin
@@ -124,8 +126,6 @@ clean:
 	$(CD) $(THREAD_DIR) && $(DELET) *.ao
 	$(CD) $(THREAD_DIR) && $(DELET) *.co
 	$(CD) $(THREAD_DIR) && $(DELET) *.s
-#	$(DELET) $(v_disk)
-#	$(DELET) $(v_disk).lock
 
 debug: build
 #	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a -S
@@ -165,8 +165,7 @@ mkvd:
 run: build
 #	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,if=floppy,format=raw -boot a
 	$(TOOL_DIR)qemu-new\qemu-system-i386 -m 512M -drive file=$(v_disk),index=0,media=disk,format=raw -boot c
-#	$(COPY) $(v_disk) ..\..\..\tools\qemu\fdimage0.bin
-#	$(MAKE) -r -C $(TOOL_DIR)qemu
+
 system: mkdir $(OBJ_FILE)
 	@$(ECHO) --------------------------
 	@$(ECHO) --- link Pencil-kernel ---
@@ -182,5 +181,6 @@ system: mkdir $(OBJ_FILE)
 	@$(ECHO) $(COPYRIGHT)
 	@$(ECHO) --------------------------
 
-vhd: vhd.asm
+vhd: vhd.asm $(BOOT) $(LOADER)
 	$(NASM) -o $(v_disk) vhd.asm
+	$(DD) if=$(BOOT) of=$(v_disk) bs=512 count=1 seek=0 conv=notrunc
