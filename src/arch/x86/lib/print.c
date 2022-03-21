@@ -50,9 +50,9 @@ void put_char(uint8_t char_ascii)
         switch(char_ascii)
         {
             /* 先是控制字符 */
-            /* 空字符,什么也不做 */
-            case '\0':
-                break;
+            // /* 空字符,什么也不做 */
+            // case '\0':
+            //     break;
             /* 退格 */
             case '\b':
                 cursor_pos--; /* 光标位置减1 */

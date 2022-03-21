@@ -99,4 +99,17 @@ enum Display
 #ifndef PRIVATE
     #define PRIVATE static
 #endif
+
+/* kernel.lds中的数据 */
+extern char _kernel_start;
+extern char _text;
+extern char _etext;
+extern char _data;
+extern char _edata;
+extern char _rodata;
+extern char _erodata;
+extern char _bss;
+extern char _ebss;
+extern char _kernel_end;
+
 #endif /* __GLOBAL_H_ */
