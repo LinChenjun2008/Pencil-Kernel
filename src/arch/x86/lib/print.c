@@ -6,37 +6,6 @@
 
 static uint8_t fcolor = 0x07;
 
-void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char ch)
-{
-    if(DisplayMode == _GRAPHIC)
-    {
-        int i;
-        int j;
-        uint32_t* address;
-        uint8_t* font;
-        uint8_t key;
-        font = PKnFont[(int)ch];
-        for(i = 0; i < 16; i++)
-        {
-            //font = PKnFont[ch][i];
-            address = ((rectangle->vram) + (((rectangle->xsize) * (y + i)) + x));
-            key = 0xff;
-            for(j = 0; j < 8; j++)
-            {
-                if((*font & key) != 0)
-                {
-                    *address = color;
-                }
-                address++;
-                key = key >> 1;
-            }
-            font++;
-        }
-    }
-    return;
-}
-
-
 /* put_char
 * 功能:在光标位置显示一个字符
 */
@@ -50,9 +19,7 @@ void put_char(uint8_t char_ascii)
         switch(char_ascii)
         {
             /* 先是控制字符 */
-            // /* 空字符,什么也不做 */
-            // case '\0':
-            //     break;
+
             /* 退格 */
             case '\b':
                 cursor_pos--; /* 光标位置减1 */
@@ -91,17 +58,6 @@ void put_str(char* str)
     {
         put_char(*str);
         str++;
-    }
-    return;
-}
-
-void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t c,char* str)
-{
-    int i;
-    for(i=0;str[i] != 0x00;i++)
-    {
-        put_char_graphic(rectangle,x,y,c,str[i]);
-        x+=10;
     }
     return;
 }

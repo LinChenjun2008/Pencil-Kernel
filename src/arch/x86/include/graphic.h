@@ -36,6 +36,6 @@ void init_Rectangle(struct Rectangle* rectangle,uint32_t* vram,int xsize,int ysi
 void RectangleFill(struct Rectangle* rectangle,uint32_t color,int x0,int y0,int x1,int y1);
 void init_screen(struct Window* scrn);
 void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char _font);
-void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str);
+void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str,int len);
 
 #endif /* __GRAPHIC_H__ */

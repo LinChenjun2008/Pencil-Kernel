@@ -58,12 +58,13 @@ void init_screen(struct Window* scrn)
     return;
 }
 
-void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char _font)
+void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char ch)
 {
     int i;
     uint32_t* put;
     uint32_t data;
-    char* font = PKnFont[(int)_font];
+    int idx = ch;
+    char* font = PKnFont[idx];
     for(i = 0;i < 16;i++)
     {
         put = (rectangle->vram) + (y + i) * (rectangle->xsize) + x;
@@ -80,10 +81,10 @@ void put_char_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,cha
     return;
 }
 
-void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str)
+void put_str_graphic(struct Rectangle* rectangle,int x,int y,uint32_t color,char* str,int len)
 {
     int i;
-    for(i = 0;str[i] != 0;i++)
+    for(i = 0;i < len;i++)
     {
         put_char_graphic(rectangle,x,y,color,str[i]);
         x+=10;

@@ -39,7 +39,7 @@ $(KERNEL_DIR)interrupt.ao   \
 $(KERNEL_DIR)interrupt.co   \
 $(LIB_DIR)list.co           \
 $(KERNEL_DIR)memory.co      \
-$(LIB_DIR)print.ao          \
+$(LIB_DIR)print.co          \
 $(LIB_DIR)string.co         \
 $(THREAD_DIR)thread.ao      \
 $(THREAD_DIR)thread.co      \

@@ -130,6 +130,15 @@ void schedule()
     fifo_get(&ready_thread,&next);
     next->status = TASK_RUNNING;
     switch_to(cur_thread,next);
+    return;
+}
 
-
+void thread_block(enum task_struct status)
+{
+    enum intr_status old_status = intr_disable();
+    struct task_struct* cur_thread = running_thread();
+    cur_thread->status = status;
+    schedule();
+    intr_set_status(old_status);
+    return;
 }
