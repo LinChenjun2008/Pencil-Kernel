@@ -88,5 +88,6 @@ void thread_init(struct task_struct* thread,char* name,uint8_t priority);
 void kernel_thread(thread_function* func,void* arg);
 void thread_create(struct task_struct* thread,thread_function func,void* arg);
 struct task_struct* thread_start(char* name,uint8_t priority,thread_function func,void* arg);
+void switch_to(struct task_struct* cur_thread,struct task_struct* next);
 
 #endif /* __THREAD_H__ */

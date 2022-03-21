@@ -133,7 +133,7 @@ void schedule()
     return;
 }
 
-void thread_block(enum task_struct status)
+void thread_block(enum task_status status)
 {
     enum intr_status old_status = intr_disable();
     struct task_struct* cur_thread = running_thread();
