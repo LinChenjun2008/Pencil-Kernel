@@ -108,7 +108,7 @@ struct task_struct* thread_start(char* name,uint8_t priority,thread_function fun
 static void make_main_thread(void)
 {
     main_thread = running_thread();
-    thread_init(main_thread,"main",31); // bug
+    thread_init(main_thread,"main",31);
     fifo_put(&all_thread,&main_thread);
     return;
 }
@@ -130,4 +130,6 @@ void schedule()
     fifo_get(&ready_thread,&next);
     next->status = TASK_RUNNING;
     switch_to(cur_thread,next);
+
+
 }

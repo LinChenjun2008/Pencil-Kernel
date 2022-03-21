@@ -14,6 +14,7 @@ struct TIME time;
 
 void k_thread_a(void* arg);
 void k_thread_b(void* arg);
+
 void kernel_main(void)
 {
     init_all();
@@ -60,9 +61,11 @@ void kernel_main(void)
     thread_start("k_a",31,k_thread_a,0);
     thread_start("k_b",31,k_thread_b,0);
     intr_enable(); /* 开中断 */
+    int i = 0x00000000;
     while(1) /* 这个死循环不能少 */
     {
-        ;
+        put_char_graphic(&(Screen.win),190,40,i,'P');
+        i++;
     }
     return; /* 这句return应该永远不会执行,放在这里只是摆设用的 */
 }
@@ -74,10 +77,6 @@ void k_thread_a(void* arg)
     int time_y = ScrnY - 1 - 33;
     int offset = 3;
     get_time(&time);
-    while(1)
-    {
-        put_char('A');
-    }
     while(1)
     {
         sec = time.second;
@@ -114,8 +113,10 @@ void k_thread_a(void* arg)
 
 void k_thread_b(void* arg)
 {
+    uint32_t i = 0x00000000;
     while(1)
     {
-        put_char('B');
+        RectangleFill(&(Screen.win),i,10,10,20,20);
+        i++;
     }
 }
