@@ -24,6 +24,7 @@
 
 DrvNum equ 0x7e00 ;存储启动设备号
 
+
 ;界面,同样只能选一个,同时选择将使用文本界面
 ;%define __UI_TEXT__
 %define __UI_GRAPHIC__
