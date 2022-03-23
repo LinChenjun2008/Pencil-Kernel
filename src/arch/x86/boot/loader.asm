@@ -42,8 +42,6 @@ MemSuccessMsg db "Get total memory bytes success!";31
 LoadKernelMsg db "Loading Kernel...";17
 LoadKernelSuccessMsg db "Load Kernel success!";20
 
-KernelSecCntForRead dd 0
-
 times (LoaderOffsetAddress - ($ - $$)) db 0;将start对齐到文件起始LoaderOffsetAddress处
 
 ;loader从此处开始执行
@@ -162,14 +160,13 @@ Start:
 
         mov eax,KernelStartSec
         mov bx,KernelBaseAddress
-        .load_kernel
+        .load_kernel:
             mov cx,1
             call ReadSector
-            add eax,1
             add bx,512
-            add dword 
-            cmp dword [KernelSecCntLoaded],KernelSectors
-            jne .load_kernel
+            inc eax
+            cmp eax, KernelSectors + KernelStartSec
+            jl .load_kernel
 
         .kernel_load_success:
             mov bp,LoadKernelSuccessMsg
