@@ -158,15 +158,39 @@ Start:
         mov dx,0x0300;3行,0列
         int 0x10
 
+        ; mov ax,0
+        ; mov es,ax
+        ; mov eax,KernelStartSec
+        ; mov bx,KernelBaseAddress
+        ; .load_kernel:
+        ;     mov cx,1
+        ;     call ReadSector
+        ;     add bx,512
+        ;     inc eax
+        ;     cmp eax, KernelSectors + KernelStartSec
+        ;     jl .load_kernel
+
+        mov ax,0
+        mov es,ax
         mov eax,KernelStartSec
         mov bx,KernelBaseAddress
-        .load_kernel:
-            mov cx,1
-            call ReadSector
-            add bx,512
-            inc eax
-            cmp eax, KernelSectors + KernelStartSec
-            jl .load_kernel
+        mov cx,KernelSectors
+        call ReadSector
+
+        ; .load_kernel:
+        ;     mov ax,0
+        ;     mov es,ax
+        ;     mov bx,KernelBaseAddress ;内核所在的地址
+        ;     mov eax,KernelStartSec   ;内核起始扇区
+        ;     mov cx,1                 ;每次读取的扇区数
+        ;     mov di,KernelSectors     ;内核占用扇区数
+        ;     .readloop:
+        ;         call ReadSector
+        ;         add bx,512     ;偏移 + 512(一扇区)
+        ;         add eax,1      ;下一扇区
+        ;         dec di         ;读取扇区数减一
+        ;         cmp di, 0      ;还要读取
+        ;         ja .readloop
 
         .kernel_load_success:
             mov bp,LoadKernelSuccessMsg
@@ -424,6 +448,7 @@ DiskAddressPacket:
         mov byte [gs:((160*6)+18)],'d'
         mov byte [gs:((160*6)+20)],'e'
         jmp 0xc0000000+KernelBaseAddress
+
 SetupPage:
     ;1. 先将页目录表所用的内存空间清零
     mov ecx,4096

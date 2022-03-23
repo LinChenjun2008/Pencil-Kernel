@@ -18,8 +18,8 @@
 DrvNum equ 0x7b00
 
 ;界面,同样只能选一个,同时选择将使用文本界面
-;%define __UI_TEXT__
-%define __UI_GRAPHIC__
+%define __UI_TEXT__
+;%define __UI_GRAPHIC__
 
 %ifdef __UI_GRAPHIC__
     ;这里是VBE模式号
@@ -76,8 +76,7 @@ ScrnY       equ 0x7c1c ; + 28 对于文本模式,这是指行数;对于图形模
     KernelStartSec equ 0x48   
 %endif
 
-
-KernelSectors equ 200         ;Kernel占用200扇区
+KernelSectors equ 30         ;Kernel占用200扇区
 KernelBufAddress equ 0x7F00   ;Kernel临时转存区
 KernelBaseAddress equ 0x7F00  ;Kernel从物理地址0x7F00开始,虚拟地址要加上0xc0000000
-KernelStackTop equ 0x7b00     ;kernel栈顶在0x7b00,虚拟地址是0xc0007b00
+KernelStackTop equ 0x7000     ;kernel栈顶在0x7b00,虚拟地址是0xc0007000
