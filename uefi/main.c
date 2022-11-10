@@ -1,5 +1,8 @@
 #include <Uefi.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include <Protocol/GraphicsOutput.h>
+#include <Protocol/SimpleFileSystem.h>
+#include <Guid/FileInfo.h>
 
 #include "file.h"
 #include "lib.h"
@@ -11,10 +14,11 @@ EFI_BOOT_SERVICES*               gBS;
 EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
 EFI_SYSTEM_TABLE*                gST;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* Sfsp;
+EFI_HANDLE                       gImageHandle;
 
 EFI_GUID gEfiGraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 EFI_GUID gEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
-
+EFI_GUID gEfiFileInfoGuid                 = EFI_FILE_INFO_ID;
 EFI_STATUS
 EFIAPI
 UefiMain
@@ -23,6 +27,7 @@ UefiMain
     IN EFI_SYSTEM_TABLE* SystemTable
 )
 {
+    gImageHandle = ImageHandle;
     gBS = SystemTable->BootServices;
     gST = SystemTable;
     /* 禁用计时器 */
@@ -57,11 +62,12 @@ UefiMain
         // SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
     }
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-    Open_Kernel_sys();
+    // Open_Kernel_sys();
     // Gop->SetMode(Gop,22);
     // Rectangle r = {10,10,100,200};
     // EFI_GRAPHICS_OUTPUT_BLT_PIXEL c = {255,255,255,0};
     // draw_rect(&r,&c);
+    EFI_PHYSICAL_ADDRESS FileBase = 0x100000;
     while(1)
     {
         /* 提示符 */
@@ -86,10 +92,22 @@ UefiMain
         }
         else
         {
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\'");
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\'");
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L" is not a command.\n\r");
+            if(EFI_ERROR(ReadFile(L"\\kernel.sys",&FileBase,AllocateAddress)))
+            {
+                continue;
+            }
+            else
+            {
+                utoa(FileBase,str,16);
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"FileBase: ");
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+                EFI_STATUS (*Kernel)() = (EFI_STATUS(*)())FileBase;
+                utoa(Kernel(),str,16);
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+            }
         }
     }
     return 0;

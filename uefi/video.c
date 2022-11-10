@@ -1,7 +1,10 @@
 #include <Uefi.h>
 #include <Protocol/GraphicsOutput.h>
+#include <Library/UefiBootServicesTableLib.h>
 
 #include "video.h"
+
+extern EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
 
 void draw_pixel(UINTN x, UINTN y,EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
 {
