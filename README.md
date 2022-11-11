@@ -4,7 +4,7 @@
 #### 编译环境
 ##### 编译器
 使用GCC编译<br />
-Windows下,可以用`Mingw`编译`UEFI`程序,使用`x86_64-elf64-gcc`编译内核.(注:为了传参方式统一,建议都用`Mingw`编译)<br />
+Windows下,可以用`Mingw`编译UEFI程序和内核.<br />
 Linux下编译UEFI需要用交叉编译器.<br />
 ```bash
 sudo apt install gcc-mingw-w64-x86-64
