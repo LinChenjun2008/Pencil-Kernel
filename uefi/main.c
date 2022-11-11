@@ -4,11 +4,11 @@
 #include <Protocol/SimpleFileSystem.h>
 #include <Guid/FileInfo.h>
 
+#include "share.h"
+
 #include "file.h"
 #include "lib.h"
 #include "video.h"
-
-void utoa(UINTN a,CHAR16* str,UINTN base);
 
 EFI_BOOT_SERVICES*               gBS;
 EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
@@ -90,7 +90,7 @@ UefiMain
         {
             SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
         }
-        else
+        else if(strcmp(str,L"boot") == 0)
         {
             if(EFI_ERROR(ReadFile(L"\\kernel.sys",&FileBase,AllocateAddress)))
             {
@@ -102,8 +102,12 @@ UefiMain
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,L"FileBase: ");
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-                EFI_STATUS (*Kernel)() = (EFI_STATUS(*)())FileBase;
-                utoa(Kernel(),str,16);
+                EFI_STATUS (*Kernel)(struct BootInfo* BootInfo) = (EFI_STATUS(*)())FileBase;
+                struct BootInfo BootInfo;
+                BootInfo.GraphicInfo.FrameBufferBase = Gop->Mode->FrameBufferBase;
+                BootInfo.GraphicInfo.HorizontalResolution = Gop->Mode->Info->HorizontalResolution;
+                BootInfo.GraphicInfo.VerticalResolution = Gop->Mode->Info->VerticalResolution;
+                utoa(Kernel(&BootInfo),str,16);
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
                 SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");

@@ -31,47 +31,58 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     }
 
     EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* FileSystem;
-    Status = gBS->OpenProtocol
-    (
-        HandleBuffer[0],
-        &gEfiSimpleFileSystemProtocolGuid,
-        (VOID**)&FileSystem,
-        gImageHandle,
-        NULL,
-        EFI_OPEN_PROTOCOL_GET_PROTOCOL
-    );
-    if(EFI_ERROR(Status))
+    UINTN i;
+    for(i = 0;i < HandleCount;i++)
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenProctocol error.\n\r");
-        return Status;
-    }
+        Status = gBS->OpenProtocol
+        (
+            HandleBuffer[i],
+            &gEfiSimpleFileSystemProtocolGuid,
+            (VOID**)&FileSystem,
+            gImageHandle,
+            NULL,
+            EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );
+        if(EFI_ERROR(Status))
+        {
+            gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenProctocol error.\n\r");
+            return Status;
+        }
 
-    EFI_FILE_PROTOCOL* Root;
-    Status = FileSystem->OpenVolume
-    (
-        FileSystem,
-        &Root
-    );
-    if(EFI_ERROR(Status))
-    {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenVolume error.\n\r");
-        return Status;
-    }
-    Status = Root->Open
-    (
-        Root,
-        &FileHandle,
-        FileName,
-        EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE,
-        EFI_OPEN_PROTOCOL_GET_PROTOCOL
-    );
-    if(EFI_ERROR(Status))
-    {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Open error.\n\r");
-        return Status;
+        EFI_FILE_PROTOCOL* Root;
+        Status = FileSystem->OpenVolume
+        (
+            FileSystem,
+            &Root
+        );
+        if(EFI_ERROR(Status))
+        {
+            gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenVolume error.\n\r");
+            return Status;
+        }
+        Status = Root->Open
+        (
+            Root,
+            &FileHandle,
+            FileName,
+            EFI_FILE_MODE_READ | EFI_FILE_MODE_WRITE,
+            EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );
+        if(!EFI_ERROR(Status))
+        {
+            break;
+        }
+        else
+        {
+            if(i == HandleCount - 1)
+            {
+                gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Open error.\n\r");
+                return Status;
+            }
+            continue;
+        }
     }
     EFI_FILE_INFO* FileInfo;
-
     UINTN InfoSize = sizeof(EFI_FILE_INFO) + 128;
     Status = gBS->AllocatePool
     (
