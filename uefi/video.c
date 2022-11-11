@@ -1,6 +1,8 @@
-#include <Uefi.h>
-#include <Protocol/GraphicsOutput.h>
-#include <Library/UefiBootServicesTableLib.h>
+// #include <Uefi.h>
+// #include <Protocol/GraphicsOutput.h>
+// #include <Library/UefiBootServicesTableLib.h>
+
+#include <Efi.h>
 
 #include "video.h"
 

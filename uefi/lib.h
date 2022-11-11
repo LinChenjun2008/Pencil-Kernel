@@ -1,7 +1,7 @@
 #ifndef __LIB_H__
 #define __LIB_H__
 
-#include <Uefi.h>
+#include <Efi.h>
 
 CHAR16 get_char();
 UINTN get_line(CHAR16* str,UINTN limit);

@@ -1,6 +1,6 @@
-OUTPUT_FORMAT("elf64-x86-64","elf64-x86-64","elf64-x86-64")
+OUTPUT_FORMAT("pe-x86-64","pe-x86-64","pe-x86-64")
 OUTPUT_ARCH(i386:x86-64)
-ENTRY(kerne_main) /* _start在start.asm中 */ 
+ENTRY(kernel_main)
 SECTIONS
 {
     . = 0x0000000000000000;

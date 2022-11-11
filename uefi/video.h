@@ -1,7 +1,7 @@
 #ifndef __VIDEO_H__
 #define __VIDEO_H__
 
-#include <Uefi.h>
+#include <Efi.h>
 
 typedef struct
 {

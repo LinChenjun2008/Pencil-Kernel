@@ -1,5 +1,7 @@
-#include<Uefi.h>
-#include<Library/UefiBootServicesTableLib.h>
+// #include<Uefi.h>
+// #include<Library/UefiBootServicesTableLib.h>
+
+#include <Efi.h>
 
 /*
 * 分配PageSize页内存

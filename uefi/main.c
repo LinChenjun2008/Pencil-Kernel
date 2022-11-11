@@ -1,10 +1,12 @@
-#include <Uefi.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Protocol/GraphicsOutput.h>
-#include <Protocol/SimpleFileSystem.h>
-#include <Guid/FileInfo.h>
+// #include <Uefi.h>
+// #include <Library/UefiBootServicesTableLib.h>
+// #include <Protocol/GraphicsOutput.h>
+// #include <Protocol/SimpleFileSystem.h>
+// #include <Guid/FileInfo.h>
 
-#include "share.h"
+#include <Efi.h>
+
+#include "common.h"
 
 #include "file.h"
 #include "lib.h"
@@ -16,9 +18,21 @@ EFI_SYSTEM_TABLE*                gST;
 EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* Sfsp;
 EFI_HANDLE                       gImageHandle;
 
-EFI_GUID gEfiGraphicsOutputProtocolGuid = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
+EFI_GUID gEfiGraphicsOutputProtocolGuid   = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 EFI_GUID gEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 EFI_GUID gEfiFileInfoGuid                 = EFI_FILE_INFO_ID;
+
+typedef struct
+{
+    int hr;
+    int vr;
+    CHAR16 KernelName[16];
+} BootConfig;
+
+void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
+void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase);
+UINTN abs(INTN a);
+
 EFI_STATUS
 EFIAPI
 UefiMain
@@ -41,33 +55,41 @@ UefiMain
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil-Boot\n\r");
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"by LinChenjun.\n\r");
     
+    EFI_PHYSICAL_ADDRESS FileBase;
+    ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages);
+    BootConfig Config;
+    ReadConfig(FileBase,&Config);
+
     CHAR16 str[30];
+
+    utoa(Config.hr,str,10);
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"x: ");
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+
+    utoa(Config.vr,str,10);
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"y: ");
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"kernel Name: ");
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,Config.KernelName);
+
     UINTN SizeOfInfo = 0;
     EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
     UINTN i;
+    int Mode = 0;
+    UINTN sub = 0xffffffff;
     for(i = 0;i < Gop->Mode->MaxMode;i++)
     {
         Gop->QueryMode(Gop,i,&SizeOfInfo,&Info);
-
-        // utoa(i,str,10);
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\rNr:");
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-
-        // utoa(Info->HorizontalResolution,str,10);
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,L" X:");
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-
-        // utoa(Info->VerticalResolution,str,10);
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,L" Y:");
-        // SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+        if(abs(Config.hr - Info->HorizontalResolution) + abs(Config.vr -Info->VerticalResolution) < sub)
+        {
+            sub = abs(Config.hr - Info->HorizontalResolution) + abs(Config.vr - Info->VerticalResolution);
+            Mode = i;
+        }
     }
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-    // Open_Kernel_sys();
-    // Gop->SetMode(Gop,22);
-    // Rectangle r = {10,10,100,200};
-    // EFI_GRAPHICS_OUTPUT_BLT_PIXEL c = {255,255,255,0};
-    // draw_rect(&r,&c);
-    EFI_PHYSICAL_ADDRESS FileBase = 0x100000;
+    Gop->SetMode(Gop,Mode);
     while(1)
     {
         /* 提示符 */
@@ -92,27 +114,87 @@ UefiMain
         }
         else if(strcmp(str,L"boot") == 0)
         {
-            if(EFI_ERROR(ReadFile(L"\\kernel.sys",&FileBase,AllocateAddress)))
+            EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
+            if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
             {
-                continue;
+                if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAnyPages)))
+                {
+                    continue;
+                }
             }
-            else
-            {
-                utoa(FileBase,str,16);
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"FileBase: ");
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-                EFI_STATUS (*Kernel)(struct BootInfo* BootInfo) = (EFI_STATUS(*)())FileBase;
-                struct BootInfo BootInfo;
-                BootInfo.GraphicInfo.FrameBufferBase = Gop->Mode->FrameBufferBase;
-                BootInfo.GraphicInfo.HorizontalResolution = Gop->Mode->Info->HorizontalResolution;
-                BootInfo.GraphicInfo.VerticalResolution = Gop->Mode->Info->VerticalResolution;
-                utoa(Kernel(&BootInfo),str,16);
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-                SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-            }
+            utoa(KernelFileBase,str,16);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"KernelFileBase: ");
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+
+            EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
+            struct BootInfo BootInfo;
+            PrepareBootInfo(&BootInfo,KernelFileBase);
+            UINTN PassBack = Kernel(&BootInfo);
+            utoa(PassBack,str,10);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+        }
+        else
+        {
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Not a command.\n\r");
         }
     }
     return 0;
+}
+
+UINTN abs(INTN a)
+{
+    return (a < 0 ) ? -a : a;
+}
+
+void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
+{
+    gST->ConOut->OutputString(gST->ConOut,L"Reading Config...\n\r");
+    CHAR16* s = (CHAR16*)FileBase;
+    while(*s)
+    {
+        if(*s == L'.')
+        {
+            s++;
+            if(*s == L'x' || *s == L'X')
+            {
+                s += 2;
+                Config->hr = 0;
+                while(*s <= L'9' && *s >= L'0')
+                {
+                    Config->hr = Config->hr * 10 + *(s++) - L'0'; 
+                }
+            }
+            else if(*s == L'y' || *s == L'Y')
+            {
+                s += 2;
+                Config->vr = 0;
+                while(*s <= L'9' && *s >= L'0')
+                {
+                    Config->vr = Config->vr * 10 + *(s++) - L'0'; 
+                }
+            }
+            else if(*s == L'k' || *s == L'K')
+            {
+                s += 3;
+                int i = 0;
+                while((Config->KernelName[i++] = *s++) != L'\"');
+                Config->KernelName[i - 1] = L'\0';
+            }
+        }
+        s++;
+    }
+}
+
+void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase)
+{
+    Binfo->KernelBaseAddress                   = KernelBase;
+    Binfo->GraphicsInfo.FrameBufferBase        = Gop->Mode->FrameBufferBase;
+    Binfo->GraphicsInfo.HorizontalResolution   = Gop->Mode->Info->HorizontalResolution;
+    Binfo->GraphicsInfo.VerticalResolution     = Gop->Mode->Info->VerticalResolution;
+    Binfo->GraphicsInfo.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
+    Binfo->GraphicsInfo.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
+    Binfo->GraphicsInfo.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
 }
