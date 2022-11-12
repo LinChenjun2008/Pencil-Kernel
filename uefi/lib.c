@@ -21,6 +21,15 @@ UINTN get_line(CHAR16* str,UINTN limit)
     while(1)
     {
         str[i] = get_char();
+        if(str[i] == L'\b')
+        {
+            if(i > 0)
+            {
+                str[--i] = L'\0';
+                gST->ConOut->OutputString(gST->ConOut,L"\b");
+            }
+            continue;
+        }
         if(str[i] == L'\r')
         {
             str[i] = L'\0';
