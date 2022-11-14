@@ -30,7 +30,7 @@ typedef struct
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
-void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase);
+void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase);
 UINTN abs(INTN a);
 
 EFI_STATUS
@@ -53,10 +53,13 @@ UefiMain
     /* 设置显示模式 */
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil-Boot\n\r");
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"by LinChenjun.\n\r");
-    
+
     EFI_PHYSICAL_ADDRESS FileBase;
-    ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages);
+    while(EFI_ERROR(ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages)))
+    {
+        gST->ConOut->OutputString(SystemTable->ConOut,L"Read 'BootConfig.txt' failed. Press Any key to try again.");
+        get_char();
+    }
     BootConfig Config;
     ReadConfig(FileBase,&Config);
 
@@ -114,6 +117,8 @@ UefiMain
         }
         else if(strcmp(str,L"boot") == 0)
         {
+            /* 读取内核文件,默认加载到0x100000,若地址被占用,则另分配地址
+            * 实际加载到的地址在BootInfo->KernelBaseAddress中 */
             EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
             if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
             {
@@ -122,16 +127,26 @@ UefiMain
                     continue;
                 }
             }
+            EFI_PHYSICAL_ADDRESS CharacterBase;
+            if(EFI_ERROR(ReadFile(L"\\utf8.sys",&CharacterBase,AllocateAnyPages)))
+            {
+
+            }
             utoa(KernelFileBase,str,16);
             SystemTable->ConOut->OutputString(SystemTable->ConOut,L"KernelFileBase: ");
             SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
             SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
 
+            utoa(CharacterBase,str,16);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Character Base: ");
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+
             EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
             struct BootInfo BootInfo;
-            PrepareBootInfo(&BootInfo,KernelFileBase);
+            PrepareBootInfo(&BootInfo,KernelFileBase,CharacterBase);
             UINTN PassBack = Kernel(&BootInfo);
-            utoa(PassBack,str,10);
+            utoa(PassBack,str,16);
             SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
             SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
             SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
@@ -188,9 +203,10 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
     }
 }
 
-void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase)
+void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase)
 {
     Binfo->KernelBaseAddress                   = KernelBase;
+    Binfo->CharacterBase                       = CharacterBase;
     Binfo->GraphicsInfo.FrameBufferBase        = Gop->Mode->FrameBufferBase;
     Binfo->GraphicsInfo.HorizontalResolution   = Gop->Mode->Info->HorizontalResolution;
     Binfo->GraphicsInfo.VerticalResolution     = Gop->Mode->Info->VerticalResolution;

@@ -20,6 +20,7 @@ struct GraphicsInfo
 struct BootInfo
 {
     uint64_t KernelBaseAddress;
+    uint64_t CharacterBase;
     struct GraphicsInfo GraphicsInfo;
 };
 
