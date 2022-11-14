@@ -2,18 +2,50 @@
 typedef uint32_t pixel_t;
 void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int y1);
 void init_screen(struct GraphicsInfo* Ginfo);
+
+void vput_utf8(pixel_t* vram,int xsize,int x,int y,pixel_t color,uint64_t ch);
+void vput_utf8_str(pixel_t* vram,int xsize,int x,int y,pixel_t color,const char* str);
+
+uint16_t* UTF8;
+/**
+
+    内核的主函数
+    @param binfo    启动数据,由引导程序传入
+
+    @retval         正常情况下永不返回
+
+**/
 uint64_t kernel_main(struct BootInfo* binfo)
 {
     BltPixel c = {0,0,0,0};
     c.Red = 255;
     c.Green = 255;
-    viewFill(&(binfo->GraphicsInfo),c,0,0 \
+    //viewFill(&(binfo->GraphicsInfo),c,0,0 \
     ,binfo->GraphicsInfo.HorizontalResolution-1,binfo->GraphicsInfo.VerticalResolution - 1);
+    
     init_screen(&(binfo->GraphicsInfo));
-    return 0;
+    UTF8 = binfo->CharacterBase;
+
+    vput_utf8_str(binfo->GraphicsInfo.FrameBufferBase,binfo->GraphicsInfo.HorizontalResolution,10,10,0x00ffffff,"欢迎来到Pencil-Kernel");
+    return binfo->CharacterBase;
 }
 
+/**
+    
+    @param Ginfo    图像缓存区的描述符,
+                    指明目缓存区的水平和垂直分辨率.
+    
+    @param color    要填充的颜色.
 
+    @param x0
+    @param y0       这两个参数组合成填充范围
+                    的左上角坐标(x0,y0)
+
+    @param x1
+    @param y1       这两个参数组合成填充范围
+                    的右下角坐标(x1,y1)
+
+**/
 void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int y1)
 {
     int x;
@@ -34,8 +66,8 @@ void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int
 void init_screen(struct GraphicsInfo* Ginfo)
 {
     int tsk  = (Ginfo->HorizontalResolution - 1) / 30;
-    int step = (Ginfo->VerticalResolution - 1 - tsk) / ((1 + 1 + 2) * 16 * 4);
-    int t    = (Ginfo->VerticalResolution - 1 - tsk) % ((1 + 1 + 2) * 16 * 4);
+    int step = (Ginfo->VerticalResolution - 1) / ((1 + 1 + 2) * 16 * 4);
+    int t    = (Ginfo->VerticalResolution - 1) % ((1 + 1 + 2) * 16 * 4);
     int a;
     int y = 0;
     BltPixel color;
@@ -62,8 +94,98 @@ void init_screen(struct GraphicsInfo* Ginfo)
             color.Blue--;
         }
     }
-    color.Red = 255;
+    color.Red   = 255;
     color.Green = 255;
-    color.Blue = 255;
+    color.Blue  = 255;
     viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk - 1,(Ginfo->HorizontalResolution - 1),Ginfo->VerticalResolution - 1);
+}
+
+void vput_utf8(pixel_t* vram,int xsize,int x,int y,pixel_t color,uint64_t ch)
+{
+    uint16_t *font, data;
+    font = (UTF8 + ch * 16);
+    pixel_t* put;
+    int i;
+    if(ch < 0x7f)
+    {
+        for(i = 0;i < 16;i++)
+        {
+            put = (vram) + ((y + i) * (xsize) + x);
+            data = font[i];
+            if((data & 0x8000) != 0){put[0] = color;}
+            if((data & 0x4000) != 0){put[1] = color;}
+            if((data & 0x2000) != 0){put[2] = color;}
+            if((data & 0x1000) != 0){put[3] = color;}
+            if((data & 0x0800) != 0){put[4] = color;}
+            if((data & 0x0400) != 0){put[5] = color;}
+            if((data & 0x0200) != 0){put[6] = color;}
+            if((data & 0x0100) != 0){put[7] = color;}
+        }
+    }
+    else
+    {
+        for(i = 0;i < 16;i++)
+        {
+            put = (vram) + ((y + i) * (xsize) + x);
+            data = font[i];
+            if((data & 0x8000) != 0){put[0] = color;}
+            if((data & 0x4000) != 0){put[1] = color;}
+            if((data & 0x2000) != 0){put[2] = color;}
+            if((data & 0x1000) != 0){put[3] = color;}
+            if((data & 0x0800) != 0){put[4] = color;}
+            if((data & 0x0400) != 0){put[5] = color;}
+            if((data & 0x0200) != 0){put[6] = color;}
+            if((data & 0x0100) != 0){put[7] = color;}
+
+            if((data & 0x0080) != 0){put[8] = color;}
+            if((data & 0x0040) != 0){put[9] = color;}
+            if((data & 0x0020) != 0){put[10] = color;}
+            if((data & 0x0010) != 0){put[11] = color;}
+            if((data & 0x0008) != 0){put[12] = color;}
+            if((data & 0x0004) != 0){put[13] = color;}
+            if((data & 0x0002) != 0){put[14] = color;}
+            if((data & 0x0001) != 0){put[15] = color;}
+        }
+    }
+}
+
+void vput_utf8_str(pixel_t* vram,int xsize,int x,int y,pixel_t color,const char* str)
+{
+    uint64_t code = 0;
+    /* 只考虑以下情况：
+    * 1. 0xxx-xxxx
+    * 2. 110x-xxxx 10xx-xxxx
+    * 3. 1110-xxxx 10xx-xxxx 10xx-xxxx
+    * 4. 1111-0xxx 10xx-xxxx 10xx-xxxx 10xx-xxxx
+    */
+    while(*str)
+    {
+        if(*str > 0 && *str <= 0x7f)
+        {
+            code = *str;
+            str++;
+            vput_utf8(vram,xsize,x,y,color,code);
+            x += 8;
+        }
+        else if(((*str >> 5) & 0x0f) == 0x6) /* 0x110 开头,2字节 */
+        {
+            code = (*str & 0x1f) << 6;
+            str++;
+            code |= (*str & 0x3f);
+            str++;
+            vput_utf8(vram,xsize,x,y,color,code);
+            x += 16;
+        }
+        else if(((*str >> 4) & 0xf) == 0xe) /* 0x1110 开头,3字节 */
+        {
+            code = (*str & 0x0f) << 12;
+            str++;
+            code |= (*str & 0x3f) << 6;
+            str++;
+            code |= (*str & 0x3f) << 0;
+            str++;
+            vput_utf8(vram,xsize,x,y,color,code);
+            x += 16;
+        }
+    }
 }
