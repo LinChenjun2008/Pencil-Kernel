@@ -8,6 +8,30 @@
 
 extern EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
 
+UINTN abs(INTN a)
+{
+    return (a < 0 ) ? -a : a;
+}
+
+void SetVideoMode(int x,int y)
+{
+    UINTN SizeOfInfo = 0;
+    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
+    UINTN i;
+    int Mode = 0;
+    UINTN sub = 0xffffffff;
+    for(i = 0;i < Gop->Mode->MaxMode;i++)
+    {
+        Gop->QueryMode(Gop,i,&SizeOfInfo,&Info);
+        if(abs(x - Info->HorizontalResolution) + abs(y -Info->VerticalResolution) < sub)
+        {
+            sub = abs(x - Info->HorizontalResolution) + abs(y - Info->VerticalResolution);
+            Mode = i;
+        }
+    }
+    Gop->SetMode(Gop,Mode);
+}
+
 void draw_pixel(UINTN x, UINTN y,EFI_GRAPHICS_OUTPUT_BLT_PIXEL* color)
 {
     unsigned int hr = Gop->Mode->Info->HorizontalResolution;

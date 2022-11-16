@@ -31,9 +31,9 @@ SECTIONS
         *(.bss)
         _ebss = .;
     }
-    /* .font :
+    .font :
     {
         *(.font)
-    } */
+    }
     _kernel_end = .;
 }

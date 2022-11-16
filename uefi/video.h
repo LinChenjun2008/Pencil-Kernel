@@ -9,4 +9,6 @@ typedef struct
     UINTN w,h;
 } Rectangle;
 
+void SetVideoMode(int x,int y);
+
 #endif

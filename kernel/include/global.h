@@ -22,14 +22,4 @@ typedef unsigned short CHAR16;
 typedef UINT64 UINTN;
 typedef INT64  INTN;
 
-struct BootInfo
-{
-    struct
-    {
-        UINTN FrameBufferBase;
-        UINTN HorizontalResolution;
-        UINTN VerticalResolution;
-    }GraphicInfo;
-};
-
 #endif

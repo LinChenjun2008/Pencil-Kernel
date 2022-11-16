@@ -2,7 +2,7 @@
 // #include<Library/UefiBootServicesTableLib.h>
 
 #include <Efi.h>
-
+#include <common.h>
 /*
 * 分配PageSize页内存
 */
@@ -33,4 +33,20 @@ EFI_STATUS GetPage(UINTN PageSize,EFI_PHYSICAL_ADDRESS* Address)
         Address
     );
     return Status;
+}
+
+void GetMemoryMap(struct MemoryMap* memmap)
+{
+    if(EFI_ERROR(gBS->AllocatePool(EfiLoaderData,memmap->MapSize,&memmap->Buffer)))
+    {
+        gST->ConOut->OutputString(gST->ConOut,L"Allocate memory failed for Memmap.\n\r");
+    }
+    gBS->GetMemoryMap
+    (
+        &memmap->MapSize,
+        (EFI_MEMORY_DESCRIPTOR*)memmap->Buffer,
+        &memmap->MapKey,
+        &memmap->DescriptorSize,
+        &memmap->DescriptorVersion
+    );
 }

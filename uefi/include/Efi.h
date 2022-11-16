@@ -381,6 +381,15 @@ EFI_STATUS
 
 typedef
 EFI_STATUS
+(EFIAPI *EFI_EXIT_BOOT_SERVICES)
+(
+    EFI_HANDLE ImageHandle,
+    UINTN      MapKey
+  );
+
+
+typedef
+EFI_STATUS
 (EFIAPI *EFI_SET_WATCHDOG_TIMER)
 (
     UINTN   Timeout,
@@ -483,8 +492,8 @@ typedef struct
         UINTN _buf5[9];
 
         // Image Services
-        UINTN _buf6[5];
-
+        UINTN _buf6[4];
+        EFI_EXIT_BOOT_SERVICES   ExitBootServices;
         // Miscellaneous Services
         UINTN _buf7[2];
         EFI_SET_WATCHDOG_TIMER   SetWatchdogTimer;

@@ -17,10 +17,20 @@ struct GraphicsInfo
     }PixelBitMask;
 };
 
+struct MemoryMap
+{
+    uint64_t MapSize;
+    void*    Buffer;
+    uint64_t MapKey;
+    uint64_t DescriptorSize;
+    uint32_t DescriptorVersion;
+};
+
 struct BootInfo
 {
     uint64_t KernelBaseAddress;
     uint64_t CharacterBase;
+    struct MemoryMap MemoryMap;
     struct GraphicsInfo GraphicsInfo;
 };
 

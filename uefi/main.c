@@ -11,6 +11,7 @@
 #include "file.h"
 #include "lib.h"
 #include "video.h"
+#include "memory.h"
 
 EFI_BOOT_SERVICES*               gBS;
 EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
@@ -30,8 +31,8 @@ typedef struct
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
-void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase);
-UINTN abs(INTN a);
+void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase);
+void gotoKernel(BootConfig Config);
 
 EFI_STATUS
 EFIAPI
@@ -54,114 +55,54 @@ UefiMain
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil-Boot\n\r");
 
+    /* 读取启动配置 */
     EFI_PHYSICAL_ADDRESS FileBase;
     while(EFI_ERROR(ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages)))
     {
-        gST->ConOut->OutputString(SystemTable->ConOut,L"Read 'BootConfig.txt' failed. Press Any key to try again.");
+        gST->ConOut->OutputString(SystemTable->ConOut,L"Read 'BootConfig.txt' failed. Press Any key to try again.\n\r");
         get_char();
     }
-    BootConfig Config;
+    BootConfig Config = {0,0,L"\0"};
     ReadConfig(FileBase,&Config);
-
     CHAR16 str[30];
-
-    utoa(Config.hr,str,10);
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"x: ");
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-
-    utoa(Config.vr,str,10);
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"y: ");
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"kernel Name: ");
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,Config.KernelName);
-
-    UINTN SizeOfInfo = 0;
-    EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info;
-    UINTN i;
-    int Mode = 0;
-    UINTN sub = 0xffffffff;
-    for(i = 0;i < Gop->Mode->MaxMode;i++)
-    {
-        Gop->QueryMode(Gop,i,&SizeOfInfo,&Info);
-        if(abs(Config.hr - Info->HorizontalResolution) + abs(Config.vr -Info->VerticalResolution) < sub)
-        {
-            sub = abs(Config.hr - Info->HorizontalResolution) + abs(Config.vr - Info->VerticalResolution);
-            Mode = i;
-        }
-    }
-    Gop->SetMode(Gop,Mode);
-    while(1)
-    {
-        /* 提示符 */
-        SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil Boot >");
-        /* 等待,直到发生输入 */
-        str[0] = L'\0';
-        get_line(str,30);
-        if(strcmp(str,L"") == 0)
-        {
-            continue;
-        }
-        else if(strcmp(str,L"shutdown") == 0)
-        {
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Press any key to shutdown...\n\r");
-            get_char();
-            SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown,EFI_SUCCESS,0,NULL);
-            return 0;
-        }
-        else if(strcmp(str,L"cls") == 0)
-        {
-            SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
-        }
-        else if(strcmp(str,L"boot") == 0)
-        {
-            /* 读取内核文件,默认加载到0x100000,若地址被占用,则另分配地址
-            * 实际加载到的地址在BootInfo->KernelBaseAddress中 */
-            EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
-            if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
-            {
-                if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAnyPages)))
-                {
-                    continue;
-                }
-            }
-            EFI_PHYSICAL_ADDRESS CharacterBase;
-            if(EFI_ERROR(ReadFile(L"\\utf8.sys",&CharacterBase,AllocateAnyPages)))
-            {
-
-            }
-            utoa(KernelFileBase,str,16);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"KernelFileBase: ");
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-
-            utoa(CharacterBase,str,16);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Character Base: ");
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-
-            EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
-            struct BootInfo BootInfo;
-            PrepareBootInfo(&BootInfo,KernelFileBase,CharacterBase);
-            UINTN PassBack = Kernel(&BootInfo);
-            utoa(PassBack,str,16);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-        }
-        else
-        {
-            SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Not a command.\n\r");
-        }
-    }
+    SetVideoMode(Config.hr,Config.vr);
+    gotoKernel(Config);
+    // while(1)
+    // {
+    //     /* 提示符 */
+    //     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil Boot >");
+    //     /* 等待,直到发生输入 */
+    //     str[0] = L'\0';
+    //     get_line(str,30);
+    //     if(strcmp(str,L"") == 0)
+    //     {
+    //         continue;
+    //     }
+    //     else if(strcmp(str,L"shutdown") == 0)
+    //     {
+    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Press any key to shutdown...\n\r");
+    //         get_char();
+    //         SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown,EFI_SUCCESS,0,NULL);
+    //         return 0;
+    //     }
+    //     else if(strcmp(str,L"cls") == 0)
+    //     {
+    //         SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
+    //     }
+    //     else if(strcmp(str,L"boot") == 0)
+    //     {
+    //         gotoKernel(Config);
+    //         utoa(PassBack,str,16);
+    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
+    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
+    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
+    //     }
+    //     else
+    //     {
+    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Not a command.\n\r");
+    //     }
+    // }
     return 0;
-}
-
-UINTN abs(INTN a)
-{
-    return (a < 0 ) ? -a : a;
 }
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
@@ -203,7 +144,7 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
     }
 }
 
-void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase)
+void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase)
 {
     Binfo->KernelBaseAddress                   = KernelBase;
     Binfo->CharacterBase                       = CharacterBase;
@@ -213,4 +154,40 @@ void PrepareBootInfo(struct BootInfo* Binfo,EFI_PHYSICAL_ADDRESS KernelBase,EFI_
     Binfo->GraphicsInfo.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
     Binfo->GraphicsInfo.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
     Binfo->GraphicsInfo.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
+    Binfo->MemoryMap = *memmap;
+}
+
+void gotoKernel(BootConfig Config)
+{
+    /* 读取内核文件,默认加载到0x100000,若地址被占用,则另分配地址
+    * 实际加载到的地址在BootInfo->KernelBaseAddress中 */
+    EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
+    if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
+    {
+        if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAnyPages)))
+        {
+            gST->ConOut->OutputString(gST->ConOut,L"Can't Load Kernel \n\r");
+        }
+    }
+    EFI_PHYSICAL_ADDRESS CharacterBase;
+    if(EFI_ERROR(ReadFile(L"\\utf8.sys",&CharacterBase,AllocateAnyPages)))
+    {
+
+    }
+
+    struct MemoryMap Memmap = 
+    {
+        .MapSize = 4096,
+        .Buffer = NULL,
+        .MapKey = 0,
+        .DescriptorSize = 0,
+        .DescriptorVersion = 0,
+    };
+    GetMemoryMap(&Memmap);
+    EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
+    struct BootInfo BootInfo;
+    PrepareBootInfo(&BootInfo,&Memmap,KernelFileBase,CharacterBase);
+    // 退出启动时服务,进入内核
+    gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
+    Kernel(&BootInfo);
 }
