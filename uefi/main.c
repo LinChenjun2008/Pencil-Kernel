@@ -31,7 +31,7 @@ typedef struct
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
-void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase);
+void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase);
 void gotoKernel(BootConfig Config);
 
 EFI_STATUS
@@ -64,9 +64,9 @@ UefiMain
     }
     BootConfig Config = {0,0,L"\0"};
     ReadConfig(FileBase,&Config);
-    CHAR16 str[30];
     SetVideoMode(Config.hr,Config.vr);
     gotoKernel(Config);
+    // CHAR16 str[30];
     // while(1)
     // {
     //     /* 提示符 */
@@ -144,10 +144,10 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
     }
 }
 
-void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS CharacterBase)
+void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase)
 {
     Binfo->KernelBaseAddress                   = KernelBase;
-    Binfo->CharacterBase                       = CharacterBase;
+    Binfo->TypefaceBase                       = TypefaceBase;
     Binfo->GraphicsInfo.FrameBufferBase        = Gop->Mode->FrameBufferBase;
     Binfo->GraphicsInfo.HorizontalResolution   = Gop->Mode->Info->HorizontalResolution;
     Binfo->GraphicsInfo.VerticalResolution     = Gop->Mode->Info->VerticalResolution;
@@ -169,8 +169,8 @@ void gotoKernel(BootConfig Config)
             gST->ConOut->OutputString(gST->ConOut,L"Can't Load Kernel \n\r");
         }
     }
-    EFI_PHYSICAL_ADDRESS CharacterBase;
-    if(EFI_ERROR(ReadFile(L"\\utf8.sys",&CharacterBase,AllocateAnyPages)))
+    EFI_PHYSICAL_ADDRESS TypefaceBase;
+    if(EFI_ERROR(ReadFile(L"\\typeface.sys",&TypefaceBase,AllocateAnyPages)))
     {
 
     }
@@ -186,7 +186,7 @@ void gotoKernel(BootConfig Config)
     GetMemoryMap(&Memmap);
     EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
     struct BootInfo BootInfo;
-    PrepareBootInfo(&BootInfo,&Memmap,KernelFileBase,CharacterBase);
+    PrepareBootInfo(&BootInfo,&Memmap,KernelFileBase,TypefaceBase);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
     Kernel(&BootInfo);

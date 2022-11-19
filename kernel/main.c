@@ -25,5 +25,8 @@ uint64_t kernel_main(struct BootInfo* binfo)
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n");
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,"本系统支持utf-8字库.\n");
+    sprintf(str,"分辨率:%d * %d 显存基址:%p\n",binfo->GraphicsInfo.HorizontalResolution,binfo->GraphicsInfo.VerticalResolution,binfo->GraphicsInfo.FrameBufferBase);
+    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
     while(1);
+    return 0;
 }

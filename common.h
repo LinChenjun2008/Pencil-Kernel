@@ -29,7 +29,7 @@ struct MemoryMap
 struct BootInfo
 {
     uint64_t KernelBaseAddress;
-    uint64_t CharacterBase;
+    uint64_t TypefaceBase;
     struct MemoryMap MemoryMap;
     struct GraphicsInfo GraphicsInfo;
 };

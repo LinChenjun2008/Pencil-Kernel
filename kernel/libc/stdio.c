@@ -3,16 +3,6 @@
 #define FORMAT_SPACE 0
 #define FORMAT_ZERO 1
 
-int sprintf(char* buf,const char* fmt,...)
-{
-    va_list ap;
-    va_start(ap,fmt);
-    int len;
-    len = vsprintf(buf,fmt,ap);
-    va_end(ap);
-    return len;
-}
-
 int vsprintf(char* buf,const char* fmt,va_list ap)
 {
     char* str,*s,digits[69];
@@ -119,4 +109,14 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
     }
     *str = '\0';
     return strlen(buf);
+}
+
+int sprintf(char* buf,const char* fmt,...)
+{
+    va_list ap;
+    va_start(ap,fmt);
+    int len;
+    len = vsprintf(buf,fmt,ap);
+    va_end(ap);
+    return len;
 }

@@ -90,7 +90,7 @@ void init_screen(struct GraphicsInfo* Ginfo)
 void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint64_t ch)
 {
     uint16_t *font, data;
-    font = (((uint16_t*)gBI.CharacterBase) + ch * 16);
+    font = (((uint16_t*)gBI.TypefaceBase) + ch * 16);
     BltPixel* put;
     int i;
     if(ch < 0x7f)
