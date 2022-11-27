@@ -51,7 +51,6 @@ UefiMain
     gBS->LocateProtocol(&gEfiGraphicsOutputProtocolGuid,NULL,(VOID**)&Gop);
     gBS->LocateProtocol(&gEfiSimpleFileSystemProtocolGuid,NULL,(VOID**)&Sfsp);
 
-    /* 设置显示模式 */
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil-Boot\n\r");
 
@@ -64,6 +63,7 @@ UefiMain
     }
     BootConfig Config = {0,0,L"\0"};
     ReadConfig(FileBase,&Config);
+    /* 设置显示模式 */
     SetVideoMode(Config.hr,Config.vr);
     gotoKernel(Config);
     // CHAR16 str[30];
@@ -167,12 +167,14 @@ void gotoKernel(BootConfig Config)
         if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAnyPages)))
         {
             gST->ConOut->OutputString(gST->ConOut,L"Can't Load Kernel \n\r");
+            while(1);
         }
     }
     EFI_PHYSICAL_ADDRESS TypefaceBase;
     if(EFI_ERROR(ReadFile(L"\\typeface.sys",&TypefaceBase,AllocateAnyPages)))
     {
-
+        gST->ConOut->OutputString(gST->ConOut,L"typeface.sys not found \n\r");
+        while(1);
     }
 
     struct MemoryMap Memmap = 

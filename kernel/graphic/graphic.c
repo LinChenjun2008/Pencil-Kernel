@@ -1,5 +1,6 @@
 /**
-    
+    @brief 在屏幕上画一个矩形
+
     @param Ginfo    图像缓存区的描述符,
                     指明目缓存区的水平和垂直分辨率.
     
@@ -79,7 +80,7 @@ void init_screen(struct GraphicsInfo* Ginfo)
 
 /**
 
-    显示一个字符,由vput_utf8_str调用.
+    @brief 显示一个字符,由vput_utf8_str调用.
     @param vram     显存起始地址
     @param xsize    水平方向的像素数
     @param Pos      坐标
@@ -138,7 +139,7 @@ void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint
 
 /**
 
-    显示一个字符串.
+    @brief 显示一个字符串.
     @param Ginfo    显存的信息,
                     用于获取显存地址、长宽等信息.
     @param Pos      用于显示文字的坐标.

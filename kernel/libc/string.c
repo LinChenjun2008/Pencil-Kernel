@@ -2,7 +2,7 @@
 
 /** memset
 
-    将dst__开始的size字节置为value
+    @brief 将dst__开始的size字节置为value
 
     @param dst__ :要设置的地址
     @param value :设置成的值
@@ -23,7 +23,7 @@ void memset(void* dst__,uint8_t value,uint32_t size)
 
 /** memcpy
 
-    将src__处的size字节复制到dst__
+    @brief 将src__处的size字节复制到dst__
 
     @param dst__ :复制的目的地址
     @param src__ :原地址
@@ -46,7 +46,7 @@ void memcpy(void* dst__,const void* src__,uint32_t size)
 
 /** memcmp
 
-    比较p1__和p2__处的size字节数据是否相等
+    @brief 比较p1__和p2__处的size字节数据是否相等
 
     @param p1__ :地址1
     @param p2__ :地址2
