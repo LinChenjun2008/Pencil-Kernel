@@ -1,4 +1,5 @@
-/* string.c */
+#include <global.h>
+#include <stdint.h>
 
 /** memset
 

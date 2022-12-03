@@ -22,4 +22,12 @@ typedef unsigned short CHAR16;
 typedef UINT64 UINTN;
 typedef INT64  INTN;
 
+typedef UINT64 PHYICIAL_ADDRESS;
+typedef UINT64 VIRTUAL_ADDRESS;
+typedef UINT64 ptr_t;
+
+extern struct BootInfo gBI;
+
+#define ASSERT(X) ((void)0);
+
 #endif

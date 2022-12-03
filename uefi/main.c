@@ -159,16 +159,12 @@ void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICA
 
 void gotoKernel(BootConfig Config)
 {
-    /* 读取内核文件,默认加载到0x100000,若地址被占用,则另分配地址
-    * 实际加载到的地址在BootInfo->KernelBaseAddress中 */
+    /* 读取内核文件,默认加载到0x100000 */
     EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
     if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
     {
-        if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAnyPages)))
-        {
-            gST->ConOut->OutputString(gST->ConOut,L"Can't Load Kernel \n\r");
-            while(1);
-        }
+        gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel (address 0x100000 unavailable) \n\r");
+        while(1);
     }
     EFI_PHYSICAL_ADDRESS TypefaceBase;
     if(EFI_ERROR(ReadFile(L"\\typeface.sys",&TypefaceBase,AllocateAnyPages)))

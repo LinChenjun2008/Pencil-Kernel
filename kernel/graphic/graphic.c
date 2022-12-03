@@ -1,3 +1,7 @@
+#include <common.h>
+#include <global.h>
+#include <graphic.h>
+
 /**
     @brief 在屏幕上画一个矩形
 
