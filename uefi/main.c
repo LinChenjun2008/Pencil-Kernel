@@ -27,12 +27,13 @@ typedef struct
 {
     int hr;
     int vr;
-    CHAR16 KernelName[16];
+    CHAR16   KernelName[32];
+    CHAR16 TypefaceName[32];
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
 void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase);
-void gotoKernel(BootConfig Config);
+void gotoKernel(BootConfig* Config);
 
 EFI_STATUS
 EFIAPI
@@ -61,11 +62,11 @@ UefiMain
         gST->ConOut->OutputString(SystemTable->ConOut,L"Read 'BootConfig.txt' failed. Press Any key to try again.\n\r");
         get_char();
     }
-    BootConfig Config = {0,0,L"\0"};
+    BootConfig Config = {0,0,L"\0",L"\0"};
     ReadConfig(FileBase,&Config);
     /* 设置显示模式 */
     SetVideoMode(Config.hr,Config.vr);
-    gotoKernel(Config);
+    gotoKernel(&Config);
     // CHAR16 str[30];
     // while(1)
     // {
@@ -105,6 +106,15 @@ UefiMain
     return 0;
 }
 
+CHAR16* skip_space(CHAR16* s)
+{
+    while(*s == L' ' || *s == L'\n' || *s == L'\r')
+    {
+        s++;
+    }
+    return s;
+}
+
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
 {
     gST->ConOut->OutputString(gST->ConOut,L"Reading Config...\n\r");
@@ -114,6 +124,7 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
         if(*s == L'.')
         {
             s++;
+        
             if(*s == L'x' || *s == L'X')
             {
                 s += 2;
@@ -132,12 +143,39 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
                     Config->vr = Config->vr * 10 + *(s++) - L'0'; 
                 }
             }
-            else if(*s == L'k' || *s == L'K')
+            else if(strncmp(s,L"kernel",6) == 0)
             {
-                s += 3;
+                s += 6;
+                s = skip_space(s);
+                if(*s == L'=')
+                {
+                    s++;
+                }
+                s = skip_space(s);
+                if(*s == L'\"')
+                {
+                    s++;
+                }
                 int i = 0;
                 while((Config->KernelName[i++] = *s++) != L'\"');
                 Config->KernelName[i - 1] = L'\0';
+            }
+            else if(strncmp(s,L"typeface",8) == 0)
+            {
+                s += 8;
+                s = skip_space(s);
+                if(*s == L'=')
+                {
+                    s++;
+                }
+                s = skip_space(s);
+                if(*s == L'\"')
+                {
+                    s++;
+                }
+                int i = 0;
+                while((Config->TypefaceName[i++] = *s++) != L'\"');
+                Config->TypefaceName[i - 1] = L'\0';
             }
         }
         s++;
@@ -157,19 +195,19 @@ void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICA
     Binfo->MemoryMap = *memmap;
 }
 
-void gotoKernel(BootConfig Config)
+void gotoKernel(BootConfig* Config)
 {
     /* 读取内核文件,默认加载到0x100000 */
     EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
-    if(EFI_ERROR(ReadFile(Config.KernelName,&KernelFileBase,AllocateAddress)))
+    if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,AllocateAddress)))
     {
         gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel (address 0x100000 unavailable) \n\r");
         while(1);
     }
     EFI_PHYSICAL_ADDRESS TypefaceBase;
-    if(EFI_ERROR(ReadFile(L"\\typeface.sys",&TypefaceBase,AllocateAnyPages)))
+    if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAnyPages)))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"typeface.sys not found \n\r");
+        gST->ConOut->OutputString(gST->ConOut,L"typeface not found \n\r");
         while(1);
     }
 

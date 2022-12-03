@@ -52,9 +52,13 @@ UINTN get_line(CHAR16* str,UINTN limit)
     return 0;
 }
 
-UINTN strcmp(CHAR16* s1,CHAR16* s2)
+UINTN strncmp(CHAR16* s1,CHAR16* s2,UINTN i)
 {
-    while(*s1 != L'\0' && *s1 == *s2)
+    if(i == 0)
+    {
+        return 0;
+    }
+    while(--i && *s1 != L'\0' && *s1 == *s2)
     {
         s1++;
         s2++;
@@ -94,3 +98,138 @@ void utoa(UINTN a,CHAR16* str,UINTN base)
     }
     return;
 }
+
+
+
+
+// /**
+
+//     @brief 显示一个字符,由vput_utf8_str调用.
+//     @param vram     显存起始地址
+//     @param xsize    水平方向的像素数
+//     @param Pos      坐标
+//     @param color    文字颜色
+//     @param ch       字符编码(unicode)
+
+// **/
+// void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint64_t ch)
+// {
+//     uint16_t *font, data;
+//     font = (((uint16_t*)gBI.TypefaceBase) + ch * 16);
+//     BltPixel* put;
+//     int i;
+//     if(ch < 0x7f)
+//     {
+//         for(i = 0;i < 16;i++)
+//         {
+//             put = (vram) + ((Pos->y + i) * (xsize) + Pos->x);
+//             data = font[i];
+//             if((data & 0x8000) != 0){put[0] = color;}
+//             if((data & 0x4000) != 0){put[1] = color;}
+//             if((data & 0x2000) != 0){put[2] = color;}
+//             if((data & 0x1000) != 0){put[3] = color;}
+//             if((data & 0x0800) != 0){put[4] = color;}
+//             if((data & 0x0400) != 0){put[5] = color;}
+//             if((data & 0x0200) != 0){put[6] = color;}
+//             if((data & 0x0100) != 0){put[7] = color;}
+//         }
+//     }
+//     else
+//     {
+//         for(i = 0;i < 16;i++)
+//         {
+//             put = (vram) + ((Pos->y + i) * (xsize) + Pos->x);
+//             data = font[i];
+//             if((data & 0x8000) != 0){put[0] = color;}
+//             if((data & 0x4000) != 0){put[1] = color;}
+//             if((data & 0x2000) != 0){put[2] = color;}
+//             if((data & 0x1000) != 0){put[3] = color;}
+//             if((data & 0x0800) != 0){put[4] = color;}
+//             if((data & 0x0400) != 0){put[5] = color;}
+//             if((data & 0x0200) != 0){put[6] = color;}
+//             if((data & 0x0100) != 0){put[7] = color;}
+
+//             if((data & 0x0080) != 0){put[8] = color;}
+//             if((data & 0x0040) != 0){put[9] = color;}
+//             if((data & 0x0020) != 0){put[10] = color;}
+//             if((data & 0x0010) != 0){put[11] = color;}
+//             if((data & 0x0008) != 0){put[12] = color;}
+//             if((data & 0x0004) != 0){put[13] = color;}
+//             if((data & 0x0002) != 0){put[14] = color;}
+//             if((data & 0x0001) != 0){put[15] = color;}
+//         }
+//     }
+// }
+
+// /**
+
+//     @brief 显示一个字符串.
+//     @param Ginfo    显存的信息,
+//                     用于获取显存地址、长宽等信息.
+//     @param Pos      用于显示文字的坐标.
+//                     显示完成后,是下一个字符的位置.
+//     @param color    文字颜色
+//     @param str      字符串(utf-8)
+
+// **/
+// void vput_utf8_str(const struct GraphicsInfo* const Ginfo,struct Position* Pos,BltPixel color,const char* str)
+// {
+//     uint64_t code = 0;
+//     struct Position pos = *Pos;
+//     /* 只考虑以下情况：
+//     * 1. 0xxx-xxxx
+//     * 2. 110x-xxxx 10xx-xxxx
+//     * 3. 1110-xxxx 10xx-xxxx 10xx-xxxx
+//     * 4. 1111-0xxx 10xx-xxxx 10xx-xxxx 10xx-xxxx
+//     */
+//     while(*str)
+//     {
+//         if((*str >> 7) == 0)
+//         {
+//             code = *str;
+//             str++;
+//             if(code == '\n')
+//             {
+//                 pos.x = Pos->x;
+//                 pos.y += 20;
+//             }
+//             else
+//             {
+//                 vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
+//                 pos.x += 8;
+//             }
+//         }
+//         else if(((*str >> 5) & 0x0f) == 0x6) /* 0x110 开头,2字节 */
+//         {
+//             code = (*str & 0x1f) << 6;
+//             str++;
+//             code |= (*str & 0x3f);
+//             str++;
+//             vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
+//             pos.x += 16;
+//         }
+//         else if(((*str >> 4) & 0xf) == 0xe) /* 0x1110 开头,3字节 */
+//         {
+//             code = (*str & 0x0f) << 12;
+//             str++;
+//             code |= (*str & 0x3f) << 6;
+//             str++;
+//             code |= (*str & 0x3f) << 0;
+//             str++;
+//             vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
+//             pos.x += 16;
+//         }
+//     }
+//     *Pos = pos;
+//     return;
+// }
+
+// int32_t strcmp(const CHAR16* str1__,const CHAR16* str2__)
+// {
+//     while(*str1__ != 0 && *str1__ == *str2__)
+//     {
+//         str1__++;
+//         str2__++;
+//     }
+//     return (*str1__ < *str2__ ? -1 : *str1__ > *str2__);
+// }

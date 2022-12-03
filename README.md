@@ -9,8 +9,6 @@ Linux下编译UEFI需要用交叉编译器.<br />
 ```bash
 sudo apt install gcc-mingw-w64-x86-64
 ```
-##### EDK2
-只需要`EDK2`中的`MedPkg/Include`下的文件.
 #### 编译命令
 ##### UEFI
 ```bash
@@ -27,15 +25,17 @@ $(CC) -Wall -Wextra -I$(INCLUDE_DIR) -e $(ENTRY_POINT) -nostdinc -nostdlib \
 # $(OBJ)是编译后的内核程序,$(SRC)为源代码
 # -c :只编译,不链接
 # -fPIC :使生成的程序可以被加载到任意地址
-$(CC) $(SRC) -o $(OBJ) -Wall -fPIC -I$(INCLUDE_DIR) \
-        -nostdlib -nostdinc -mcmodel=large -fno-builtin -fno-strict-aliasing \
-        -Wall -m64 -march=x86-64 -O0
+
+$(CC) -Wall -Wextra -I$(INCLUDE_DIR) -e $(KERNEL_ENTRY_POINT) -nostdlib -nostdinc \
+-finput-charset=UTF-8 -fexec-charset=UTF-8 \
+-fno-builtin -fno-strict-aliasing \
+-D__COMPILE_DATE__=\"$(shell echo %date:~0,4%%date:~5,2%%date:~8,2%)\" \
+-m64 -mcmodel=large -march=x86-64 -Ttext 0x100000 -O0 -o $@ $(SRC)
 
 # 制作为纯二进制格式
 # $(OBJ_FORMAT)为内核文件格式(pe-x86-64)
 # $(OUTPUT_FORMAT) 是最终输出文件的格式(binary)
-$(OBJCOPY) -I $(OBJ_FORMAT) -S -j ".text" -j ".data" -j ".rodata" -j ".bss" \
-        -O $(OUTPUT_FORMAT) $(OBJ) $(OUTPUT)
+$(OBJCOPY) -I $(OBJ_FORMAT) -S -O $(OUTPUT_FORMAT) $(OBJ) $(OUTPUT)
 ```
 #### 运行(以U盘为例)
 1.先格式化为FAT32/16/12文件系统.(如果原来就是FAT32/16/12文件系统,则可以跳过此步骤)<br />
@@ -46,10 +46,10 @@ $(OBJCOPY) -I $(OBJ_FORMAT) -S -j ".text" -j ".data" -j ".rodata" -j ".bss" \
 ```
 .x=1920
 .y=1018
-.k="kernel.sys"
+.kernel = "kernel.sys"
+.typeface = "typeface.sys"
 ```
 需要保存为UTF-16 LE 格式.
-其中,`.x`和`.y`设置分辨率,`.k`指定内核文件.
-不能在`=`前后添加空格,`.k=`后方的`"`不可省略.<br />
-6.将符合utf-8编码的16*16点阵字库命名为`typeface.sys`,复制到根目录下.<br />
+其中,`.x`和`.y`设置分辨率,`.kernel`指定内核文件.
+6.将符合utf-8编码的16*16点阵字库命名为`BootConfig.txt`中设定的文件名,并复制到根目录下.<br />
 7.从U盘启动即可.<br />
