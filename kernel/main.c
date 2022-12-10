@@ -37,6 +37,15 @@ uint64_t kernel_main(struct BootInfo* binfo)
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,"本系统支持utf-8字库.\n");
     sprintf(str,"分辨率:%d * %d 显存基址:%p  %p\n",binfo->GraphicsInfo.HorizontalResolution,binfo->GraphicsInfo.VerticalResolution,binfo->GraphicsInfo.FrameBufferBase);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    char* logo = 
+    "     _______   ______   __   __   ______   ______   __       \n"
+    "    / ___  /| / ____/| /  | / /| / ____/| /_  __/| / /|      \n"
+    "   / /__/ / // /____|// | |/ / // /|___|/ |/ /|_|// / /      \n"
+    "  / _____/ // ____/| / /| | / // / /      / / /  / / /       \n"
+    " / /|____|// /____|// / |  / // /_/__  __/ /_/  / / /__      \n"
+    "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n"
+    "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n";
+    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,logo);
     while(1);
     return 0;
 }

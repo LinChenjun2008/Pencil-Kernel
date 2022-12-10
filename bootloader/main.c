@@ -27,7 +27,9 @@ typedef struct
 {
     int hr;
     int vr;
+    int kernel_flage;
     CHAR16   KernelName[32];
+    int typeface_flage;
     CHAR16 TypefaceName[32];
 } BootConfig;
 
@@ -53,19 +55,36 @@ UefiMain
     gBS->LocateProtocol(&gEfiSimpleFileSystemProtocolGuid,NULL,(VOID**)&Sfsp);
 
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
-    SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil-Boot\n\r");
-
+    CHAR16* logo = 
+    L"     _______   ______   __   __   ______   ______   __       \n\r"
+     "    / ___  /| / ____/| /  | / /| / ____/| /_  __/| / /|      \n\r"
+     "   / /__/ / // /____|// | |/ / // /|___|/ |/ /|_|// / /      \n\r"
+     "  / _____/ // ____/| / /| | / // / /      / / /  / / /       \n\r"
+     " / /|____|// /____|// / |  / // /_/__  __/ /_/  / / /__      \n\r"
+     "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n\r"
+     "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n\r";
+    SystemTable->ConOut->OutputString(SystemTable->ConOut,logo);
     /* 读取启动配置 */
-    EFI_PHYSICAL_ADDRESS FileBase;
-    while(EFI_ERROR(ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages)))
+    
+    BootConfig Config =
     {
-        gST->ConOut->OutputString(SystemTable->ConOut,L"Read 'BootConfig.txt' failed. Press Any key to try again.\n\r");
+        .hr             = 0,
+        .vr             = 0,
+        .kernel_flage   = 0,
+        .KernelName     = L"\0",
+        .typeface_flage = 0,
+        .TypefaceName   = L"\0"
+    };
+    EFI_PHYSICAL_ADDRESS FileBase;
+    if(EFI_ERROR(ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages)))
+    {
+        gST->ConOut->OutputString(SystemTable->ConOut,L"'BootConfig.txt' not found. Press Any key to continue.\n\r");
         get_char();
     }
-    BootConfig Config = {0,0,L"\0",L"\0"};
-    ReadConfig(FileBase,&Config);
-    /* 设置显示模式 */
-    SetVideoMode(Config.hr,Config.vr);
+    else
+    {
+        ReadConfig(FileBase,&Config);
+    }
     gotoKernel(&Config);
     // CHAR16 str[30];
     // while(1)
@@ -152,13 +171,15 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
                     s++;
                 }
                 s = skip_space(s);
-                if(*s == L'\"')
+                if(*s != L'\"')
                 {
-                    s++;
+                    continue;
                 }
+                s++;
                 int i = 0;
                 while((Config->KernelName[i++] = *s++) != L'\"');
                 Config->KernelName[i - 1] = L'\0';
+                Config->kernel_flage = 1;
             }
             else if(strncmp(s,L"typeface",8) == 0)
             {
@@ -169,13 +190,15 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
                     s++;
                 }
                 s = skip_space(s);
-                if(*s == L'\"')
+                if(*s != L'\"')
                 {
-                    s++;
+                    continue;
                 }
+                s++;
                 int i = 0;
                 while((Config->TypefaceName[i++] = *s++) != L'\"');
                 Config->TypefaceName[i - 1] = L'\0';
+                Config->typeface_flage = 1;
             }
         }
         s++;
@@ -199,18 +222,29 @@ void gotoKernel(BootConfig* Config)
 {
     /* 读取内核文件,默认加载到0x100000 */
     EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
+    if(!Config->kernel_flage)
+    {
+        gST->ConOut->OutputString(gST->ConOut,L"Press kernel file name:");
+        get_line(Config->KernelName,32);
+    }
     if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,AllocateAddress)))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel (address 0x100000 unavailable) \n\r");
+        gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel (maybe address 0x100000 unavailable) \n\r");
+        gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         while(1);
     }
-    EFI_PHYSICAL_ADDRESS TypefaceBase;
-    if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAnyPages)))
+    EFI_PHYSICAL_ADDRESS TypefaceBase = NULL;
+    if(Config->typeface_flage == 1)
     {
-        gST->ConOut->OutputString(gST->ConOut,L"typeface not found \n\r");
-        while(1);
+        if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAnyPages)))
+        {
+            gST->ConOut->OutputString(gST->ConOut,L"ERROR:typeface file needed but not found. Press any key to continue. \n\r");
+            get_char();
+            TypefaceBase = NULL;
+        }
     }
-
+    /* 设置显示模式 */
+    SetVideoMode(Config->hr,Config->vr);
     struct MemoryMap Memmap = 
     {
         .MapSize = 4096,

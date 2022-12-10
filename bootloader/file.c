@@ -10,7 +10,6 @@
 
 extern EFI_SIMPLE_FILE_SYSTEM_PROTOCOL* Sfsp;
 
-
 EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,EFI_ALLOCATE_TYPE BufferType)
 {
     EFI_FILE_PROTOCOL* FileHandle;
@@ -28,7 +27,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     );
     if(EFI_ERROR(Status))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: LocateHandleBuffer error.\n\r");
+        //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: LocateHandleBuffer error.\n\r");
         return Status;
     }
 
@@ -47,7 +46,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
         );
         if(EFI_ERROR(Status))
         {
-            gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenProctocol error.\n\r");
+            //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenProctocol error.\n\r");
             return Status;
         }
 
@@ -59,7 +58,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
         );
         if(EFI_ERROR(Status))
         {
-            gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenVolume error.\n\r");
+            //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: OpenVolume error.\n\r");
             return Status;
         }
         Status = Root->Open
@@ -78,7 +77,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
         {
             if(i == HandleCount - 1)
             {
-                gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Open error.\n\r");
+                //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Open error.\n\r");
                 return Status;
             }
             continue;
@@ -94,7 +93,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     );
     if(EFI_ERROR(Status))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: AllocatePool error.\n\r");
+        //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: AllocatePool error.\n\r");
         return Status;
     }
     Status = FileHandle->GetInfo
@@ -106,7 +105,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     );
     if(EFI_ERROR(Status))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: GetInfo error.\n\r");
+        //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: GetInfo error.\n\r");
         return Status;
     }
     UINTN FilePageSize = (FileInfo->FileSize >> 12) + 1;
@@ -120,7 +119,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     );
     if(EFI_ERROR(Status))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: AllocatePages error.\n\r");
+        //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: AllocatePages error.\n\r");
         return Status;
     }
     UINTN ReadSize = FileInfo->FileSize;
@@ -132,11 +131,11 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     );
     if(EFI_ERROR(Status))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Read error.\n\r");
+        //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: Read error.\n\r");
         return Status;
     }
     gBS->FreePool(FileInfo);
-    gST->ConOut->OutputString(gST->ConOut,L"ReadFile: read success!\n\r");
+    // gST->ConOut->OutputString(gST->ConOut,L"ReadFile: read success!\n\r");
     return Status;
 }
 
