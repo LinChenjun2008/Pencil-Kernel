@@ -41,6 +41,10 @@ void GetMemoryMap(struct MemoryMap* memmap)
     {
         gST->ConOut->OutputString(gST->ConOut,L"Allocate memory failed for Memmap.\n\r");
     }
+    // if(EFI_ERROR(gBS->AllocatePages(AllocateAnyPages,EfiLoaderData,(memmap->MapSize + 1) / 0x1000,&memmap->Buffer)))
+    // {
+    //     gST->ConOut->OutputString(gST->ConOut,L"Allocate memory failed for Memmap.\n\r");
+    // }
     gBS->GetMemoryMap
     (
         &memmap->MapSize,

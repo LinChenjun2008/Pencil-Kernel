@@ -247,7 +247,7 @@ void gotoKernel(BootConfig* Config)
     SetVideoMode(Config->hr,Config->vr);
     struct MemoryMap Memmap = 
     {
-        .MapSize = 4096,
+        .MapSize = 4096 * 4,
         .Buffer = NULL,
         .MapKey = 0,
         .DescriptorSize = 0,

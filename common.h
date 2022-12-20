@@ -1,6 +1,7 @@
 #ifndef __KERNEL_COMMON_H__
 #define __KERNEL_COMMON_H__
 
+#include <Efi.h>
 #include <stdint.h>
 
 struct GraphicsInfo
@@ -26,12 +27,21 @@ struct MemoryMap
     uint32_t DescriptorVersion;
 };
 
+typedef struct
+{
+    int flage; /* 1 - file | 0 - none */
+    CHAR16 NAME[32];
+    EFI_PHYSICAL_ADDRESS FileBufferAddress;
+    int Attribute;
+}FileDesc;
+
 struct BootInfo
 {
     uint64_t KernelBaseAddress;
     uint64_t TypefaceBase;
     struct MemoryMap MemoryMap;
     struct GraphicsInfo GraphicsInfo;
+    FileDesc FileDesc[32];
 };
 
 typedef struct

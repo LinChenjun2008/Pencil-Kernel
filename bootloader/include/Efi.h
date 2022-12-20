@@ -323,7 +323,7 @@ typedef struct
     EFI_VIRTUAL_ADDRESS     VirtualStart;
     UINT64                  NumberOfPages;
     UINT64                  Attribute;
-} EFI_MEMORY_DESCRIPTOR;
+} __attribute__((aligned(16))) EFI_MEMORY_DESCRIPTOR;
 
 typedef
 EFI_STATUS
