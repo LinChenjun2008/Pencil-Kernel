@@ -84,10 +84,6 @@ struct SEGMDESC
 #define SelectorCode64_K     ((1 << 3) | TI_GDT | RPL0) /* 代码段 */
 #define SelectorData64_K     ((2 << 3) | TI_GDT | RPL0) /* 数据段 */
 
-// #define SelectorCode64_K     ((1 << 3) | TI_GDT | RPL0) /* 代码段 */
-// #define SelectorData64_K     ((6 << 3) | TI_GDT | RPL0) /* 数据段 */
-
-
 #define SelectorTSS32        ((3 << 3) | TI_GDT | RPL0) /* TSS段 */
 
 #define SelectorCode64_U     ((4 << 3) | TI_GDT | RPL3) /* 用户代码段 */
@@ -123,5 +119,7 @@ struct SEGMDESC
 #define EFLAGS_IF_0 (0 << 9)
 #define EFLAGS_IOPL_0 (0 << 12)
 
+#define PUBLIC
+#define PRIVATE static
 
 #endif

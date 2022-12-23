@@ -11,7 +11,7 @@
 
 int vsprintf(char* buf,const char* fmt,va_list ap)
 {
-    char* str,*s,digits[69];
+    char* str,*s = 0,digits[69];
     int repeat;
     int flage;
     int align;

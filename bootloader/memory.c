@@ -9,7 +9,7 @@
 EFI_STATUS AllocPage(UINTN PageSize,OUT EFI_PHYSICAL_ADDRESS* Address)
 {
     EFI_STATUS Status = EFI_SUCCESS;
-    gBS->AllocatePages
+    Status = gBS->AllocatePages
     (
         AllocateAnyPages,
         EfiLoaderData,
@@ -25,7 +25,7 @@ EFI_STATUS AllocPage(UINTN PageSize,OUT EFI_PHYSICAL_ADDRESS* Address)
 EFI_STATUS GetPage(UINTN PageSize,EFI_PHYSICAL_ADDRESS* Address)
 {
     EFI_STATUS Status = EFI_SUCCESS;
-    gBS->AllocatePages
+    Status = gBS->AllocatePages
     (
         AllocateAddress,
         EfiLoaderData,

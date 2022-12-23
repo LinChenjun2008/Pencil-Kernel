@@ -218,6 +218,8 @@ void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICA
     Binfo->MemoryMap = *memmap;
 }
 
+EFI_PHYSICAL_ADDRESS CreatePage();
+
 void gotoKernel(BootConfig* Config)
 {
     /* 读取内核文件,默认加载到0x100000 */
@@ -254,10 +256,82 @@ void gotoKernel(BootConfig* Config)
         .DescriptorVersion = 0,
     };
     GetMemoryMap(&Memmap);
-    EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))KernelFileBase;
+    EFI_PHYSICAL_ADDRESS PML4E= CreatePage();
     struct BootInfo BootInfo;
     PrepareBootInfo(&BootInfo,&Memmap,KernelFileBase,TypefaceBase);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
+    //asm __volatile__("movq %0,%%cr3"::"r"(PML4E));
+    EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))0x0000000000100000;
     Kernel(&BootInfo);
+}
+
+#define PG_P 0x1
+#define PG_RW_R 0x0
+#define PG_RW_W 0x2
+#define PG_US_S 0x0
+#define PG_US_U 0x4
+#define PG_SIZE_2M 0x80
+
+EFI_PHYSICAL_ADDRESS CreatePage()
+{
+    /* UEFI虚拟地址与物理地址相等
+    0x0000000000000000 - 0x00000000ffffffff (UEFI还在执行时)
+    0xffff800000000000 - 0xffff8000ffffffff (Kernel运行后)
+    PML4E 0         PDPTE 3       PDE 511       offset
+    0(1)000 0000 0 | 000 0000 11 | 11 1111 111 | 1 1111 1111 1111 1111 1111
+    0(8)    0    0       0    f       f    f       f    f    f    f    f
+    
+    页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 
+                == 245760B == 6 * 4kb(UEFI使用的页大小)
+    */
+    EFI_PHYSICAL_ADDRESS PML4E;
+    EFI_PHYSICAL_ADDRESS PDPTE;
+    EFI_PHYSICAL_ADDRESS PDE0;
+    EFI_PHYSICAL_ADDRESS PDE1;
+    EFI_PHYSICAL_ADDRESS PDE2;
+    EFI_PHYSICAL_ADDRESS PDE3;
+    if(EFI_ERROR(AllocPage(6,&PML4E)))
+    {
+        gST->ConOut->OutputString(gST->ConOut,L"can't allocate memory for Page Table!!!\n\r");
+    }
+    PDPTE = PML4E + 1 * 0x1000;
+    PDE0  = PML4E + 2 * 0x1000;
+    PDE1  = PML4E + 3 * 0x1000;
+    PDE2  = PML4E + 4 * 0x1000;
+    PDE3  = PML4E + 5 * 0x1000;
+
+    *((UINTN*)(PML4E + 0x000)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0x00000...
+    *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
+
+    *((UINTN*)(PDPTE + 0x000)) = PDE0 | PG_US_U | PG_RW_W | PG_P;
+    *((UINTN*)(PDPTE + 0x008)) = PDE1 | PG_US_U | PG_RW_W | PG_P;
+    *((UINTN*)(PDPTE + 0x010)) = PDE2 | PG_US_U | PG_RW_W | PG_P;
+    *((UINTN*)(PDPTE + 0x018)) = PDE3 | PG_US_U | PG_RW_W | PG_P;
+    int i;
+    EFI_PHYSICAL_ADDRESS Addr = 0;
+    for(i = 0;i < 512;i++)
+    {
+        *((UINTN*)(PDE0 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        Addr += 0x200000;
+    }
+    
+    for(i = 0;i < 512;i++)
+    {
+        *((UINTN*)(PDE1 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        Addr += 0x200000;
+    }
+    
+    for(i = 0;i < 512;i++)
+    {
+        *((UINTN*)(PDE2 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        Addr += 0x200000;
+    }
+    
+    for(i = 0;i < 512;i++)
+    {
+        *((UINTN*)(PDE3 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        Addr += 0x200000;
+    }
+    return PML4E;
 }
