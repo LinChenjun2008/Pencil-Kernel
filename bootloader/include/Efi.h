@@ -410,6 +410,16 @@ EFI_STATUS
     UINT32      Attributes
 );
 
+typedef
+EFI_STATUS
+(EFIAPI *EFI_CLOSE_PROTOCOL)
+(
+    EFI_HANDLE Handle,
+    EFI_GUID  *Protocol,
+    EFI_HANDLE AgentHandle,
+    EFI_HANDLE ControllerHandle
+  );
+
 typedef enum
 {
   AllHandles,
@@ -504,7 +514,8 @@ typedef struct
         // Open and Close Protocol Services
 
         EFI_OPEN_PROTOCOL        OpenProtocol;
-        UINTN _buf9[2];
+        EFI_CLOSE_PROTOCOL       CloseProtocol;
+        UINTN _buf9[1];
 
         // Library Services
         UINTN _buf10[1];

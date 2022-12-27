@@ -24,6 +24,7 @@ typedef unsigned short CHAR16;
 typedef UINT64 UINTN;
 typedef INT64  INTN;
 
+typedef UINT64 MEMORY_ADDRESS;
 typedef UINT64 PHYSICAL_ADDRESS;
 typedef UINT64 VIRTUAL_ADDRESS;
 typedef UINT64 ptr_t;

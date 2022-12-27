@@ -35,7 +35,7 @@ INTR_HANDLER(asm_intr0x1e_handler,0x1e,      nop, general_intr_handler)
 INTR_HANDLER(asm_intr0x1f_handler,0x1f, pushq $0, general_intr_handler)
 
 INTR_HANDLER(asm_intr0x20_handler,0x20, pushq $0,     intr0x20_handler) // 时钟中断对应的入口
-INTR_HANDLER(asm_intr0x21_handler,0x21, pushq $0, general_intr_handler) // 键盘中断对应的入口
+INTR_HANDLER(asm_intr0x21_handler,0x21, pushq $0,     intr0x21_handler) // 键盘中断对应的入口
 INTR_HANDLER(asm_intr0x22_handler,0x22, pushq $0, general_intr_handler) // 级联用的
 INTR_HANDLER(asm_intr0x23_handler,0x23, pushq $0, general_intr_handler) // 串口2对应的入口
 INTR_HANDLER(asm_intr0x24_handler,0x24, pushq $0, general_intr_handler) // 串口1对应的入口

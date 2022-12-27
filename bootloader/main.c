@@ -41,7 +41,7 @@ EFI_STATUS
 EFIAPI
 UefiMain
 (
-    IN EFI_HANDLE ImageHandle __attribute__((unused)),
+    IN EFI_HANDLE ImageHandle,
     IN EFI_SYSTEM_TABLE* SystemTable
 )
 {
@@ -218,7 +218,7 @@ void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICA
     Binfo->MemoryMap = *memmap;
 }
 
-EFI_PHYSICAL_ADDRESS CreatePage();
+EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo);
 
 void gotoKernel(BootConfig* Config)
 {
@@ -235,14 +235,14 @@ void gotoKernel(BootConfig* Config)
         gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         while(1);
     }
-    EFI_PHYSICAL_ADDRESS TypefaceBase = NULL;
+    EFI_PHYSICAL_ADDRESS TypefaceBase = (EFI_PHYSICAL_ADDRESS)NULL;
     if(Config->typeface_flage == 1)
     {
         if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAnyPages)))
         {
             gST->ConOut->OutputString(gST->ConOut,L"ERROR:typeface file needed but not found. Press any key to continue. \n\r");
             get_char();
-            TypefaceBase = NULL;
+            TypefaceBase = (EFI_PHYSICAL_ADDRESS)NULL;
         }
     }
     /* 设置显示模式 */
@@ -256,14 +256,14 @@ void gotoKernel(BootConfig* Config)
         .DescriptorVersion = 0,
     };
     GetMemoryMap(&Memmap);
-    EFI_PHYSICAL_ADDRESS PML4E= CreatePage();
-    struct BootInfo BootInfo;
-    PrepareBootInfo(&BootInfo,&Memmap,KernelFileBase,TypefaceBase);
+    struct BootInfo* BootInfo = (VOID*)0x7c00;
+    PrepareBootInfo(BootInfo,&Memmap,KernelFileBase,TypefaceBase);
+    EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
-    //asm __volatile__("movq %0,%%cr3"::"r"(PML4E));
+    asm __volatile__("movq %0,%%cr3"::"r"(PML4E));
     EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))0x0000000000100000;
-    Kernel(&BootInfo);
+    Kernel(BootInfo);
 }
 
 #define PG_P 0x1
@@ -273,17 +273,18 @@ void gotoKernel(BootConfig* Config)
 #define PG_US_U 0x4
 #define PG_SIZE_2M 0x80
 
-EFI_PHYSICAL_ADDRESS CreatePage()
+EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
 {
-    /* UEFI虚拟地址与物理地址相等
-    0x0000000000000000 - 0x00000000ffffffff (UEFI还在执行时)
-    0xffff800000000000 - 0xffff8000ffffffff (Kernel运行后)
+    /*
+    0x0000000000000000 - 0x00000000ffffffff
+    0xffff800e00000000 - 显存
     PML4E 0         PDPTE 3       PDE 511       offset
     0(1)000 0000 0 | 000 0000 11 | 11 1111 111 | 1 1111 1111 1111 1111 1111
     0(8)    0    0       0    f       f    f       f    f    f    f    f
-    
-    页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 
-                == 245760B == 6 * 4kb(UEFI使用的页大小)
+       1000 0000 0 | 000 1110 00 | 00 0000 000 | 0 0000 0000 0000 0000 0000
+       8    0    0       e    0       0    0       0    0    0    0    0
+    页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 (2 * 4096 显存大于4GB时)
+                == 245760B == 6 * 4kb(4kb是UEFI使用的页大小)
     */
     EFI_PHYSICAL_ADDRESS PML4E;
     EFI_PHYSICAL_ADDRESS PDPTE;
@@ -291,15 +292,18 @@ EFI_PHYSICAL_ADDRESS CreatePage()
     EFI_PHYSICAL_ADDRESS PDE1;
     EFI_PHYSICAL_ADDRESS PDE2;
     EFI_PHYSICAL_ADDRESS PDE3;
-    if(EFI_ERROR(AllocPage(6,&PML4E)))
+    EFI_PHYSICAL_ADDRESS PDE4; // 用于显存
+
+    if(EFI_ERROR(AllocPage(7,&PML4E)))
     {
         gST->ConOut->OutputString(gST->ConOut,L"can't allocate memory for Page Table!!!\n\r");
     }
-    PDPTE = PML4E + 1 * 0x1000;
-    PDE0  = PML4E + 2 * 0x1000;
-    PDE1  = PML4E + 3 * 0x1000;
-    PDE2  = PML4E + 4 * 0x1000;
-    PDE3  = PML4E + 5 * 0x1000;
+    PDPTE  = PML4E + 1 * 0x1000;
+    PDE0   = PML4E + 2 * 0x1000;
+    PDE1   = PML4E + 3 * 0x1000;
+    PDE2   = PML4E + 4 * 0x1000;
+    PDE3   = PML4E + 5 * 0x1000;
+    PDE4   = PML4E + 6 * 0x1000;
 
     *((UINTN*)(PML4E + 0x000)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0x00000...
     *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
@@ -308,7 +312,9 @@ EFI_PHYSICAL_ADDRESS CreatePage()
     *((UINTN*)(PDPTE + 0x008)) = PDE1 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x010)) = PDE2 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x018)) = PDE3 | PG_US_U | PG_RW_W | PG_P;
-    int i;
+
+    *((UINTN*)(PDPTE + 0x1c0)) = PDE4 | PG_US_U | PG_RW_W | PG_P;
+    UINTN i;
     EFI_PHYSICAL_ADDRESS Addr = 0;
     for(i = 0;i < 512;i++)
     {
@@ -333,5 +339,12 @@ EFI_PHYSICAL_ADDRESS CreatePage()
         *((UINTN*)(PDE3 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
+    Addr = Binfo->GraphicsInfo.FrameBufferBase;
+    for(i = 0;i < 8;i++)
+    {
+        *((UINTN*)(PDE4 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        Addr += 0x200000;
+    }
+    Binfo->GraphicsInfo.FrameBufferBase = 0xffff800e00000000;
     return PML4E;
 }

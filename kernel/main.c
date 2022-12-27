@@ -3,6 +3,7 @@
 #include <global.h>
 #include <init.h>
 #include <interrupt.h>
+#include <memory.h>
 #include <graphic.h>
 #include <stdio.h>
 
@@ -14,11 +15,13 @@
 
 **/
 struct BootInfo gBI;
+
 PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
 {
+    binfo = (void*)0x7c00;
     gBI = *binfo;
     init_all();
-    //intr_enable();
+    intr_enable();
     const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
     struct Position Pos = {10,10};
     BltPixel col = 
@@ -37,7 +40,7 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n"
     "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n";
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,logo);
-    sprintf(str,"%s%s \n",VERSION,__COMPILE_DATE__);
+    sprintf(str,"%s \n",VERSION);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n");
     sprintf(str,"分辨率:%d * %d 显存基址:%p\n",
@@ -49,17 +52,7 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     int i,MemorySize = 0,PageCnt = binfo->MemoryMap.MapSize / binfo->MemoryMap.DescriptorSize;
     for(i = 0;i < PageCnt;i++)
     {
-        //     sprintf(str,"%2d Type %x PhysicalStart %p VirtualStart %p NumberOfPages: %d Attribute %x\n",
-        //     i,
-        //     (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->Type,
-        //     (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->PhysicalStart,
-        //     (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->VirtualStart,
-        //     (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->NumberOfPages,
-        //     (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->Attribute
-        //     );
-        //     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-        // 
-        if((((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->Attribute != EfiMemoryMappedIO)
+        if((((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->Type != EfiMemoryMappedIO)
         {
             MemorySize += (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->NumberOfPages;
         }
@@ -67,9 +60,19 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     sprintf(str,"内存: %d GB (%d MB)\n",
     MemorySize >> 18,MemorySize >> 8);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    sprintf(str,"合并前: %d 合并后: %d\n",
+    PageCnt,MemoryDescriptorNumber);
+    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    for(i = 0;i < MemoryDescriptorNumber;i++)
+    {
+            sprintf(str,"%2d Type=%x AddrStart= %p Size(4KB): %d\n",
+            i,
+            MemoryDescriptor[i].Type,
+            MemoryDescriptor[i].AddrStart,
+            MemoryDescriptor[i].Memory_4KB_Size
+            );
+            vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    }
     while(1);
     return 0;
 }
-
-
-struct BootInfo gBI;

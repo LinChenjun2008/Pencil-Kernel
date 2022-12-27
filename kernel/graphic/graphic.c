@@ -38,44 +38,13 @@ void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int
 
 void init_screen(struct GraphicsInfo* Ginfo)
 {
-    int tsk  = (Ginfo->HorizontalResolution - 1) / 30;
-    // int step = (Ginfo->VerticalResolution - 1) / ((1 + 1 + 2) * 16 * 4);
-    // int t    = (Ginfo->VerticalResolution - 1) % ((1 + 1 + 2) * 16 * 4);
-    // int a;
-    // int y = 0;
+    int tsk  = 60;
     BltPixel color;
-    // color.Red   = 0x75;
-    // color.Green = 0xaa;
-    // color.Blue  = 0xff;
     color.Red   = 0x20;
     color.Green = 0x70;
     color.Blue  = 0x90;
     viewFill(Ginfo,color,0,0,Ginfo->HorizontalResolution - 1,Ginfo->VerticalResolution - tsk - 1);
-    // int i;
-    // for(a = 0;a < 16 * 4 + t;a++)
-    // {
-    //     if(y + step > Ginfo->VerticalResolution) { break;}
-    //     viewFill(Ginfo,color,0,y,Ginfo->HorizontalResolution - 1,y + step);
-    //     y += step;
-    //     if(y + step > Ginfo->VerticalResolution) { break;}
-    //     color.Red++;
-    //     viewFill(Ginfo,color,0,y,Ginfo->HorizontalResolution - 1,y + step);
-    //     y += step;
-    //     if(y + step > Ginfo->VerticalResolution) { break;}
-    //     color.Green++;
-    //     for(i = 0;i < 2;i++)
-    //     {
-    //         viewFill(Ginfo,color,0,y,Ginfo->HorizontalResolution - 1,y + step);
-    //         y += step;
-    //         if(y + step > Ginfo->VerticalResolution) { break;}
-    //         color.Blue--;
-    //     }
-    // }
-    // for(a = y;a < tsk;a++)
-    // {
-    //     viewFill(Ginfo,color,0,y,Ginfo->HorizontalResolution - 1,y + step);
-    //     y++;
-    // }
+
     color.Red   = 255;
     color.Green = 255;
     color.Blue  = 255;

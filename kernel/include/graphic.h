@@ -9,7 +9,7 @@ struct Position
     int y;
 };
 
-typedef uint32_t pixel_t;
+// typedef uint32_t pixel_t;
 void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int y1);
 void init_screen(struct GraphicsInfo* Ginfo);
 

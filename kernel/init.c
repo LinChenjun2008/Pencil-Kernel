@@ -3,6 +3,8 @@
 #include <global.h>
 #include <graphic.h>
 #include <init.h>
+#include <memory.h>
+#include <keyboard.h>
 
 PRIVATE struct SEGMDESC make_segmdesc(uint32_t base,uint32_t limit,uint16_t access)
 {
@@ -46,9 +48,12 @@ PRIVATE void init_gdt()
 }
 
 PUBLIC void init_interrupt();
+
 PUBLIC void init_all()
 {
     init_gdt();
     init_interrupt();
+    init_memory();
+    init_keyboard();
     init_screen(&(gBI.GraphicsInfo));
 }
