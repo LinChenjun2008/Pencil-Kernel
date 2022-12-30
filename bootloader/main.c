@@ -86,42 +86,6 @@ UefiMain
         ReadConfig(FileBase,&Config);
     }
     gotoKernel(&Config);
-    // CHAR16 str[30];
-    // while(1)
-    // {
-    //     /* 提示符 */
-    //     SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Pencil Boot >");
-    //     /* 等待,直到发生输入 */
-    //     str[0] = L'\0';
-    //     get_line(str,30);
-    //     if(strcmp(str,L"") == 0)
-    //     {
-    //         continue;
-    //     }
-    //     else if(strcmp(str,L"shutdown") == 0)
-    //     {
-    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Press any key to shutdown...\n\r");
-    //         get_char();
-    //         SystemTable->RuntimeServices->ResetSystem(EfiResetShutdown,EFI_SUCCESS,0,NULL);
-    //         return 0;
-    //     }
-    //     else if(strcmp(str,L"cls") == 0)
-    //     {
-    //         SystemTable->ConOut->ClearScreen(SystemTable->ConOut);
-    //     }
-    //     else if(strcmp(str,L"boot") == 0)
-    //     {
-    //         gotoKernel(Config);
-    //         utoa(PassBack,str,16);
-    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Kernel Return: ");
-    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,str);
-    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"\n\r");
-    //     }
-    //     else
-    //     {
-    //         SystemTable->ConOut->OutputString(SystemTable->ConOut,L"Not a command.\n\r");
-    //     }
-    // }
     return 0;
 }
 
@@ -235,10 +199,10 @@ void gotoKernel(BootConfig* Config)
         gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         while(1);
     }
-    EFI_PHYSICAL_ADDRESS TypefaceBase = (EFI_PHYSICAL_ADDRESS)NULL;
+    EFI_PHYSICAL_ADDRESS TypefaceBase = 0xe07000;
     if(Config->typeface_flage == 1)
     {
-        if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAnyPages)))
+        if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAddress)))
         {
             gST->ConOut->OutputString(gST->ConOut,L"ERROR:typeface file needed but not found. Press any key to continue. \n\r");
             get_char();
@@ -286,7 +250,7 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 (2 * 4096 显存大于4GB时)
                 == 245760B == 6 * 4kb(4kb是UEFI使用的页大小)
     */
-    EFI_PHYSICAL_ADDRESS PML4E;
+    EFI_PHYSICAL_ADDRESS PML4E = 0xe00000;
     EFI_PHYSICAL_ADDRESS PDPTE;
     EFI_PHYSICAL_ADDRESS PDE0;
     EFI_PHYSICAL_ADDRESS PDE1;
@@ -294,7 +258,7 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     EFI_PHYSICAL_ADDRESS PDE3;
     EFI_PHYSICAL_ADDRESS PDE4; // 用于显存
 
-    if(EFI_ERROR(AllocPage(7,&PML4E)))
+    if(EFI_ERROR(GetPage(7,&PML4E)))
     {
         gST->ConOut->OutputString(gST->ConOut,L"can't allocate memory for Page Table!!!\n\r");
     }
@@ -307,6 +271,7 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
 
     *((UINTN*)(PML4E + 0x000)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0x00000...
     *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
+    *((UINTN*)(PML4E + 0xff8)) = PML4E | PG_US_U | PG_RW_W | PG_P; // 最后一项指向页目录自己
 
     *((UINTN*)(PDPTE + 0x000)) = PDE0 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x008)) = PDE1 | PG_US_U | PG_RW_W | PG_P;

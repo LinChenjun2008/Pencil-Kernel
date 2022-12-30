@@ -7,13 +7,8 @@
 #include <graphic.h>
 #include <stdio.h>
 
-/**
-    @brief 内核的主函数
-    @param binfo    启动数据,由引导程序传入
+#include <list.h>
 
-    @retval         正常情况下永不返回
-
-**/
 struct BootInfo gBI;
 
 PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
@@ -60,18 +55,17 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     sprintf(str,"内存: %d GB (%d MB)\n",
     MemorySize >> 18,MemorySize >> 8);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-    sprintf(str,"合并前: %d 合并后: %d\n",
-    PageCnt,MemoryDescriptorNumber);
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
     for(i = 0;i < MemoryDescriptorNumber;i++)
     {
-            sprintf(str,"%2d Type=%x AddrStart= %p Size(4KB): %d\n",
+        if(MemoryDescriptor[i].Type == FreeMemory)
+        {
+            sprintf(str,"%2d FreeMemory AddrStart= %p Size: %d(2MB)\n",
             i,
-            MemoryDescriptor[i].Type,
             MemoryDescriptor[i].AddrStart,
-            MemoryDescriptor[i].Memory_4KB_Size
+            MemoryDescriptor[i].MemoryPageSize
             );
             vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+        }
     }
     while(1);
     return 0;

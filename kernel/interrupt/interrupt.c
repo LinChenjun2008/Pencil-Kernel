@@ -275,7 +275,7 @@ void intr0x20_handler()
         col.Red = 0;
         col.Green++;
     }
-    viewFill(&(gBI.GraphicsInfo),col,0,0,100,100);
+    viewFill(&(gBI.GraphicsInfo),col,0,0,10,10);
     return;
 }
 

@@ -85,11 +85,15 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
             s = digits;
             digits[0] = '0';
             digits[1] = 'x';
-            utoa((ptr_t)va_arg(ap,ptr_t),digits+2,16);
+            utoa((MEMORY_ADDRESS)va_arg(ap,MEMORY_ADDRESS),digits+2,16);
             break;
         case 's': /* %s */
             s = va_arg(ap,char*);
             strcpy(str,s);
+            break;
+        case 'u': /* %u */
+            s = digits;
+            utoa(va_arg(ap,uint64_t),s,10);
             break;
         case 'x': /* %x */
             s = digits;

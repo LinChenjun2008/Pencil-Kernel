@@ -115,8 +115,7 @@ void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint
     @brief 显示一个字符串.
     @param Ginfo    显存的信息,
                     用于获取显存地址、长宽等信息.
-    @param Pos      用于显示文字的坐标.
-                    显示完成后,是下一个字符的位置.
+    @param Pos      文字显示的坐标.显示后指向下一个字符的位置.
     @param color    文字颜色
     @param str      字符串(utf-8)
 

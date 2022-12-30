@@ -3,6 +3,8 @@
 
 #define NULL ((VOID*) 0)
 
+typedef int BOOL;
+
 #define TRUE  (1 == 1)
 #define FALSE (1 == 0)
 
@@ -27,7 +29,6 @@ typedef INT64  INTN;
 typedef UINT64 MEMORY_ADDRESS;
 typedef UINT64 PHYSICAL_ADDRESS;
 typedef UINT64 VIRTUAL_ADDRESS;
-typedef UINT64 ptr_t;
 
 typedef UINT8  byte;
 typedef UINT16 word;
@@ -37,7 +38,6 @@ typedef UINT64 qword;
 extern struct BootInfo gBI;
 
 #define ASSERT(X) ((void)0);
-
 
 /* gdt描述符 */
 struct SEGMDESC
@@ -99,8 +99,8 @@ struct SEGMDESC
 #define AR_IDT_DESC_DPL0 (AR_P | AR_DPL_0 | AR_DESC_32)
 #define AR_IDT_DESC_DPL3 (AR_P | AR_DPL_3 | AR_DESC_32)
 
-#define KERNEL_PAGE_DIR_TABLE_POS 0x1000000
-#define KERNEL_VADDR_BASE 0xffff800000000000
+#define KERNEL_PAGE_DIR_TABLE_POS 0xe00000
+#define KERNEL_VMA_BASE 0x0000000000000000
 
 #define PG_SIZE 0x200000
 #define PCB_SIZE (PG_SIZE * 1)

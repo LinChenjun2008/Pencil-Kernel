@@ -120,7 +120,7 @@ EFI_STATUS ReadFile(IN CHAR16* FileName,EFI_PHYSICAL_ADDRESS* FileBufferAddress,
     if(EFI_ERROR(Status))
     {
         //gST->ConOut->OutputString(gST->ConOut,L"ReadFile: AllocatePages error.\n\r");
-        return Status;
+        //return Status;
     }
     UINTN ReadSize = FileInfo->FileSize;
     Status = FileHandle->Read
