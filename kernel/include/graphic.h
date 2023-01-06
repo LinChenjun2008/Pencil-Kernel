@@ -14,6 +14,6 @@ void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int
 void init_screen(struct GraphicsInfo* Ginfo);
 
 void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint64_t ch);
-void vput_utf8_str(const struct GraphicsInfo* const Ginfo,struct Position* Pos,BltPixel color,const char* str);
+void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str);
 
 #endif

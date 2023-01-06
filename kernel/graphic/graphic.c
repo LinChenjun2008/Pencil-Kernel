@@ -120,7 +120,7 @@ void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint
     @param str      字符串(utf-8)
 
 **/
-void vput_utf8_str(const struct GraphicsInfo* const Ginfo,struct Position* Pos,BltPixel color,const char* str)
+void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str)
 {
     uint64_t code = 0;
     struct Position pos = *Pos;
@@ -132,6 +132,11 @@ void vput_utf8_str(const struct GraphicsInfo* const Ginfo,struct Position* Pos,B
     */
     while(*str)
     {
+        if(pos.x + 20 >= Ginfo->HorizontalResolution)
+        {
+            pos.x = Pos->x;
+            pos.y += 20;
+        }
         if((*str >> 7) == 0)
         {
             code = *str;

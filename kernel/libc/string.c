@@ -1,4 +1,6 @@
+#include <common.h>
 #include <global.h>
+#include <debug.h>
 #include <stdint.h>
 
 /** memset

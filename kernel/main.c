@@ -1,4 +1,5 @@
 #include <common.h>
+#include <debug.h>
 #include <stdint.h>
 #include <global.h>
 #include <init.h>
@@ -10,6 +11,7 @@
 #include <list.h>
 
 struct BootInfo gBI;
+struct Position Pos = {10,10};
 
 PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
 {
@@ -52,21 +54,9 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
             MemorySize += (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->NumberOfPages;
         }
     }
-    sprintf(str,"内存: %d GB (%d MB)\n",
-    MemorySize >> 18,MemorySize >> 8);
+    sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
+    MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-    for(i = 0;i < MemoryDescriptorNumber;i++)
-    {
-        if(MemoryDescriptor[i].Type == FreeMemory)
-        {
-            sprintf(str,"%2d FreeMemory AddrStart= %p Size: %d(2MB)\n",
-            i,
-            MemoryDescriptor[i].AddrStart,
-            MemoryDescriptor[i].MemoryPageSize
-            );
-            vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-        }
-    }
     while(1);
     return 0;
 }

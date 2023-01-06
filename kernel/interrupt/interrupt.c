@@ -190,9 +190,12 @@ void general_intr_handler()
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
     sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[15]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    uint64_t cr3;
-    __asm__ __volatile__("movq %%cr3,%%rax":"=a"(cr3)::);
-    sprintf(s,"cr3 = %016x\n",cr3);
+    uint64_t crN;
+    __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
+    sprintf(s,"cr2 = %016x\n",crN);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
+    sprintf(s,"cr3 = %016x\n",crN);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
     if(Nr <= 0x1f)
     {
@@ -260,7 +263,7 @@ PUBLIC enum intr_status intr_get_status()
     return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);
 }
 
-BltPixel col =
+PRIVATE BltPixel col =
 {
     .Red = 0,
     .Green = 0,

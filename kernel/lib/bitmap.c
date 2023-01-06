@@ -1,4 +1,5 @@
 #include <bitmap.h>
+#include <debug.h>
 #include <string.h>
 
 /**

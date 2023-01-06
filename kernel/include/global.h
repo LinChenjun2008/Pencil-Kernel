@@ -37,8 +37,6 @@ typedef UINT64 qword;
 
 extern struct BootInfo gBI;
 
-#define ASSERT(X) ((void)0);
-
 /* gdt描述符 */
 struct SEGMDESC
 {
@@ -122,5 +120,7 @@ struct SEGMDESC
 
 #define PUBLIC
 #define PRIVATE static
+
+#define DIV_ROUND_UP(X ,STEP) (((X) + (STEP - 1)) / STEP)
 
 #endif
