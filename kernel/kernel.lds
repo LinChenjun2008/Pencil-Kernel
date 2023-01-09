@@ -13,34 +13,27 @@ SECTIONS
     _text = .;
     .text (_text): AT(_text - KERNEL_VMA_BASE)
     {
-
+        kernel_main = .;
         *(.text)
-        
     }
     _etext = .;
     . = ALIGN(8);
     _data = .;
     .data (_data): AT(_data - KERNEL_VMA_BASE)
     {
-        
         *(.data)
-        
     }
     _edata = .;
     _rodata = .;
     .rodata (_rodata): AT(_rodata - KERNEL_VMA_BASE)
     {
-        
         *(.rodata)
-        
     }
     _erodata = .;
     _bss = .;
     .bss (_bss): AT(_bss - KERNEL_VMA_BASE)
     {
-        
         *(.bss)
-        
     }
     _ebss = .;
     _kernel_end = .;

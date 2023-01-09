@@ -5,16 +5,16 @@
 #include <init.h>
 #include <interrupt.h>
 #include <memory.h>
+#include <thread.h>
 #include <graphic.h>
 #include <stdio.h>
 
-#include <list.h>
-
 struct BootInfo gBI;
 struct Position Pos = {10,10};
-
+void kthread(void* arg __attribute((unused)));
 PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
 {
+    intr_disable();
     binfo = (void*)0x7c00;
     gBI = *binfo;
     init_all();
@@ -57,6 +57,7 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
     MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    thread_start("Kt1",31,kthread,NULL);
     while(1);
     return 0;
 }

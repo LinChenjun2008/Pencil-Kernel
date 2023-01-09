@@ -4,6 +4,7 @@
 #include <graphic.h>
 #include <init.h>
 #include <memory.h>
+#include <thread.h>
 #include <keyboard.h>
 
 PRIVATE struct SEGMDESC make_segmdesc(uint32_t base,uint32_t limit,uint16_t access)
@@ -57,6 +58,14 @@ PUBLIC void init_all()
     init_gdt();
     init_interrupt();
     init_memory();
+    init_thread();
     init_keyboard();
     init_screen(&(gBI.GraphicsInfo));
+}
+
+
+void kthread(void* arg __attribute((unused)))
+{
+    asm("int $0x80");
+    while(1);
 }

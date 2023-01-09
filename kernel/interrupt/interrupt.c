@@ -1,8 +1,10 @@
 #include <common.h>
 #include <global.h>
 #include <graphic.h>
+#include <debug.h>
 #include <io.h>
 
+#include <thread.h>
 #include <stdio.h>
 #include <interrupt.h>
 
@@ -109,6 +111,7 @@ asm \
     ".global "#Entry" \n\t" \
     #Entry": \n\t" \
     #ErrorCode"\n\t" \
+ \
     "pushq %r15 \n\t" \
     "pushq %r14 \n\t" \
     "pushq %r13 \n\t" \
@@ -126,8 +129,17 @@ asm \
     "pushq %rbx \n\t" \
     "pushq %rax \n\t" \
  \
-    "movq $"#NR",%rdi \n\t" \
-    "movq %rsp,%rsi \n\t" \
+    "movw  %gs,%ax \n\t" \
+    "pushq %ax \n\t" \
+    "movw  %fs,%ax \n\t" \
+    "pushq %ax \n\t" \
+    "movw  %es,%ax \n\t" \
+    "pushq %ax \n\t" \
+    "movw  %ds,%ax \n\t" \
+    "pushq %ax \n\t" \
+ \
+    "movq $"#NR",%rcx \n\t" \
+    "movq %rsp,%rdx \n\t" \
     "callq "#Handler" \n\t" \
     "jmp intr_exit" \
 );
@@ -137,35 +149,73 @@ asm \
 
 asm
 (
-   ".global intr_exit \n\t"
-   "intr_exit: \n\t"
-   "popq %rax \n\t"
-   "popq %rbx \n\t"
-   "popq %rcx \n\t"
-   "popq %rdx \n\t"
-   "popq %rbp \n\t"
-   "popq %rsi \n\t"
-   "popq %rdi \n\t"
+    ".global intr_exit \n\t"
+    "intr_exit: \n\t"
 
-   "popq %r8 \n\t"
-   "popq %r9 \n\t"
-   "popq %r10 \n\t"
-   "popq %r11 \n\t"
-   "popq %r12 \n\t"
-   "popq %r13 \n\t"
-   "popq %r14 \n\t"
-   "popq %r15 \n\t"
+    "popq %ax \n\t"
+    "movw  %ds,%ax \n\t"
+    "popq %ax \n\t"
+    "movw  %es,%ax \n\t"
+    "popq %ax \n\t"
+    "movw  %fs,%ax \n\t"
+    "popq %ax \n\t"
+    "movw  %gs,%ax \n\t"
 
-   "addq $8,%rsp \n\t"
-   ".byte 0x48 \n\t" // 64bit
-   ".byte 0xcf"      // iretd
+    "popq %rax \n\t"
+    "popq %rbx \n\t"
+    "popq %rcx \n\t"
+    "popq %rdx \n\t"
+    "popq %rbp \n\t"
+    "popq %rsi \n\t"
+    "popq %rdi \n\t"
+
+    "popq %r8 \n\t"
+    "popq %r9 \n\t"
+    "popq %r10 \n\t"
+    "popq %r11 \n\t"
+    "popq %r12 \n\t"
+    "popq %r13 \n\t"
+    "popq %r14 \n\t"
+    "popq %r15 \n\t"
+
+    "addq $8,%rsp \n\t"
+    ".byte 0x48 \n\t" // 64bit
+    ".byte 0xcf"      // iretd
 );
 
-void general_intr_handler()
+enum OffsetInStack
 {
-    uint64_t Nr;
-    uint64_t* stack;
-    asm __volatile__("movq %%rsi,%[stack] \n\t""movq %%rdi,%[Nr]":[Nr]"=r"(Nr),[stack]"=r"(stack));
+    Stack_Ds,
+    Stack_Es,
+    Stack_Fs,
+    Stack_Gs,
+
+    Stack_Rax,
+    Stack_Rbx,
+    Stack_Rcx,
+    Stack_Rdx,
+    Stack_Rbp,
+    Stack_Rsi,
+    Stack_Rdi,
+    Stack_R8,
+    Stack_R9,
+    Stack_R10,
+    Stack_R11,
+    Stack_R12,
+    Stack_R13,
+    Stack_R14,
+    Stack_R15,
+
+    Stack_ErrorCode,
+    Stack_Rip,
+    Stack_Cs,
+};
+
+void general_intr_handler(UINTN Nr,UINTN* stack)
+{
+    // uint64_t Nr;
+    // uint64_t* stack;
+    // asm __volatile__("movq %%rsi,%[stack] \n\t""movq %%rdi,%[Nr]":[Nr]"=r"(Nr),[stack]"=r"(stack));
     BltPixel col =
     {
         .Red = 0,
@@ -178,17 +228,17 @@ void general_intr_handler()
     col.Red = 255;
     col.Green = 255;
     col.Blue = 255;
-    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack[0],stack[1],stack[2],stack[3]);
+    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack[Stack_Rax],stack[Stack_Rbx],stack[Stack_Rcx],stack[Stack_Rdx]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack[4],stack[5],stack[6]);
+    sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack[Stack_Rbp],stack[Stack_Rsi],stack[Stack_Rdi]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack[7],stack[8],stack[9],stack[10]);
+    sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack[Stack_R8],stack[Stack_R9],stack[Stack_R10],stack[Stack_R11]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack[11],stack[12],stack[13],stack[14]);
+    sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack[Stack_R12],stack[Stack_R13],stack[Stack_R14],stack[Stack_R15]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    sprintf(s,"CS:RIP %04x:%016x\n",stack[17],stack[16]);
+    sprintf(s,"CS:RIP %04x:%016x\n",stack[Stack_Cs],stack[Stack_Rip]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
-    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[15]);
+    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[Stack_ErrorCode]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
@@ -279,6 +329,18 @@ void intr0x20_handler()
         col.Green++;
     }
     viewFill(&(gBI.GraphicsInfo),col,0,0,10,10);
+
+    struct task_struct* cur_thread = running_thread();
+    ASSERT(cur_thread->stack_magic == 0x12345678);
+    cur_thread->elapsed_ticks++;
+    if(cur_thread->ticks == 0)
+    {
+        schedule();
+    }
+    else
+    {
+        cur_thread->ticks--;
+    }
     return;
 }
 

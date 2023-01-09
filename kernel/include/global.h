@@ -101,7 +101,6 @@ struct SEGMDESC
 #define KERNEL_VMA_BASE 0x0000000000000000
 
 #define PG_SIZE 0x200000
-#define PCB_SIZE (PG_SIZE * 1)
 
 #define PG_P 0x1
 #define PG_RW_R 0x0
@@ -122,5 +121,9 @@ struct SEGMDESC
 #define PRIVATE static
 
 #define DIV_ROUND_UP(X ,STEP) (((X) + (STEP - 1)) / STEP)
+
+/** STATIC_ASSERT(CONDITION,MESSAGE) **/
+#define STATIC_ASSERT _Static_assert
+
 
 #endif

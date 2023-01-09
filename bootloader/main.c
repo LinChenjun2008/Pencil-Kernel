@@ -195,7 +195,7 @@ void gotoKernel(BootConfig* Config)
     }
     if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,AllocateAddress)))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel (maybe address 0x100000 unavailable) \n\r");
+        gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel\n\r");
         gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         while(1);
     }
@@ -225,7 +225,7 @@ void gotoKernel(BootConfig* Config)
     EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
-    asm __volatile__("movq %0,%%cr3"::"r"(PML4E));
+    __asm__ __volatile__("movq %[PML4E_POS],%%cr3 \n\t movq $0xe00000,%%rsp"::[PML4E_POS]"r"(PML4E):"rsp");
     EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))0x0000000000100000;
     Kernel(BootInfo);
 }
@@ -263,8 +263,10 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
 
     if(EFI_ERROR(GetPage(7,&PML4E)))
     {
-        gST->ConOut->OutputString(gST->ConOut,L"can't allocate memory for Page Table!!!\n\r");
+        gST->ConOut->OutputString(gST->ConOut,L"can't allocate memory for Page Table!!! (ignore)\n\r");
     }
+
+    memset((void*)PML4E,0, 7 * 0x1000);
     PDPTE  = PML4E + 1 * 0x1000;
     PDE0   = PML4E + 2 * 0x1000;
     PDE1   = PML4E + 3 * 0x1000;
