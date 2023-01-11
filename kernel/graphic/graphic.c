@@ -38,17 +38,28 @@ void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int
 
 void init_screen(struct GraphicsInfo* Ginfo)
 {
-    int tsk  = 60;
+    int tsk  = 70;
     BltPixel color;
     color.Red   = 0x20;
     color.Green = 0x70;
     color.Blue  = 0x90;
     viewFill(Ginfo,color,0,0,Ginfo->HorizontalResolution - 1,Ginfo->VerticalResolution - tsk - 1);
 
-    color.Red   = 255;
-    color.Green = 255;
-    color.Blue  = 255;
+    color.Red   = 0x20;
+    color.Green = 0x20;
+    color.Blue  = 0x20;
     viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk - 1,(Ginfo->HorizontalResolution - 1),Ginfo->VerticalResolution - 1);
+
+    color.Red   = 0x50;
+    color.Green = 0x50;
+    color.Blue  = 0x50;
+    viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk - 1,tsk * 4,Ginfo->VerticalResolution - 1);
+
+    color.Red   = 0xa0;
+    color.Green = 0xa0;
+    color.Blue  = 0xa0;
+    viewFill(Ginfo,color,10,    Ginfo->VerticalResolution - tsk + 10 - 1,tsk - 10,Ginfo->VerticalResolution - 10 - 1);
+
 }
 
 /**

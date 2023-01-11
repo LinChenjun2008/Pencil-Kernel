@@ -1,18 +1,37 @@
 #include <global.h>
 #include <thread.h>
 #include <debug.h>
+#include <interrupt.h>
 #include <list.h>
 #include <memory.h>
+#include <graphic.h>
+#include <stdio.h>
 #include <string.h>
 
 PRIVATE struct task_struct* main_thread;
-PRIVATE struct ListNode* This_thread_tag;
 PUBLIC struct List ready_list;
 PUBLIC struct List all_list;
 
-PRIVATE void kernel_thread(thread_function* func,void* arg)
+PRIVATE void kernel_thread(void)
 {
+    UINTN __func;
+    UINTN __arg;
+    // 获取暂存的值
+    __asm__ __volatile__
+    (
+        "movq %%rsi,%[func] \n\t"
+        "movq %%rdi,%[arg] \n\t"
+        "movq $0,%%rsi \n\t"
+        "movq $0,%%rdi \n\t"
+        :[func]"=g"(__func),[arg]"=g"(__arg)
+        :
+        :"rsi","rdi"
+    );
+    intr_enable();
+    thread_function* func = (thread_function*)__func;
+    void* arg = (void*)__arg;
     func(arg);
+    return;
 }
 
 void thread_init(struct task_struct* thread,char* name,UINTN priority)
@@ -28,10 +47,11 @@ void thread_init(struct task_struct* thread,char* name,UINTN priority)
         thread->status = TASK_RUNNING;
     }
     thread->priority = priority;
-    thread->self_kstack = (UINTN*)(((UINTN)thread) + PCB_SIZE);
+    thread->self_kstack = (UINTN)(((MEMORY_ADDRESS)thread) + PCB_SIZE);
+    ASSERT(thread->self_kstack != 0);
     thread->page_dir = NULL;
 
-    thread->stack_magic = 0x12345678;
+    thread->stack_magic = StackMagic;
     return;
 }
 
@@ -52,17 +72,15 @@ void thread_create(struct task_struct* thread,thread_function func,void* arg)
 {
     thread->self_kstack -= sizeof(struct intr_stack);
     thread->self_kstack -= sizeof(struct thread_stack);
-
+    ASSERT(thread->self_kstack != 0);
     struct thread_stack* kthread_stack;
     kthread_stack = ((struct thread_stack*)(thread->self_kstack));
 
     kthread_stack->rip = kernel_thread;
-    kthread_stack->func = func;
-    kthread_stack->func_arg = arg;
     kthread_stack->rbp = 0;
     kthread_stack->rbx = 0;
-    kthread_stack->rsi = 0;
-    kthread_stack->rdi = 0;
+    kthread_stack->rsi = (UINTN)func; /* 借用rsi暂存 */
+    kthread_stack->rdi = (UINTN)arg;  /* 借用rdi暂存 */
     return;
 }
 
@@ -96,44 +114,99 @@ void init_thread()
     return;
 }
 
-extern void switch_to(UINTN*,UINTN*);
+extern void switch_to(void*,void*);
 __asm__
 (
     "switch_to: \n\t"
+    // 栈中这里是返回地址
     "pushq %rsi \n\t"
     "pushq %rdi \n\t"
     "pushq %rbx \n\t"
     "pushq %rbp \n\t"
+
     /* 接下来切换栈 */
     "movq %rsp,(%rcx) \n\t" // (%rcx)是current->self_kstack
     "movq (%rdx),%rsp \n\t" // (%rdx)是next->self_kstack
     /* 现在已经切换到next的栈了 */
     /* 所以下面pop的值并不是刚才push的值 */
+
     "popq %rbp \n\t"
     "popq %rbx \n\t"
     "popq %rdi \n\t"
     "popq %rsi \n\t"
-    "ret"
+    "ret \n\t"
 );
 
 PUBLIC void schedule()
 {
     struct task_struct* cur_thread = running_thread();
-    ASSERT(cur_thread->stack_magic == 0x12345678)
+    ASSERT(cur_thread->stack_magic == StackMagic); /* 确保栈不溢出 */
+    if(cur_thread->status == TASK_RUNNING)
     {
         ASSERT(!(list_find(&ready_list,&cur_thread->general_tag)));
         list_append(&ready_list,&(cur_thread->general_tag));
         cur_thread->status = TASK_RUNNING;
     }
     struct task_struct* next = NULL;
-    This_thread_tag = NULL;
     if(list_empty(&ready_list))
     {
         ASSERT(list_empty(&ready_list));
     }
-    This_thread_tag = list_pop(&ready_list);
-    next = container_of(struct task_struct,general_tag,This_thread_tag);
+    
+    struct ListNode* next_thread_tag = NULL;
+    next_thread_tag = list_pop(&ready_list);
+    next = container_of(struct task_struct,general_tag,next_thread_tag);
+
     next->status = TASK_RUNNING;
-    switch_to(cur_thread->self_kstack,next->self_kstack);
+    switch_to(&cur_thread->self_kstack,&next->self_kstack);
     return;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//  下面是测试线程
+////////////////////////////////////////////////////////////////////////////
+
+
+
+void kthread(void* arg __attribute((unused)))
+{
+    intr_enable();
+    PRIVATE BltPixel col =
+    {
+        .Red = 0,
+        .Green = 0,
+        .Blue = 0,
+    };
+    while(1)
+    {
+        col.Red++;
+        if(col.Red >= 250)
+        {
+            col.Red = 0;
+            col.Green++;
+        }
+        viewFill(&(gBI.GraphicsInfo),col,10,0,20,10);
+    };
+}
+
+void kthread2(void* arg __attribute((unused)))
+{
+    intr_enable();
+    PRIVATE BltPixel col =
+    {
+        .Red = 0,
+        .Green = 0,
+        .Blue = 0,
+    };
+    while(1)
+    {
+        col.Red++;
+        if(col.Red >= 250)
+        {
+            col.Red = 0;
+            col.Green++;
+        }
+        viewFill(&(gBI.GraphicsInfo),col,20,0,30,10);
+    };
 }

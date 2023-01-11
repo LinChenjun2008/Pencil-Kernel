@@ -1,8 +1,10 @@
 #include <common.h>
+#include <debug.h>
 #include <stdint.h>
 #include <global.h>
 #include <graphic.h>
 #include <init.h>
+#include <interrupt.h>
 #include <memory.h>
 #include <thread.h>
 #include <keyboard.h>
@@ -61,11 +63,4 @@ PUBLIC void init_all()
     init_thread();
     init_keyboard();
     init_screen(&(gBI.GraphicsInfo));
-}
-
-
-void kthread(void* arg __attribute((unused)))
-{
-    asm("int $0x80");
-    while(1);
 }

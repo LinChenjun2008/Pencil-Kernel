@@ -7,7 +7,8 @@
 typedef UINTN pid_t;
 typedef void thread_function(void*);
 
-#define PCB_SIZE (64 * 0x1000) /* 64KB */
+#define PCB_SIZE (64 * 1024) /* 64KB */
+#define StackMagic 0x55aa55aa55aa55aa
 
 enum task_status
 {
@@ -24,6 +25,7 @@ enum task_status
 struct intr_stack
 {
     /* 低地址 */
+    /* 以下是中断处理程序入栈的值 */
     UINTN ds;
     UINTN es;
     UINTN fs;
@@ -45,7 +47,7 @@ struct intr_stack
     UINTN r13;
     UINTN r14;
     UINTN r15;
-    /* CPU 特权级切换时自动入栈的内容 */
+    /* 以下是CPU 特权级切换时自动入栈的内容 */
     UINTN ErrorCode;
     void (*rip)(void);
     UINTN cs;
@@ -63,18 +65,14 @@ struct thread_stack
     UINTN rbx;
     UINTN rdi;
     UINTN rsi;
-    /* 在线中程执行的函数 */
-    void (*rip)(thread_function* function,void* arg);
-    /* 以下是线程第一次上cpu是用的 */
-    void* (return_addr); /* 占位的,没用 */
-    thread_function* func;
-    void* func_arg;
+    /* 线程中执行的函数 */
+    void* rip;
 };
 
 /* 程序控制块pcb */
 struct task_struct
 {
-    UINTN* self_kstack;               /* 线程内核栈指针 */
+    UINTN self_kstack;               /* 线程内核栈指针 */
     volatile enum task_status status; /* 状态 */
     pid_t pid;                        /* 进程或线程 pid */
     char name[32];                    /* 名称 */

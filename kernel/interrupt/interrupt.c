@@ -331,7 +331,9 @@ void intr0x20_handler()
     viewFill(&(gBI.GraphicsInfo),col,0,0,10,10);
 
     struct task_struct* cur_thread = running_thread();
-    ASSERT(cur_thread->stack_magic == 0x12345678);
+
+    ASSERT(cur_thread->stack_magic == StackMagic);
+
     cur_thread->elapsed_ticks++;
     if(cur_thread->ticks == 0)
     {

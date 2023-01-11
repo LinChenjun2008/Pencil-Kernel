@@ -12,6 +12,7 @@
 struct BootInfo gBI;
 struct Position Pos = {10,10};
 void kthread(void* arg __attribute((unused)));
+void kthread2(void* arg __attribute((unused)));
 PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
 {
     intr_disable();
@@ -19,6 +20,8 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     gBI = *binfo;
     init_all();
     intr_enable();
+    thread_start("Kt1",31,kthread,NULL);
+    thread_start("Kt2",31,kthread2,NULL);
     const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
     struct Position Pos = {10,10};
     BltPixel col = 
@@ -57,7 +60,6 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
     MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
     vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-    thread_start("Kt1",31,kthread,NULL);
     while(1);
     return 0;
 }

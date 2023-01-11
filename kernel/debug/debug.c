@@ -1,5 +1,6 @@
 #include <global.h>
 #include <interrupt.h>
+#include <thread.h>
 #include <graphic.h>
 #include <stdio.h>
 
@@ -7,7 +8,7 @@ void panic_spin(const char* file,const char* base_file,int line,const char* func
 {
     intr_disable();
     char str[127];
-    sprintf(str,"--- Kernel Panic --- \n File: %s \n Base File: %s \n In function: %s\n Line: %d\n Condition: %s\n",file,base_file,func,(UINTN)line,condition);
+    sprintf(str,"--- Kernel Panic --- \n File: %s \n Base File: %s \n In function: %s\n Line: %d\n Condition: %s\n thread: %s",file,base_file,func,(UINTN)line,condition,running_thread()->name);
     struct Position Pos = { 10,10};
     BltPixel col;
     col.Red = 127;
