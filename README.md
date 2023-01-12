@@ -22,6 +22,6 @@ sudo apt install gcc-mingw-w64-x86-64
 .typeface = "typeface.sys"
 ```
 需要保存为UTF-16 LE 格式.
-其中,`.x`和`.y`设置分辨率,`.kernel`指定内核文件.
+其中,`.x`和`.y`设置分辨率,`.kernel`指定内核文件.<br />
 6.将符合utf-8编码的16*16点阵字库命名为`BootConfig.txt`中设定的文件名,并复制到根目录下.<br />
 7.从U盘启动即可.<br />
