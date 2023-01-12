@@ -1,0 +1,64 @@
+#文件路径
+
+UEFI_DIR = ../bootloader/
+KERNEL_DIR = ../kernel/
+INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../
+
+#源代码
+UEFI_SRC = \
+$(UEFI_DIR)/main.c \
+$(UEFI_DIR)/video.c \
+$(UEFI_DIR)/file.c \
+$(UEFI_DIR)/memory.c \
+$(UEFI_DIR)/lib.c
+
+KERNEL_SRC = \
+$(KERNEL_DIR)/main.c \
+$(KERNEL_DIR)/init.c \
+$(KERNEL_DIR)/debug/debug.c \
+$(KERNEL_DIR)/interrupt/interrupt.c \
+$(KERNEL_DIR)/thread/thread.c \
+$(KERNEL_DIR)/memory/memory.c \
+$(KERNEL_DIR)/driver/keyboard.c \
+$(KERNEL_DIR)/graphic/graphic.c \
+$(KERNEL_DIR)/lib/lib.c \
+$(KERNEL_DIR)/lib/list.c \
+$(KERNEL_DIR)/lib/bitmap.c \
+$(KERNEL_DIR)/libc/string.c \
+$(KERNEL_DIR)/libc/stdio.c
+
+
+#虚拟磁盘和物理磁盘路径
+DISK = ../../run/disk/
+REAL_DISK = ../../../
+
+#输出文件名
+KERNEL_OBJ       = $(KERNEL_DIR)/kernel.o
+UEFI_OUTPUT      = $(DISK)/EFI/Boot/BootX64.efi
+KERNEL_OUTPUT    = $(DISK)/kernel.sys
+
+#实际路径(物理磁盘上的路径)
+REAL_UEFI_OUTPUT      = $(REAL_DISK)/EFI/Boot/BootX64.efi
+REAL_KERNEL_OUTPUT    = $(REAL_DISK)/kernel.sys
+
+#工具路径
+TOOL_DIR = ../../tools/
+
+#编译器
+CC = $(TOOL_DIR)Mingw/bin/gcc
+
+#连接器和链接脚本
+LD  = $(TOOL_DIR)ld
+KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
+
+#其他
+OBJCOPY = $(TOOL_DIR)/objcopy
+RM             = $(TOOL_DIR)/rm
+
+#模拟器和UEFI-BIOS
+QEMU = $(TOOL_DIR)/qemu/qemu-system-x86_64
+UEFI_BIOS      = ../../run/bios.bin
+
+#输出文件格式
+KERNEL_OBJ_FORMAT    = pe-x86-64
+KERNEL_OUTPUT_FORMAT = binary
