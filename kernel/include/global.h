@@ -1,7 +1,7 @@
 #ifndef __BASE_TYPE_H__
 #define __BASE_TYPE_H__
 
-#define NULL ((VOID*) 0)
+#define NULL ((void*) 0)
 
 typedef int BOOL;
 

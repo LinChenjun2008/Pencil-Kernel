@@ -1,4 +1,3 @@
-#include <common.h>
 #include <global.h>
 #include <graphic.h>
 #include <debug.h>
@@ -68,12 +67,12 @@ struct gate_desc
 PRIVATE struct gate_desc idt[IDT_DESC_CNT];
 
 /** set_gatedesc
-    @brief          创建中断描述符
-    @param gd       中断描述符指针
-    @param func     对应的中断处理函数指针
-    @param selector 目标代码段选择子
-    @param ar       属性
-**/
+ * @brief          创建中断描述符
+ * @param gd       中断描述符指针
+ * @param func     对应的中断处理函数指针
+ * @param selector 目标代码段选择子
+ * @param ar       属性
+*/
 PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
 {
     gd->offset_low = ((uint64_t)func) & 0x000000000000ffff;
@@ -106,7 +105,7 @@ PUBLIC void init_interrupt()
 }
 
 #define INTR_HANDLER(Entry,NR,ErrorCode,Handler) \
-asm \
+__asm__ \
 ( \
     ".global "#Entry" \n\t" \
     #Entry": \n\t" \
@@ -147,7 +146,7 @@ asm \
 #include <intrlist.h>
 #undef INTR_HANDLER
 
-asm
+__asm__
 (
     ".global intr_exit \n\t"
     "intr_exit: \n\t"
@@ -213,9 +212,6 @@ enum OffsetInStack
 
 void general_intr_handler(UINTN Nr,UINTN* stack)
 {
-    // uint64_t Nr;
-    // uint64_t* stack;
-    // asm __volatile__("movq %%rsi,%[stack] \n\t""movq %%rdi,%[Nr]":[Nr]"=r"(Nr),[stack]"=r"(stack));
     BltPixel col =
     {
         .Red = 0,
@@ -256,10 +252,10 @@ void general_intr_handler(UINTN Nr,UINTN* stack)
 
 
 /**
-    @brief  开中断
+ * @brief  开中断
 
-    @return 开中断前的状态
-**/
+ * @return 开中断前的状态
+*/
 PUBLIC enum intr_status intr_enable()
 {
     enum intr_status old_status;
@@ -277,10 +273,10 @@ PUBLIC enum intr_status intr_enable()
 }
 
 /**
-    @brief  关中断
+ * @brief  关中断
 
-    @return 关中断前的状态
-**/
+ * @return 关中断前的状态
+*/
 PUBLIC enum intr_status intr_disable()
 {
     enum intr_status old_status;
@@ -298,10 +294,10 @@ PUBLIC enum intr_status intr_disable()
 }
 
 /**
-    @brief 将中断状态设为status
+ * @brief 将中断状态设为status
 
-    @return 之前的中断状态
-**/
+ * @return 之前的中断状态
+*/
 PUBLIC enum intr_status intr_set_status(enum intr_status status)
 {
     return (status == INTR_ON ? intr_enable() : intr_disable());
@@ -319,6 +315,7 @@ PRIVATE BltPixel col =
     .Green = 0,
     .Blue = 0,
 };
+
 void intr0x20_handler()
 {
     io_out8(PIC_M_CTRL,0x20);

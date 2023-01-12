@@ -1,16 +1,15 @@
-#include <common.h>
 #include <global.h>
 #include <debug.h>
 #include <stdint.h>
 
 /** memset
 
-    @brief 将dst__开始的size字节置为value
+ * @brief 将dst__开始的size字节置为value
 
-    @param dst__ :要设置的地址
-    @param value :设置成的值
-    @param size  :要设置的大小(字节)
-**/
+ * @param dst__ :要设置的地址
+ * @param value :设置成的值
+ * @param size  :要设置的大小(字节)
+*/
 void memset(void* dst__,uint8_t value,uint32_t size)
 {
     ASSERT(dst__ != NULL);
@@ -26,12 +25,12 @@ void memset(void* dst__,uint8_t value,uint32_t size)
 
 /** memcpy
 
-    @brief 将src__处的size字节复制到dst__
+ * @brief 将src__处的size字节复制到dst__
 
-    @param dst__ :复制的目的地址
-    @param src__ :原地址
-    @param size  :要复制的字节数
-**/
+ * @param dst__ :复制的目的地址
+ * @param src__ :原地址
+ * @param size  :要复制的字节数
+*/
 void memcpy(void* dst__,const void* src__,uint32_t size)
 {
     ASSERT(dst__ != NULL && src__ != NULL);
@@ -49,15 +48,15 @@ void memcpy(void* dst__,const void* src__,uint32_t size)
 
 /** memcmp
 
-    @brief 比较p1__和p2__处的size字节数据是否相等
+ * @brief 比较p1__和p2__处的size字节数据是否相等
 
-    @param p1__ :地址1
-    @param p2__ :地址2
-    @param size     :要比较的字节数
+ * @param p1__ :地址1
+ * @param p2__ :地址2
+ * @param size     :要比较的字节数
 
-    @retval -1  p1__  < p2__
-    @retval  0  p1__ == p2__
-    @retval  1  p1__  > p2__
+ * @retval -1  p1__  < p2__
+ * @retval  0  p1__ == p2__
+ * @retval  1  p1__  > p2__
 
 */
 int32_t memcmp(const void* p1__,void* p2__,uint32_t size)

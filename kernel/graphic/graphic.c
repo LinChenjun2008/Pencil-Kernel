@@ -3,22 +3,22 @@
 #include <graphic.h>
 
 /**
-    @brief 在屏幕上画一个矩形
+ * @brief 在屏幕上画一个矩形
 
-    @param Ginfo    图像缓存区的描述符,
-                    指明目缓存区的水平和垂直分辨率.
+ * @param Ginfo    图像缓存区的描述符,
+                   指明目缓存区的水平和垂直分辨率.
     
-    @param color    要填充的颜色.
+ * @param color    要填充的颜色.
 
-    @param x0
-    @param y0       这两个参数组合成填充范围
-                    的左上角坐标(x0,y0)
+ * @param x0
+ * @param y0       这两个参数组合成填充范围
+                   的左上角坐标(x0,y0)
 
-    @param x1
-    @param y1       这两个参数组合成填充范围
+ * @param x1
+ * @param y1       这两个参数组合成填充范围
                     的右下角坐标(x1,y1)
 
-**/
+*/
 void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int y1)
 {
     int x;
@@ -64,14 +64,14 @@ void init_screen(struct GraphicsInfo* Ginfo)
 
 /**
 
-    @brief 显示一个字符,由vput_utf8_str调用.
-    @param vram     显存起始地址
-    @param xsize    水平方向的像素数
-    @param Pos      坐标
-    @param color    文字颜色
-    @param ch       字符编码(unicode)
+ * @brief 显示一个字符,由vput_utf8_str调用.
+ * @param vram     显存起始地址
+ * @param xsize    水平方向的像素数
+ * @param Pos      坐标
+ * @param color    文字颜色
+ * @param ch       字符编码(unicode)
 
-**/
+*/
 void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint64_t ch)
 {
     uint16_t *font, data;
@@ -123,14 +123,14 @@ void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint
 
 /**
 
-    @brief 显示一个字符串.
-    @param Ginfo    显存的信息,
+ * @brief 显示一个字符串.
+ * @param Ginfo    显存的信息,
                     用于获取显存地址、长宽等信息.
-    @param Pos      文字显示的坐标.显示后指向下一个字符的位置.
-    @param color    文字颜色
-    @param str      字符串(utf-8)
+ * @param Pos      文字显示的坐标.显示后指向下一个字符的位置.
+ * @param color    文字颜色
+ * @param str      字符串(utf-8)
 
-**/
+*/
 void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str)
 {
     uint64_t code = 0;

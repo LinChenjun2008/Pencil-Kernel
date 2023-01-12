@@ -9,6 +9,7 @@
 #include <string.h>
 
 PRIVATE struct task_struct* main_thread;
+PRIVATE struct task_struct* idle_thread;
 PUBLIC struct List ready_list;
 PUBLIC struct List all_list;
 
@@ -106,11 +107,22 @@ PRIVATE void make_main_thread(void)
     return;
 }
 
+PRIVATE void idle(void* arg __attribute__((unused)))
+{
+    while(1)
+    {
+        thread_block(TASK_BLOCKED);
+        __asm__ __volatile__("sti\n\t""hlt\n\t":::);
+    }
+    return;
+}
+
 void init_thread()
 {
     list_init(&(ready_list));
     list_init(&(all_list));
     make_main_thread();
+    idle_thread = thread_start("idle",31,idle,NULL);
     return;
 }
 
@@ -150,9 +162,8 @@ PUBLIC void schedule()
     struct task_struct* next = NULL;
     if(list_empty(&ready_list))
     {
-        ASSERT(list_empty(&ready_list));
+        thread_unblock(idle_thread);
     }
-    
     struct ListNode* next_thread_tag = NULL;
     next_thread_tag = list_pop(&ready_list);
     next = container_of(struct task_struct,general_tag,next_thread_tag);
@@ -162,16 +173,42 @@ PUBLIC void schedule()
     return;
 }
 
+PUBLIC void thread_block(enum task_status status)
+{
+    ASSERT(status != TASK_RUNNING && status != TASK_READY);
+    enum intr_status old_status = intr_disable();
+    struct task_struct* cur_thread = running_thread();
+    cur_thread->status = status;
+    schedule();
+    intr_set_status(old_status);
+    return;
+}
+
+PUBLIC void thread_unblock(struct task_struct* pthread)
+{
+    enum intr_status old_status = intr_disable();
+    if(pthread->status != TASK_READY)
+    {
+        ASSERT(!list_find(&ready_list,&(pthread->general_tag)));
+        if(list_find(&ready_list,&(pthread->general_tag)))
+        {
+            PANIC("thread unblock: blocked thread in ready list");
+        }
+        list_push(&ready_list,&(pthread->general_tag));
+        pthread->status = TASK_READY;
+    };
+    intr_set_status(old_status);
+    return;
+}
+
+
 
 ////////////////////////////////////////////////////////////////////////////
 //  下面是测试线程
 ////////////////////////////////////////////////////////////////////////////
 
-
-
 void kthread(void* arg __attribute((unused)))
 {
-    intr_enable();
     PRIVATE BltPixel col =
     {
         .Red = 0,
@@ -192,7 +229,6 @@ void kthread(void* arg __attribute((unused)))
 
 void kthread2(void* arg __attribute((unused)))
 {
-    intr_enable();
     PRIVATE BltPixel col =
     {
         .Red = 0,

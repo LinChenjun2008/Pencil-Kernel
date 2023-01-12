@@ -18,7 +18,7 @@
 #define IN
 #define OUT
 
-#define NULL ((VOID*) 0)
+#define NULL ((void*) 0)
 
 #define TRUE  (1 == 1)
 #define FALSE (1 == 0)

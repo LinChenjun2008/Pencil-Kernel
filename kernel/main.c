@@ -13,15 +13,14 @@ struct BootInfo gBI;
 struct Position Pos = {10,10};
 void kthread(void* arg __attribute((unused)));
 void kthread2(void* arg __attribute((unused)));
-PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
+PUBLIC uint64_t kernel_main()
 {
     intr_disable();
-    binfo = (void*)0x7c00;
-    gBI = *binfo;
+    gBI = *((struct BootInfo*)0x7c00);
     init_all();
     intr_enable();
-    thread_start("Kt1",31,kthread,NULL);
-    thread_start("Kt2",31,kthread2,NULL);
+    thread_start("test 1",31,kthread,NULL);
+    thread_start("test 2",31,kthread2,NULL);
     const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
     struct Position Pos = {10,10};
     BltPixel col = 
@@ -39,27 +38,26 @@ PUBLIC uint64_t kernel_main(struct BootInfo* binfo)
     " / /|____|// /____|// / |  / // /_/__  __/ /_/  / / /__      \n"
     "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n"
     "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n";
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,logo);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,logo);
     sprintf(str,"%s \n",VERSION);
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n");
-    sprintf(str,"分辨率:%d * %d 显存基址:%p\n",
-    binfo->GraphicsInfo.HorizontalResolution,
-    binfo->GraphicsInfo.VerticalResolution,
-    binfo->GraphicsInfo.FrameBufferBase);
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n");
+    sprintf(str,"HorizontalResolution: %d VerticalResolution: %d\n",
+    gBI.GraphicsInfo.HorizontalResolution,
+    gBI.GraphicsInfo.VerticalResolution);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
 
-    int i,MemorySize = 0,PageCnt = binfo->MemoryMap.MapSize / binfo->MemoryMap.DescriptorSize;
+    int i,MemorySize = 0,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
     for(i = 0;i < PageCnt;i++)
     {
-        if((((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->Type != EfiMemoryMappedIO)
+        if((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->Type != EfiMemoryMappedIO)
         {
-            MemorySize += (((EFI_MEMORY_DESCRIPTOR*)binfo->MemoryMap.Buffer) + i)->NumberOfPages;
+            MemorySize += (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages;
         }
     }
     sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
     MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
-    vput_utf8_str(&(binfo->GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
     while(1);
     return 0;
 }

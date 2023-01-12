@@ -101,4 +101,6 @@ PUBLIC struct task_struct* thread_start(char* name,UINTN priority,thread_functio
 PUBLIC struct task_struct* running_thread();
 PUBLIC void schedule();
 
+PUBLIC void thread_block(enum task_status status);
+PUBLIC void thread_unblock(struct task_struct* pthread);
 #endif

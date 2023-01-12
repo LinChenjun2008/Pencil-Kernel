@@ -7,13 +7,6 @@
 #include <interrupt.h>
 
 #include <graphic.h>
-extern struct Position Pos;
-// static BltPixel col = 
-// {
-//     .Red = 255,
-//     .Green = 0,
-//     .Blue = 255
-// };
 
 struct MEMDESC MemoryDescriptor[MemoryDescriptorCnt];
 int MemoryDescriptorNumber = 0;
@@ -167,10 +160,10 @@ PUBLIC void init_memory()
 }
 
 /**
-    @brief 分配指定页数
-    @param NumberOfPages 要分配的内存页数
-    @return 分配的内存页起始地址
-**/
+ * @brief 分配指定页数
+ * @param NumberOfPages 要分配的内存页数
+ * @return 分配的内存页起始地址
+*/
 PUBLIC void* AllocatePage(UINTN NumberOfPages)
 {
     if(NumberOfPages == 0)
@@ -198,11 +191,11 @@ PUBLIC void* AllocatePage(UINTN NumberOfPages)
 }
 
 /**
-    @brief 释放指定页数
-    @param Addr 释放内存页的起始地址(对齐到2MB边界)
-    @param NumberOfPages 要释放的内存页数
-    @return 分配的内存页起始地址
-**/
+ * @brief 释放指定页数
+ * @param Addr 释放内存页的起始地址(对齐到2MB边界)
+ * @param NumberOfPages 要释放的内存页数
+ * @return 分配的内存页起始地址
+*/
 PUBLIC void FreePage(void* Addr,UINTN NumberOfPages)
 {
     ASSERT(((((MEMORY_ADDRESS)Addr) & 0x1fffff) == 0));

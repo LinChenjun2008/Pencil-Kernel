@@ -1,4 +1,3 @@
-#include <common.h>
 #include <debug.h>
 #include <stdint.h>
 #include <global.h>
@@ -53,8 +52,8 @@ PRIVATE void init_gdt()
 PUBLIC void init_interrupt();
 
 /**
-    @brief 初始化所有内容
-**/
+ * @brief 初始化所有内容
+*/
 PUBLIC void init_all()
 {
     init_gdt();

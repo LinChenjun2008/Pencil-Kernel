@@ -226,8 +226,8 @@ void gotoKernel(BootConfig* Config)
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
     __asm__ __volatile__("movq %[PML4E_POS],%%cr3 \n\t movq $0xe00000,%%rsp"::[PML4E_POS]"r"(PML4E):"rsp");
-    EFI_STATUS (*Kernel)(struct BootInfo*) = (EFI_STATUS(*)(struct BootInfo*))0x0000000000100000;
-    Kernel(BootInfo);
+    EFI_STATUS (*Kernel)(void) = (EFI_STATUS(*)(void))0x0000000000100000;
+    Kernel();
 }
 
 #define PG_P 0x1
