@@ -18,6 +18,7 @@ $(KERNEL_DIR)/init.c \
 $(KERNEL_DIR)/debug/debug.c \
 $(KERNEL_DIR)/interrupt/interrupt.c \
 $(KERNEL_DIR)/thread/thread.c \
+$(KERNEL_DIR)/thread/sync.c \
 $(KERNEL_DIR)/memory/memory.c \
 $(KERNEL_DIR)/driver/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
