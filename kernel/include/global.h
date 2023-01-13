@@ -120,6 +120,8 @@ struct SEGMDESC
 #define PUBLIC
 #define PRIVATE static
 
+#define ASMCALL __attribute__((sysv_abi))
+
 #define DIV_ROUND_UP(X ,STEP) (((X) + (STEP - 1)) / STEP)
 
 /** STATIC_ASSERT(CONDITION,MESSAGE) **/

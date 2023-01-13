@@ -10,7 +10,7 @@
     #elif defined (_MSC_EXTENSIONS)
         #define EFIAPI  __cdecl
     #elif defined (__GNUC__)
-        #define EFIAPI
+        #define EFIAPI __attribute__((ms_abi))
     #else
         #define EFIAPI
 #endif

@@ -128,17 +128,18 @@ __asm__ \
     "pushq %rbx \n\t" \
     "pushq %rax \n\t" \
  \
+    "movq $0,%rax \n\t" \
     "movw  %gs,%ax \n\t" \
-    "pushq %ax \n\t" \
+    "pushq %rax \n\t" \
     "movw  %fs,%ax \n\t" \
-    "pushq %ax \n\t" \
+    "pushq %rax \n\t" \
     "movw  %es,%ax \n\t" \
     "pushq %ax \n\t" \
     "movw  %ds,%ax \n\t" \
     "pushq %ax \n\t" \
  \
-    "movq $"#NR",%rcx \n\t" \
-    "movq %rsp,%rdx \n\t" \
+    "movq $"#NR",%rdi \n\t" \
+    "movq %rsp,%rsi \n\t" \
     "callq "#Handler" \n\t" \
     "jmp intr_exit" \
 );
@@ -151,14 +152,14 @@ __asm__
     ".global intr_exit \n\t"
     "intr_exit: \n\t"
 
-    "popq %ax \n\t"
-    "movw  %ds,%ax \n\t"
-    "popq %ax \n\t"
-    "movw  %es,%ax \n\t"
-    "popq %ax \n\t"
-    "movw  %fs,%ax \n\t"
-    "popq %ax \n\t"
-    "movw  %gs,%ax \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%ds \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%es \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%fs \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%gs \n\t"
 
     "popq %rax \n\t"
     "popq %rbx \n\t"
@@ -210,7 +211,7 @@ enum OffsetInStack
     Stack_Cs,
 };
 
-void general_intr_handler(UINTN Nr,UINTN* stack)
+void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 {
     BltPixel col =
     {

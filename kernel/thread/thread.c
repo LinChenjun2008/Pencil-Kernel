@@ -126,7 +126,7 @@ void init_thread()
     return;
 }
 
-extern void switch_to(void*,void*);
+extern void ASMCALL switch_to(void*,void*);
 __asm__
 (
     "switch_to: \n\t"
@@ -137,8 +137,8 @@ __asm__
     "pushq %rbp \n\t"
 
     /* 接下来切换栈 */
-    "movq %rsp,(%rcx) \n\t" // (%rcx)是current->self_kstack
-    "movq (%rdx),%rsp \n\t" // (%rdx)是next->self_kstack
+    "movq %rsp,(%rdi) \n\t" // (%rdi)是current->self_kstack
+    "movq (%rsi),%rsp \n\t" // (%rsi)是next->self_kstack
     /* 现在已经切换到next的栈了 */
     /* 所以下面pop的值并不是刚才push的值 */
 
