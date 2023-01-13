@@ -11,8 +11,8 @@
 
 struct BootInfo gBI;
 struct Position Pos = {10,10};
-void kthread(void* arg __attribute((unused)));
-void kthread2(void* arg __attribute((unused)));
+void kthread(void* arg);
+void kthread2(void* arg);
 PUBLIC uint64_t kernel_main()
 {
     intr_disable();

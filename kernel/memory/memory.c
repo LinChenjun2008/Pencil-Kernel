@@ -8,17 +8,16 @@
 
 #include <graphic.h>
 
-struct MEMDESC MemoryDescriptor[MemoryDescriptorCnt];
-int MemoryDescriptorNumber = 0;
-
+/** @brief 内核内存块描述符,用于kmalloc和kfree */
 struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];
 
+/** @brief 物理内存页位图 */
 byte PhysicalMemoryBitmapBytes[MemoryBitmapBytesLen];
 struct Bitmap PhysicalMemoryBitmap;
+
+/** @brief 虚拟内存页位图 */
 byte VirtualMemoryBitmapBytes[MemoryBitmapBytesLen];
 struct Bitmap VirtualMemoryBitmap;
-byte UserPhysicalMemoryBitmapBytes[MemoryBitmapBytesLen];
-struct Bitmap UserPhysicalMemoryBitmap;
 
 void InitMemoryBlock(struct MemoryDesc* MemDesc)
 {
@@ -73,6 +72,10 @@ PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
 
 PUBLIC void init_memory()
 {
+    /* 内存描述符 */
+    struct MEMDESC MemoryDescriptor[MemoryDescriptorCnt];
+    int MemoryDescriptorNumber = 0;
+
     // 合并内存块
     int i,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
     // 提前给第一项赋值
@@ -116,10 +119,6 @@ PUBLIC void init_memory()
     VirtualMemoryBitmap.btmp_bytes_len = MemoryBitmapBytesLen;
     bitmap_init(&VirtualMemoryBitmap);
 
-    UserPhysicalMemoryBitmap.map = UserPhysicalMemoryBitmapBytes;
-    UserPhysicalMemoryBitmap.btmp_bytes_len = MemoryBitmapBytesLen;
-    bitmap_init(&UserPhysicalMemoryBitmap);
-
     for(i = 0;i < MemoryBitmapBytesLen;i++)
     {
        bitmap_set(&PhysicalMemoryBitmap,i,1);
@@ -149,9 +148,9 @@ PUBLIC void init_memory()
     }
     /*
         已用内存:内核所用内存+页表占用内存+字体文件占用内存
-        内核占用:0x100000 - 0x1000000(0 - 16M) 即总内存前8页
+        内核占用:0x100000 - 0x800000(0 - 8M) 即总内存前4页
     */
-    for(i = 0;i < 8;i++)
+    for(i = 0;i < 4;i++)
     {
        bitmap_set(&PhysicalMemoryBitmap,i,1);
     }

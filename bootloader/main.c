@@ -199,7 +199,7 @@ void gotoKernel(BootConfig* Config)
         gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         while(1);
     }
-    EFI_PHYSICAL_ADDRESS TypefaceBase = 0xe07000;
+    EFI_PHYSICAL_ADDRESS TypefaceBase = 0x600000;
     if(Config->typeface_flage == 1)
     {
         if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAddress)))
@@ -225,7 +225,7 @@ void gotoKernel(BootConfig* Config)
     EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
-    __asm__ __volatile__("movq %[PML4E_POS],%%cr3 \n\t movq $0xe00000,%%rsp"::[PML4E_POS]"r"(PML4E):"rsp");
+    __asm__ __volatile__("movq %[PML4E_POS],%%cr3 \n\t movq $0x310000,%%rsp"::[PML4E_POS]"r"(PML4E):"rsp");
     EFI_STATUS (*Kernel)(void) = (EFI_STATUS(*)(void))0x0000000000100000;
     Kernel();
 }
@@ -240,20 +240,26 @@ void gotoKernel(BootConfig* Config)
 EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
 {
     /*
-    0x0000000000000000 - 0x00000000ffffffff
+    * 系统内存分配:
+    * 0x100000 - 0x2fffff ( 2MB) -内核
+    * 0x300000 - 0x30ffff (64KB) -内核PCB
+    * 0x310000 - 0x5f8fff ( 2MB) -空闲
+    * 0x5f9000 - 0x5fffff (28KB) -内核页表(基础部分)
+    * 0x600000 - 0x7fffff ( 2MB) -字体文件
+    * 0x800000 - ....           -空闲内存
+    映射:
+    0x0000000000000000 - 0x00000000ffffffff (1对1映射)
     0xffff800e00000000 - 显存
     PML4E 0         PDPTE 3       PDE 511       offset
     0(1)000 0000 0 | 000 0000 11 | 11 1111 111 | 1 1111 1111 1111 1111 1111
     0(8)    0    0       0    f       f    f       f    f    f    f    f
        1000 0000 0 | 000 1110 00 | 00 0000 000 | 0 0000 0000 0000 0000 0000
        8    0    0       e    0       0    0       0    0    0    0    0
-       0000 0000 0 | 000 0000 11 | 00 0000 000 | 0 0000 0000 0000 0000 0000
-       0    0    0       0    c       0    0       0    0    0    0    0
        
     页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 (2 * 4096 显存大于4GB时)
                 == 245760B == 6 * 4kb(4kb是UEFI使用的页大小)
     */
-    EFI_PHYSICAL_ADDRESS PML4E = 0xe00000;
+    EFI_PHYSICAL_ADDRESS PML4E = 0x5f9000;
     EFI_PHYSICAL_ADDRESS PDPTE;
     EFI_PHYSICAL_ADDRESS PDE0;
     EFI_PHYSICAL_ADDRESS PDE1;

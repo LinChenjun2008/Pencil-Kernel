@@ -11,9 +11,9 @@ $(KERNEL_OBJ): $(KERNEL_SRC) Makefile
 	$(OBJCOPY) -I $(KERNEL_OBJ_FORMAT) -S -R ".eh_frame" -R ".comment" -O $(KERNEL_OUTPUT_FORMAT) $< $@
 
 %.efi: $(UEFI_SRC) Makefile
-	$(CC) -Wall -Wextra $(INCLUDE_DIR) -e UefiMain -nostdinc -nostdlib \
+	$(CC) -Wall -Wextra  -Werror $(INCLUDE_DIR) -e UefiMain -nostdinc -nostdlib \
 	-finput-charset=UTF-8 -fexec-charset=UTF-16 \
-	-fno-builtin -Wl,--subsystem,10 -m64 -Werror -mcmodel=large -o $@ $(UEFI_SRC)
+	-fno-builtin -Wl,--subsystem,10 -m64 -mcmodel=large -fpic -o $@ $(UEFI_SRC)
 
 uefi: $(UEFI_OUTPUT)
 
