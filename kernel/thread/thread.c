@@ -126,10 +126,21 @@ void init_thread()
     return;
 }
 
-extern void ASMCALL switch_to(void*,void*);
+void switch_to(void* cur,void* next)
+{
+    __asm__ __volatile__
+    (
+        "movq %[cur],%%r8 \n\t"
+        "movq %[next],%%r9 \n\t"
+        "leaq asm_switch_to(%%rip),%%rax \n\t"
+        "callq *%%rax \n\t"
+        :
+        :[cur]"r"(cur),[next]"r"(next)
+    );
+}
 __asm__
 (
-    "switch_to: \n\t"
+    "asm_switch_to: \n\t"
     // 栈中这里是返回地址
     "pushq %rsi \n\t"
     "pushq %rdi \n\t"
@@ -137,8 +148,8 @@ __asm__
     "pushq %rbp \n\t"
 
     /* 接下来切换栈 */
-    "movq %rsp,(%rdi) \n\t" // (%rdi)是current->self_kstack
-    "movq (%rsi),%rsp \n\t" // (%rsi)是next->self_kstack
+    "movq %rsp,(%r8) \n\t" // (%rcx)是current->self_kstack
+    "movq (%r9),%rsp \n\t" // (%rdx)是next->self_kstack
     /* 现在已经切换到next的栈了 */
     /* 所以下面pop的值并不是刚才push的值 */
 
