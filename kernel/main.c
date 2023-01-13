@@ -38,14 +38,14 @@ PUBLIC uint64_t kernel_main()
     " / /|____|// /____|// / |  / // /_/__  __/ /_/  / / /__      \n"
     "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n"
     "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n";
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,logo);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,logo,FontNormal);
     sprintf(str,"%s \n",VERSION);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n");
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Copyright 2022 Pencil-Kernel developers. All Rights Reserved.\n",FontNormal);
     sprintf(str,"HorizontalResolution: %d VerticalResolution: %d\n",
     gBI.GraphicsInfo.HorizontalResolution,
     gBI.GraphicsInfo.VerticalResolution);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
 
     int i,MemorySize = 0,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
     for(i = 0;i < PageCnt;i++)
@@ -57,7 +57,7 @@ PUBLIC uint64_t kernel_main()
     }
     sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
     MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
     while(1);
     return 0;
 }

@@ -225,28 +225,29 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     col.Red = 255;
     col.Green = 255;
     col.Blue = 255;
+    enum FontSize FontSize = FontMedium;
     sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack[Stack_Rax],stack[Stack_Rbx],stack[Stack_Rcx],stack[Stack_Rdx]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack[Stack_Rbp],stack[Stack_Rsi],stack[Stack_Rdi]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack[Stack_R8],stack[Stack_R9],stack[Stack_R10],stack[Stack_R11]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack[Stack_R12],stack[Stack_R13],stack[Stack_R14],stack[Stack_R15]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"CS:RIP %04x:%016x\n",stack[Stack_Cs],stack[Stack_Rip]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[Stack_ErrorCode]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
     sprintf(s,"cr2 = %016x\n",crN);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
     sprintf(s,"cr3 = %016x\n",crN);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     if(Nr <= 0x1f)
     {
-        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr]);
+        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr],FontSize);
     }
     while(1);
 }

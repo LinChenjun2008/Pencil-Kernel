@@ -25,9 +25,9 @@ void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int
     int y;
     if(color.Reserved != 0xff)
     {
-        for(y = y0;y <= y1;y++)
+        for(y = y0;y < y1;y++)
         {
-            for(x = x0;x <= x1;x++)
+            for(x = x0;x < x1;x++)
             {
                 *((BltPixel*)(Ginfo->FrameBufferBase) + ((y * Ginfo->HorizontalResolution)) + x) = color;
             }
@@ -43,22 +43,22 @@ void init_screen(struct GraphicsInfo* Ginfo)
     color.Red   = 0x20;
     color.Green = 0x70;
     color.Blue  = 0x90;
-    viewFill(Ginfo,color,0,0,Ginfo->HorizontalResolution - 1,Ginfo->VerticalResolution - tsk - 1);
+    viewFill(Ginfo,color,0,0,Ginfo->HorizontalResolution,Ginfo->VerticalResolution - tsk);
 
     color.Red   = 0x20;
     color.Green = 0x20;
     color.Blue  = 0x20;
-    viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk - 1,(Ginfo->HorizontalResolution - 1),Ginfo->VerticalResolution - 1);
+    viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk,Ginfo->HorizontalResolution,Ginfo->VerticalResolution);
 
     color.Red   = 0x50;
     color.Green = 0x50;
     color.Blue  = 0x50;
-    viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk - 1,tsk * 4,Ginfo->VerticalResolution - 1);
+    viewFill(Ginfo,color,0,    Ginfo->VerticalResolution - tsk,tsk * 4,Ginfo->VerticalResolution);
 
     color.Red   = 0xa0;
     color.Green = 0xa0;
     color.Blue  = 0xa0;
-    viewFill(Ginfo,color,10,    Ginfo->VerticalResolution - tsk + 10 - 1,tsk - 10,Ginfo->VerticalResolution - 10 - 1);
+    viewFill(Ginfo,color,10,    Ginfo->VerticalResolution - tsk + 10,tsk - 10,Ginfo->VerticalResolution - 10);
 
 }
 
@@ -72,51 +72,49 @@ void init_screen(struct GraphicsInfo* Ginfo)
  * @param ch       字符编码(unicode)
 
 */
-void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint64_t ch)
+void vput_utf8(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,uint64_t ch,int FontSize)
 {
     uint16_t *font, data;
     font = (((uint16_t*)gBI.TypefaceBase) + ch * 16);
-    BltPixel* put;
     int i;
     if(ch < 0x7f)
     {
         for(i = 0;i < 16;i++)
         {
-            put = (vram) + ((Pos->y + i) * (xsize) + Pos->x);
             data = font[i];
-            if((data & 0x8000) != 0){put[0] = color;}
-            if((data & 0x4000) != 0){put[1] = color;}
-            if((data & 0x2000) != 0){put[2] = color;}
-            if((data & 0x1000) != 0){put[3] = color;}
-            if((data & 0x0800) != 0){put[4] = color;}
-            if((data & 0x0400) != 0){put[5] = color;}
-            if((data & 0x0200) != 0){put[6] = color;}
-            if((data & 0x0100) != 0){put[7] = color;}
+            if((data & 0x8000) != 0){viewFill(Ginfo,color,Pos->x + 0 * FontSize,Pos->y + i * FontSize,Pos->x + 1 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x4000) != 0){viewFill(Ginfo,color,Pos->x + 1 * FontSize,Pos->y + i * FontSize,Pos->x + 2 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x2000) != 0){viewFill(Ginfo,color,Pos->x + 2 * FontSize,Pos->y + i * FontSize,Pos->x + 3 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x1000) != 0){viewFill(Ginfo,color,Pos->x + 3 * FontSize,Pos->y + i * FontSize,Pos->x + 4 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0800) != 0){viewFill(Ginfo,color,Pos->x + 4 * FontSize,Pos->y + i * FontSize,Pos->x + 5 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0400) != 0){viewFill(Ginfo,color,Pos->x + 5 * FontSize,Pos->y + i * FontSize,Pos->x + 6 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0200) != 0){viewFill(Ginfo,color,Pos->x + 6 * FontSize,Pos->y + i * FontSize,Pos->x + 7 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0100) != 0){viewFill(Ginfo,color,Pos->x + 7 * FontSize,Pos->y + i * FontSize,Pos->x + 8 * FontSize,Pos->y + (i + 1) * FontSize);}
         }
     }
     else
     {
         for(i = 0;i < 16;i++)
         {
-            put = (vram) + ((Pos->y + i) * (xsize) + Pos->x);
             data = font[i];
-            if((data & 0x8000) != 0){put[0] = color;}
-            if((data & 0x4000) != 0){put[1] = color;}
-            if((data & 0x2000) != 0){put[2] = color;}
-            if((data & 0x1000) != 0){put[3] = color;}
-            if((data & 0x0800) != 0){put[4] = color;}
-            if((data & 0x0400) != 0){put[5] = color;}
-            if((data & 0x0200) != 0){put[6] = color;}
-            if((data & 0x0100) != 0){put[7] = color;}
+            
+            if((data & 0x8000) != 0){viewFill(Ginfo,color,Pos->x + 0 * FontSize,Pos->y + i * FontSize,Pos->x + 1 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x4000) != 0){viewFill(Ginfo,color,Pos->x + 1 * FontSize,Pos->y + i * FontSize,Pos->x + 2 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x2000) != 0){viewFill(Ginfo,color,Pos->x + 2 * FontSize,Pos->y + i * FontSize,Pos->x + 3 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x1000) != 0){viewFill(Ginfo,color,Pos->x + 3 * FontSize,Pos->y + i * FontSize,Pos->x + 4 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0800) != 0){viewFill(Ginfo,color,Pos->x + 4 * FontSize,Pos->y + i * FontSize,Pos->x + 5 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0400) != 0){viewFill(Ginfo,color,Pos->x + 5 * FontSize,Pos->y + i * FontSize,Pos->x + 6 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0200) != 0){viewFill(Ginfo,color,Pos->x + 6 * FontSize,Pos->y + i * FontSize,Pos->x + 7 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0100) != 0){viewFill(Ginfo,color,Pos->x + 7 * FontSize,Pos->y + i * FontSize,Pos->x + 8 * FontSize,Pos->y + (i + 1) * FontSize);}
 
-            if((data & 0x0080) != 0){put[8] = color;}
-            if((data & 0x0040) != 0){put[9] = color;}
-            if((data & 0x0020) != 0){put[10] = color;}
-            if((data & 0x0010) != 0){put[11] = color;}
-            if((data & 0x0008) != 0){put[12] = color;}
-            if((data & 0x0004) != 0){put[13] = color;}
-            if((data & 0x0002) != 0){put[14] = color;}
-            if((data & 0x0001) != 0){put[15] = color;}
+            if((data & 0x0080) != 0){viewFill(Ginfo,color,Pos->x + 8 * FontSize,Pos->y + i * FontSize,Pos->x + 9 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0040) != 0){viewFill(Ginfo,color,Pos->x + 9 * FontSize,Pos->y + i * FontSize,Pos->x + 10 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0020) != 0){viewFill(Ginfo,color,Pos->x + 10 * FontSize,Pos->y + i * FontSize,Pos->x + 11 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0010) != 0){viewFill(Ginfo,color,Pos->x + 11 * FontSize,Pos->y + i * FontSize,Pos->x + 12 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0008) != 0){viewFill(Ginfo,color,Pos->x + 12 * FontSize,Pos->y + i * FontSize,Pos->x + 13 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0004) != 0){viewFill(Ginfo,color,Pos->x + 13 * FontSize,Pos->y + i * FontSize,Pos->x + 14 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0002) != 0){viewFill(Ginfo,color,Pos->x + 14 * FontSize,Pos->y + i * FontSize,Pos->x + 15 * FontSize,Pos->y + (i + 1) * FontSize);}
+            if((data & 0x0001) != 0){viewFill(Ginfo,color,Pos->x + 15 * FontSize,Pos->y + i * FontSize,Pos->x + 16 * FontSize,Pos->y + (i + 1) * FontSize);}
         }
     }
 }
@@ -131,7 +129,7 @@ void vput_utf8(BltPixel* vram,int xsize,struct Position* Pos,BltPixel color,uint
  * @param str      字符串(utf-8)
 
 */
-void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str)
+void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str,int FontSize)
 {
     uint64_t code = 0;
     struct Position pos = *Pos;
@@ -155,12 +153,12 @@ void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel colo
             if(code == '\n')
             {
                 pos.x = Pos->x;
-                pos.y += 20;
+                pos.y += 20 * FontSize;
             }
             else
             {
-                vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
-                pos.x += 8;
+                vput_utf8(Ginfo,&pos,color,code,FontSize);
+                pos.x += 8 * FontSize;
             }
         }
         else if(((*str >> 5) & 0x0f) == 0x6) /* 0x110 开头,2字节 */
@@ -169,8 +167,8 @@ void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel colo
             str++;
             code |= (*str & 0x3f);
             str++;
-            vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
-            pos.x += 16;
+            vput_utf8(Ginfo,&pos,color,code,FontSize);
+            pos.x += 16 * FontSize;
         }
         else if(((*str >> 4) & 0xf) == 0xe) /* 0x1110 开头,3字节 */
         {
@@ -180,8 +178,8 @@ void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel colo
             str++;
             code |= (*str & 0x3f) << 0;
             str++;
-            vput_utf8((void*)Ginfo->FrameBufferBase,Ginfo->HorizontalResolution,&pos,color,code);
-            pos.x += 16;
+            vput_utf8(Ginfo,&pos,color,code,FontSize);
+            pos.x += 16 * FontSize;
         }
     }
     *Pos = pos;

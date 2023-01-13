@@ -18,6 +18,6 @@ void panic_spin(const char* file,const char* base_file,int line,const char* func
     col.Red = 255;
     col.Green = 255;
     col.Blue = 255;
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,1);
     while(1);
 }

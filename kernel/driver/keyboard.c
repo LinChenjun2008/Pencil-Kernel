@@ -24,17 +24,9 @@ PUBLIC void init_keyboard()
     return;
 }
 
-PRIVATE struct Position Pos = {500,10};
 PUBLIC void intr0x21_handler()
 {
     io_out8(PIC_M_CTRL,0x20);
     io_in8(KEYBOARD_BUF_PORT);
-    BltPixel col = 
-    {
-        .Red = 255,
-        .Green = 255,
-        .Blue = 255
-    };
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Keyboard\n");
     return;
 }
