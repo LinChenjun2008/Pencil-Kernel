@@ -1,5 +1,14 @@
 #include <stdint.h>
 
+/**
+ * @brief 求绝对值
+ * @param digit 求这个数的绝对值
+*/
+uint64_t abs(int64_t digits)
+{
+    return (digits >= 0 ? digits : -digits);
+}
+
 /** itoa
  * @brief 将a转为base进制的字符串写入str地址
  * @param a       要转换的数字(有符号)
