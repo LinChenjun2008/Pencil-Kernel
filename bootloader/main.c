@@ -225,9 +225,16 @@ void gotoKernel(BootConfig* Config)
     EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
-    __asm__ __volatile__("movq %[PML4E_POS],%%cr3 \n\t movq $0x310000,%%rsp"::[PML4E_POS]"r"(PML4E):"rsp");
-    EFI_STATUS (*Kernel)(void) = (EFI_STATUS(*)(void))0x0000000000100000;
-    Kernel();
+    __asm__ __volatile__
+    (
+        "movq %[PML4E_POS],%%cr3 \n\t"
+        "movq $0x310000,%%rsp \n\t"
+        "movq %[KernelEntry],%%rax \n\t"
+        "callq *%%rax"
+        :
+        :[PML4E_POS]"r"(PML4E),[KernelEntry]"r"(KernelFileBase)
+        :"rsp","rax"
+    );
 }
 
 #define PG_P 0x1

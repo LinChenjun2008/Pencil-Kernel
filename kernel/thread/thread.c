@@ -148,8 +148,8 @@ __asm__
     "pushq %rbp \n\t"
 
     /* 接下来切换栈 */
-    "movq %rsp,(%r8) \n\t" // (%rcx)是current->self_kstack
-    "movq (%r9),%rsp \n\t" // (%rdx)是next->self_kstack
+    "movq %rsp,(%r8) \n\t"
+    "movq (%r9),%rsp \n\t"
     /* 现在已经切换到next的栈了 */
     /* 所以下面pop的值并不是刚才push的值 */
 
