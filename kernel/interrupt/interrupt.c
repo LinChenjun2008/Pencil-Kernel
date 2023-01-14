@@ -128,7 +128,7 @@ __asm__ \
     "pushq %rbx \n\t" \
     "pushq %rax \n\t" \
  \
-    "movq $0,%rax \n\t" \
+    "movq  $0,%rax \n\t" \
     "movw  %gs,%ax \n\t" \
     "pushq %rax \n\t" \
     "movw  %fs,%ax \n\t" \
@@ -140,7 +140,8 @@ __asm__ \
  \
     "movq $"#NR",%rdi \n\t" \
     "movq %rsp,%rsi \n\t" \
-    "callq "#Handler" \n\t" \
+    "leaq "#Handler"(%rip),%rax \n\t" \
+    "callq *%rax \n\t" \
     "jmp intr_exit" \
 );
 
