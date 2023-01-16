@@ -37,4 +37,14 @@ SECTIONS
     }
     _ebss = .;
     _kernel_end = .;
+    /* 调试信息,不属于内核 */
+    _debug = .;
+    .debug_aranges :{*(.debug_aranges)}
+    .debug_abbrev :{*(.debug_abbrev)}
+    .debug_line :{*(.debug_line)}
+    .debug_frame :{*(.debug_frame)}
+    .debug_str :{*(.debug_str)}
+    /* .debug_info :{*(.debug_info)} */
+    /* .debug_loc :{*(.debug_loc)} */
+    _edebug = .;
 }
