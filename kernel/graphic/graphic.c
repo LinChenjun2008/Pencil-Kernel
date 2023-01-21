@@ -141,10 +141,10 @@ void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel colo
     */
     while(*str)
     {
-        if(pos.x + 20 >= Ginfo->HorizontalResolution)
+        if(pos.x + 20 * FontSize >= Ginfo->HorizontalResolution)
         {
             pos.x = Pos->x;
-            pos.y += 20;
+            pos.y += 20 * FontSize;
         }
         if((*str >> 7) == 0)
         {

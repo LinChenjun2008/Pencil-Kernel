@@ -19,8 +19,6 @@ PUBLIC uint64_t kernel_main()
     gBI = *((struct BootInfo*)0x7c00);
     init_all();
     intr_enable();
-    thread_start("test 1",31,kthread,NULL);
-    thread_start("test 2",31,kthread2,NULL);
     const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
     struct Position Pos = {10,10};
     BltPixel col = 
@@ -54,10 +52,22 @@ PUBLIC uint64_t kernel_main()
         {
             MemorySize += (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages;
         }
+        else
+        {
+            sprintf
+            (
+                str,"MMio: start:%p end: %p\n",
+                (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart,
+                (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart + ((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages << 12)
+            );
+            vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
+        }
     }
-    sprintf(str,"内存: %d GB (%d MB) PhysicalMemoryBitmapBytes: %p\n",
-    MemorySize >> 18,MemorySize >> 8,PhysicalMemoryBitmapBytes);
+    sprintf(str,"PhysicalMemoryBitmapBytes: %p\n",PhysicalMemoryBitmapBytes);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
+    
+    thread_start("test 1",31,kthread,NULL);
+    thread_start("test 2",31,kthread2,NULL);
     while(1);
     return 0;
 }

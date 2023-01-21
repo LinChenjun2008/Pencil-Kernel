@@ -9,7 +9,7 @@
 
 #define IDT_DESC_CNT 0x30 /* 总共支持的中断数 */
 
-char* intr_name[IDT_DESC_CNT] = 
+PRIVATE char* intr_name[IDT_DESC_CNT] = 
 {
     "#DE 除法异常 Divide Error",
     "#DB 调试异常 Debug Exception",
@@ -134,9 +134,9 @@ __asm__ \
     "movw  %fs,%ax \n\t" \
     "pushq %rax \n\t" \
     "movw  %es,%ax \n\t" \
-    "pushq %ax \n\t" \
+    "pushq %rax \n\t" \
     "movw  %ds,%ax \n\t" \
-    "pushq %ax \n\t" \
+    "pushq %rax \n\t" \
  \
     "movq $"#NR",%rdi \n\t" \
     "movq %rsp,%rsi \n\t" \
@@ -214,6 +214,7 @@ enum OffsetInStack
 
 void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 {
+    ASSERT(intr_get_status() == INTR_OFF);
     BltPixel col =
     {
         .Red = 0,
@@ -226,7 +227,17 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     col.Red = 255;
     col.Green = 255;
     col.Blue = 255;
-    enum FontSize FontSize = FontMedium;
+    enum FontSize FontSize = 7;
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,":",FontSize);
+    Pos.y += 2 * FontSize;
+    Pos.x -= 2 * FontSize;
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"(\n",FontSize);
+    Pos.x = 10;
+    FontSize = FontNormal;
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,
+    "你的设备遇到问题,需要重新启动.\n"
+    "接下来显示错误信息,然后你可以重新启动.\n\n"
+    ,FontSize);
     sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack[Stack_Rax],stack[Stack_Rbx],stack[Stack_Rcx],stack[Stack_Rdx]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack[Stack_Rbp],stack[Stack_Rsi],stack[Stack_Rdi]);
@@ -235,10 +246,6 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack[Stack_R12],stack[Stack_R13],stack[Stack_R14],stack[Stack_R15]);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"CS:RIP %04x:%016x\n",stack[Stack_Cs],stack[Stack_Rip]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[Stack_ErrorCode]);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
     sprintf(s,"cr2 = %016x\n",crN);
@@ -246,8 +253,13 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
     sprintf(s,"cr3 = %016x\n",crN);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    sprintf(s,"CS:RIP %04x:%016x\n",stack[Stack_Cs],stack[Stack_Rip]);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[Stack_ErrorCode]);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     if(Nr <= 0x1f)
     {
+        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Error: ",FontSize);
         vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr],FontSize);
     }
     while(1);

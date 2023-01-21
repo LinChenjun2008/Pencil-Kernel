@@ -35,7 +35,7 @@ signed int bitmap_alloc(struct Bitmap* btmp,UINTN cnt)
 {
     UINTN byte_index = 0;
     /* 寻找第一个空的bit所在位 */
-    while((btmp->map[byte_index] == 0xff) && (byte_index < (btmp->btmp_bytes_len)))
+    while((byte_index < (btmp->btmp_bytes_len)) && (btmp->map[byte_index] == 0xff))
     {
         byte_index++;
     }

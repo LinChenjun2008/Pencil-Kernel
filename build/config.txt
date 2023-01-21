@@ -46,13 +46,14 @@ REAL_KERNEL_OUTPUT    = $(REAL_DISK)/kernel.sys
 TOOL_DIR = ../../tools/
 
 #编译器
-CC = $(TOOL_DIR)Mingw/bin/gcc
+CC = $(TOOL_DIR)MinGW64/bin/gcc
 
 #连接器和链接脚本
-LD  = $(TOOL_DIR)ld
+LD  = $(TOOL_DIR)/MinGW64/bin/ld
 KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 
 #其他
+GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
 OBJCOPY = $(TOOL_DIR)/objcopy
 RM             = $(TOOL_DIR)/rm
 
