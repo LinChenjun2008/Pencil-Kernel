@@ -26,6 +26,12 @@
 
 typedef struct _EFI_SIMPLE_TEXT_INPUT_PROTOCOL EFI_SIMPLE_TEXT_INPUT_PROTOCOL;
 
+typedef struct
+{
+    CHAR16 ScanCode;
+    UINT16 UnicodeChar;
+} EFI_INPUT_KEY;
+
 typedef
 EFI_STATUS
 (EFIAPI *EFI_INPUT_READ_KEY)
