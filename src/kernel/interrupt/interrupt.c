@@ -9,6 +9,8 @@
 
 #define IDT_DESC_CNT 0x30 /* 总共支持的中断数 */
 
+void* intr_handle_entry[IDT_DESC_CNT];
+
 PRIVATE char* intr_name[IDT_DESC_CNT] = 
 {
     "#DE 除法异常 Divide Error",
@@ -84,134 +86,6 @@ PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
     return;
 }
 
-#define INTR_HANDLER(Entry,NR,ErrorCode,Handler) extern void Entry();
-#include <intrlist.h>
-#undef INTR_HANDLER
-
-PRIVATE void idt_desc_init(void)
-{
-    #define INTR_HANDLER(Entry,NR,ErrorCode,Handler) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
-    #include <intrlist.h>
-    #undef INTR_HANDLER
-}
-
-PUBLIC void init_interrupt()
-{
-    idt_desc_init();
-    init_pic();
-    uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) | (sizeof(idt) - 1);
-    __asm__ __volatile__ ("lidt %[idt_ptr]"::[idt_ptr]"m"(idt_ptr):);
-    return;
-}
-
-#define INTR_HANDLER(Entry,NR,ErrorCode,Handler) \
-__asm__ \
-( \
-    ".global "#Entry" \n\t" \
-    #Entry": \n\t" \
-    #ErrorCode"\n\t" \
- \
-    "pushq %r15 \n\t" \
-    "pushq %r14 \n\t" \
-    "pushq %r13 \n\t" \
-    "pushq %r12 \n\t" \
-    "pushq %r11 \n\t" \
-    "pushq %r10 \n\t" \
-    "pushq %r9 \n\t" \
-    "pushq %r8 \n\t" \
- \
-    "pushq %rdi \n\t" \
-    "pushq %rsi \n\t" \
-    "pushq %rbp \n\t" \
-    "pushq %rdx \n\t" \
-    "pushq %rcx \n\t" \
-    "pushq %rbx \n\t" \
-    "pushq %rax \n\t" \
- \
-    "movq  $0,%rax \n\t" \
-    "movw  %gs,%ax \n\t" \
-    "pushq %rax \n\t" \
-    "movw  %fs,%ax \n\t" \
-    "pushq %rax \n\t" \
-    "movw  %es,%ax \n\t" \
-    "pushq %rax \n\t" \
-    "movw  %ds,%ax \n\t" \
-    "pushq %rax \n\t" \
- \
-    "movq $"#NR",%rdi \n\t" \
-    "movq %rsp,%rsi \n\t" \
-    "leaq "#Handler"(%rip),%rax \n\t" \
-    "callq *%rax \n\t" \
-    "jmp intr_exit" \
-);
-
-#include <intrlist.h>
-#undef INTR_HANDLER
-
-__asm__
-(
-    ".global intr_exit \n\t"
-    "intr_exit: \n\t"
-
-    "popq %rax \n\t"
-    "movw  %ax,%ds \n\t"
-    "popq %rax \n\t"
-    "movw  %ax,%es \n\t"
-    "popq %rax \n\t"
-    "movw  %ax,%fs \n\t"
-    "popq %rax \n\t"
-    "movw  %ax,%gs \n\t"
-
-    "popq %rax \n\t"
-    "popq %rbx \n\t"
-    "popq %rcx \n\t"
-    "popq %rdx \n\t"
-    "popq %rbp \n\t"
-    "popq %rsi \n\t"
-    "popq %rdi \n\t"
-
-    "popq %r8 \n\t"
-    "popq %r9 \n\t"
-    "popq %r10 \n\t"
-    "popq %r11 \n\t"
-    "popq %r12 \n\t"
-    "popq %r13 \n\t"
-    "popq %r14 \n\t"
-    "popq %r15 \n\t"
-
-    "addq $8,%rsp \n\t"
-    ".byte 0x48 \n\t" // 64bit
-    ".byte 0xcf"      // iretd
-);
-
-enum OffsetInStack
-{
-    Stack_Ds,
-    Stack_Es,
-    Stack_Fs,
-    Stack_Gs,
-
-    Stack_Rax,
-    Stack_Rbx,
-    Stack_Rcx,
-    Stack_Rdx,
-    Stack_Rbp,
-    Stack_Rsi,
-    Stack_Rdi,
-    Stack_R8,
-    Stack_R9,
-    Stack_R10,
-    Stack_R11,
-    Stack_R12,
-    Stack_R13,
-    Stack_R14,
-    Stack_R15,
-
-    Stack_ErrorCode,
-    Stack_Rip,
-    Stack_Cs,
-};
-
 void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 {
     ASSERT(intr_get_status() == INTR_OFF);
@@ -265,6 +139,116 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     while(1);
 }
 
+#define INTR_HANDLER(Entry,NR,ErrorCode) extern void Entry();
+#include <intrlist.h>
+#undef INTR_HANDLER
+
+PRIVATE void idt_desc_init(void)
+{
+    #define INTR_HANDLER(Entry,NR,ErrorCode) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
+    #include <intrlist.h>
+    #undef INTR_HANDLER
+    int i;
+    for(i = 0;i < IDT_DESC_CNT;i++)
+    {
+        intr_handle_entry[i] = general_intr_handler;
+    }
+    extern void intr0x20_handler();
+    intr_handle_entry[0x20] = intr0x20_handler;
+}
+
+PUBLIC void init_interrupt()
+{
+    idt_desc_init();
+    init_pic();
+    uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) | (sizeof(idt) - 1);
+    __asm__ __volatile__ ("lidt %[idt_ptr]"::[idt_ptr]"m"(idt_ptr):);
+    return;
+}
+
+#define INTR_HANDLER(Entry,NR,ErrorCode) \
+__asm__ \
+( \
+    ".global "#Entry" \n\t" \
+    #Entry": \n\t" \
+    #ErrorCode"\n\t" \
+ \
+    "pushq %r15 \n\t" \
+    "pushq %r14 \n\t" \
+    "pushq %r13 \n\t" \
+    "pushq %r12 \n\t" \
+    "pushq %r11 \n\t" \
+    "pushq %r10 \n\t" \
+    "pushq %r9 \n\t" \
+    "pushq %r8 \n\t" \
+ \
+    "pushq %rdi \n\t" \
+    "pushq %rsi \n\t" \
+    "pushq %rbp \n\t" \
+    "pushq %rdx \n\t" \
+    "pushq %rcx \n\t" \
+    "pushq %rbx \n\t" \
+    "pushq %rax \n\t" \
+ \
+    "movq  $0,%rax \n\t" \
+    "movw  %gs,%ax \n\t" \
+    "pushq %rax \n\t" \
+    "movw  %fs,%ax \n\t" \
+    "pushq %rax \n\t" \
+    "movw  %es,%ax \n\t" \
+    "pushq %rax \n\t" \
+    "movw  %ds,%ax \n\t" \
+    "pushq %rax \n\t" \
+ \
+    "leaq intr_handle_entry(%rip),%rbx \n\t"/* rbx = &intr_handle_entry */ \
+    "movq $"#NR"* 8,%rax \n\t" \
+    "addq %rax,%rbx \n\t" /* rbx = &intr_handle_entry[NR] */\
+    "movq (%rbx),%rax \n\t" /* rax = intr_handle_entry[NR] */ \
+ \
+    "movq $"#NR",%rdi \n\t" \
+    "movq %rsp,%rsi \n\t" \
+    "callq *%rax \n\t" \
+    "jmp intr_exit" \
+);
+
+#include <intrlist.h>
+#undef INTR_HANDLER
+
+__asm__
+(
+    ".global intr_exit \n\t"
+    "intr_exit: \n\t"
+
+    "popq %rax \n\t"
+    "movw  %ax,%ds \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%es \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%fs \n\t"
+    "popq %rax \n\t"
+    "movw  %ax,%gs \n\t"
+
+    "popq %rax \n\t"
+    "popq %rbx \n\t"
+    "popq %rcx \n\t"
+    "popq %rdx \n\t"
+    "popq %rbp \n\t"
+    "popq %rsi \n\t"
+    "popq %rdi \n\t"
+
+    "popq %r8 \n\t"
+    "popq %r9 \n\t"
+    "popq %r10 \n\t"
+    "popq %r11 \n\t"
+    "popq %r12 \n\t"
+    "popq %r13 \n\t"
+    "popq %r14 \n\t"
+    "popq %r15 \n\t"
+
+    "addq $8,%rsp \n\t"
+    ".byte 0x48 \n\t" // 64bit
+    ".byte 0xcf"      // iretd
+);
 
 /**
  * @brief  开中断
