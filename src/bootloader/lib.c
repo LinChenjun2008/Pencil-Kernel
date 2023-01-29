@@ -1,6 +1,3 @@
-// #include <Uefi.h>
-// #include <Library/UefiBootServicesTableLib.h>
-
 #include <Efi.h>
 
 CHAR16 get_char()

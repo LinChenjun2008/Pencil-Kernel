@@ -1,9 +1,3 @@
-// #include <Uefi.h>
-// #include <Library/UefiBootServicesTableLib.h>
-// #include <Protocol/GraphicsOutput.h>
-// #include <Protocol/SimpleFileSystem.h>
-// #include <Guid/FileInfo.h>
-
 #include <Efi.h>
 
 #include "common.h"
@@ -28,9 +22,9 @@ typedef struct
     int hr;
     int vr;
     int kernel_flage;
-    CHAR16   KernelName[32];
+    CHAR16   KernelName[256];
     int typeface_flage;
-    CHAR16 TypefaceName[32];
+    CHAR16 TypefaceName[256];
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
@@ -76,7 +70,7 @@ UefiMain
         .TypefaceName   = L"\0"
     };
     EFI_PHYSICAL_ADDRESS FileBase;
-    if(EFI_ERROR(ReadFile(L"\\BootConfig.txt",&FileBase,AllocateAnyPages)))
+    if(EFI_ERROR(ReadFile(L"EFI\\Boot\\BootConfig.txt",&FileBase,AllocateAnyPages)))
     {
         gST->ConOut->OutputString(SystemTable->ConOut,L"'BootConfig.txt' not found. Press Any key to continue.\n\r");
         get_char();
@@ -191,7 +185,7 @@ void gotoKernel(BootConfig* Config)
     if(!Config->kernel_flage)
     {
         gST->ConOut->OutputString(gST->ConOut,L"Press kernel file name:");
-        get_line(Config->KernelName,32);
+        get_line(Config->KernelName,256);
     }
     if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,AllocateAddress)))
     {
@@ -256,12 +250,12 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     * 0x800000 - ....           -空闲内存
     映射:
     0x0000000000000000 - 0x00000000ffffffff (1对1映射)
-    0xffff800e00000000 - 显存
+    0xffff807fc0000000 - 显存
     PML4E 0         PDPTE 3       PDE 511       offset
     0(1)000 0000 0 | 000 0000 11 | 11 1111 111 | 1 1111 1111 1111 1111 1111
     0(8)    0    0       0    f       f    f       f    f    f    f    f
-       1000 0000 0 | 000 1110 00 | 00 0000 000 | 0 0000 0000 0000 0000 0000
-       8    0    0       e    0       0    0       0    0    0    0    0
+       1000 0000 0 | 111 1111 11 | 00 0000 000 | 0 0000 0000 0000 0000 0000
+       8    0    7       f    c       0    0       0    0    0    0    0
        
     页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 (2 * 4096 显存大于4GB时)
                 == 245760B == 6 * 4kb(4kb是UEFI使用的页大小)
@@ -288,15 +282,15 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     PDE4   = PML4E + 6 * 0x1000;
 
     *((UINTN*)(PML4E + 0x000)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0x00000...
-    *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
-    *((UINTN*)(PML4E + 0xff8)) = PML4E | PG_US_U | PG_RW_W | PG_P; // 最后一项指向页目录自己
+    // *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
+    // *((UINTN*)(PML4E + 0xff8)) = PML4E | PG_US_U | PG_RW_W | PG_P; // 最后一项指向页目录自己
 
     *((UINTN*)(PDPTE + 0x000)) = PDE0 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x008)) = PDE1 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x010)) = PDE2 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x018)) = PDE3 | PG_US_U | PG_RW_W | PG_P;
 
-    *((UINTN*)(PDPTE + 0x1c0)) = PDE4 | PG_US_U | PG_RW_W | PG_P;
+    *((UINTN*)(PDPTE + 0xff8)) = PDE4 | PG_US_U | PG_RW_W | PG_P;
     UINTN i;
     EFI_PHYSICAL_ADDRESS Addr = 0;
     for(i = 0;i < 512;i++)
@@ -327,6 +321,6 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
         *((UINTN*)(PDE4 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Binfo->GraphicsInfo.FrameBufferBase = 0xffff800e00000000;
+    Binfo->GraphicsInfo.FrameBufferBase = 0x0000007fc0000000;
     return PML4E;
 }

@@ -1,8 +1,8 @@
 #文件路径
 
-UEFI_DIR = ../bootloader/
-KERNEL_DIR = ../kernel/
-INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../
+UEFI_DIR = ../src/bootloader/
+KERNEL_DIR = ../src/kernel/
+INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../src/
 
 #源代码
 UEFI_SRC = \
@@ -28,7 +28,6 @@ $(KERNEL_DIR)/lib/bitmap.c \
 $(KERNEL_DIR)/libc/string.c \
 $(KERNEL_DIR)/libc/stdio.c
 
-
 #虚拟磁盘和物理磁盘路径
 DISK = ../../run/disk/
 REAL_DISK = ../../../
@@ -36,11 +35,11 @@ REAL_DISK = ../../../
 #输出文件名
 KERNEL_OBJ       = $(KERNEL_DIR)/kernel.o
 UEFI_OUTPUT      = $(DISK)/EFI/Boot/BootX64.efi
-KERNEL_OUTPUT    = $(DISK)/kernel.sys
+KERNEL_OUTPUT    = $(DISK)Kernel/kernel.sys
 
 #实际路径(物理磁盘上的路径)
 REAL_UEFI_OUTPUT      = $(REAL_DISK)/EFI/Boot/BootX64.efi
-REAL_KERNEL_OUTPUT    = $(REAL_DISK)/kernel.sys
+REAL_KERNEL_OUTPUT    = $(REAL_DISK)/Kernel/kernel.sys
 
 #工具路径
 TOOL_DIR = ../../tools/
@@ -56,6 +55,7 @@ KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
 OBJCOPY = $(TOOL_DIR)/objcopy
 RM             = $(TOOL_DIR)/rm
+ECHO = echo
 
 #模拟器和UEFI-BIOS
 QEMU = $(TOOL_DIR)/qemu/qemu-system-x86_64

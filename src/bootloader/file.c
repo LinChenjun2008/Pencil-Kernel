@@ -1,8 +1,3 @@
-// #include <Uefi.h>
-// #include <Library/UefiBootServicesTableLib.h>
-// #include <Protocol/SimpleFileSystem.h>
-// #include <Guid/FileInfo.h>
-
 #include <Efi.h>
 
 #include "file.h"
