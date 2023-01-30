@@ -4,6 +4,7 @@
 #include <graphic.h>
 #include <init.h>
 #include <interrupt.h>
+#include <timer.h>
 #include <memory.h>
 #include <thread.h>
 #include <keyboard.h>
@@ -58,6 +59,7 @@ PUBLIC void init_all()
 {
     init_gdt();
     init_interrupt();
+    init_pit();
     init_memory();
     init_thread();
     init_keyboard();

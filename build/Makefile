@@ -5,7 +5,7 @@ include config.txt
 	@$(ECHO) compile $*.c
 	@$(CC) -Wall -Wextra -Werror $(INCLUDE_DIR) -nostdlib -nostdinc \
 	-finput-charset=UTF-8 -fexec-charset=UTF-8 \
-	-fno-builtin -fno-strict-aliasing -fpic -fpie -mno-red-zone \
+	-fno-builtin -fno-strict-aliasing -mno-red-zone \
 	-m64 -mcmodel=large -march=x86-64 \
 	-Os -c -o $*.o $*.c -g
 

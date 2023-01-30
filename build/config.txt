@@ -1,3 +1,6 @@
+#定时器类型:8254
+TIMER = 8254
+
 #文件路径
 
 UEFI_DIR = ../src/bootloader/
@@ -20,6 +23,7 @@ $(KERNEL_DIR)/interrupt/interrupt.c \
 $(KERNEL_DIR)/thread/thread.c \
 $(KERNEL_DIR)/thread/sync.c \
 $(KERNEL_DIR)/memory/memory.c \
+$(KERNEL_DIR)/driver/timer/$(TIMER).c \
 $(KERNEL_DIR)/driver/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
 $(KERNEL_DIR)/lib/lib.c \
@@ -46,7 +50,6 @@ TOOL_DIR = ../../tools/
 
 #编译器
 CC = $(TOOL_DIR)MinGW64/bin/gcc
-
 #连接器和链接脚本
 LD  = $(TOOL_DIR)/MinGW64/bin/ld
 KERNEL_LDS = $(KERNEL_DIR)/kernel.lds

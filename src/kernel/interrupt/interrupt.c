@@ -86,6 +86,9 @@ PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
     return;
 }
 
+/**
+ * @brief 通用中断处理函数
+*/
 void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 {
     ASSERT(intr_get_status() == INTR_OFF);
@@ -143,6 +146,9 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 #include <intrlist.h>
 #undef INTR_HANDLER
 
+/**
+ * @brief 创建idt和中断处理接口
+*/
 PRIVATE void idt_desc_init(void)
 {
     #define INTR_HANDLER(Entry,NR,ErrorCode) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
@@ -153,8 +159,15 @@ PRIVATE void idt_desc_init(void)
     {
         intr_handle_entry[i] = general_intr_handler;
     }
-    extern void intr0x20_handler();
-    intr_handle_entry[0x20] = intr0x20_handler;
+}
+
+/**
+ * @brief 注册中断处理函数
+*/
+PUBLIC void register_handle(UINTN NR,void* handle)
+{
+    intr_handle_entry[NR] = handle;
+    return;
 }
 
 PUBLIC void init_interrupt()
@@ -200,10 +213,9 @@ __asm__ \
     "movw  %ds,%ax \n\t" \
     "pushq %rax \n\t" \
  \
-    "leaq intr_handle_entry(%rip),%rbx \n\t"/* rbx = &intr_handle_entry */ \
-    "movq $"#NR"* 8,%rax \n\t" \
-    "addq %rax,%rbx \n\t" /* rbx = &intr_handle_entry[NR] */\
-    "movq (%rbx),%rax \n\t" /* rax = intr_handle_entry[NR] */ \
+    "leaq intr_handle_entry(%rip),%rax \n\t"/* rax = &intr_handle_entry */    \
+    "addq $"#NR"* 8,%rax \n\t"              /*rax = &intr_handle_entry[NR] */ \
+    "movq (%rax),%rax \n\t"                 /* rax = intr_handle_entry[NR] */ \
  \
     "movq $"#NR",%rdi \n\t" \
     "movq %rsp,%rsi \n\t" \
@@ -306,40 +318,6 @@ PUBLIC enum intr_status intr_get_status()
 {
     /* 判断flage寄存器的if位 */
     return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);
-}
-
-PRIVATE BltPixel col =
-{
-    .Red = 0,
-    .Green = 0,
-    .Blue = 0,
-};
-
-void intr0x20_handler()
-{
-    io_out8(PIC_M_CTRL,0x20);
-    col.Red++;
-    if(col.Red >= 250)
-    {
-        col.Red = 0;
-        col.Green++;
-    }
-    viewFill(&(gBI.GraphicsInfo),col,0,0,10,10);
-
-    struct task_struct* cur_thread = running_thread();
-
-    ASSERT(cur_thread->stack_magic == StackMagic);
-
-    cur_thread->elapsed_ticks++;
-    if(cur_thread->ticks == 0)
-    {
-        schedule();
-    }
-    else
-    {
-        cur_thread->ticks--;
-    }
-    return;
 }
 
 void intr0x27_handler()

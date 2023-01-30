@@ -20,7 +20,7 @@ PUBLIC void init_keyboard()
     io_out8(KEYBOARD_CMD_PORT,KEYBOARD_WRITE_MD);
     wait_keyboard_ready();
     io_out8(KEYBOARD_BUF_PORT,0x47);
-    // init_fifo(&keybuf,buf,8,64);
+    register_handle(0x21,intr0x21_handler);
     return;
 }
 

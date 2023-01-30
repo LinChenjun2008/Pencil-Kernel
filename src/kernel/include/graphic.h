@@ -34,4 +34,14 @@ void init_screen(struct GraphicsInfo* Ginfo);
 */
 void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str,int FontSize);
 
+static inline BltPixel color(uint8_t red,uint8_t green,uint8_t blue)
+{
+    BltPixel col = 
+    {
+        .Red = red,
+        .Green = green,
+        .Blue = blue
+    };
+    return col;
+}
 #endif

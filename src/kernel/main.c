@@ -44,30 +44,18 @@ PUBLIC uint64_t kernel_main()
     gBI.GraphicsInfo.HorizontalResolution,
     gBI.GraphicsInfo.VerticalResolution);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
-
-    int i,MemorySize = 0,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
-    for(i = 0;i < PageCnt;i++)
-    {
-        if((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->Type != EfiMemoryMappedIO)
-        {
-            MemorySize += (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages;
-        }
-        else
-        {
-            sprintf
-            (
-                str,"MMio: start:%p end: %p\n",
-                (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart,
-                (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart + ((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages << 12)
-            );
-            vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
-        }
-    }
-    sprintf(str,"PhysicalMemoryBitmapBytes: %p\n",PhysicalMemoryBitmapBytes);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
     
     thread_start("test 1",31,kthread,NULL);
     thread_start("test 2",31,kthread2,NULL);
-    while(1);
+    while(1)
+    {
+        col.Red++;
+        if(col.Red >= 250)
+        {
+            col.Red = 0;
+            col.Green++;
+        }
+        viewFill(&(gBI.GraphicsInfo),col,0,0,10,10);
+    };
     return 0;
 }
