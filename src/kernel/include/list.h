@@ -4,17 +4,18 @@
 #include <global.h>
 #include <stdint.h>
 
-#define offset(Type,Member) ((UINTN)(&(((Type*)0)->Member)))
+// #define offset(Type,Member) ((UINTN)(&(((Type*)0)->Member)))
 
-#define container_of(Type,Member,Ptr) \
-({ \
-    ((Type*)(((UINTN)Ptr) - offset(Type,Member))); \
-})
-
+/* #define container_of(Type,Member,Ptr) \
+ ({ \
+     ((Type*)(((UINTN)Ptr) - offset(Type,Member))); \
+ })
+*/
 struct ListNode
 {
     struct ListNode* prev; /* 上一个节点 */
     struct ListNode* next; /* 下一个节点 */
+    void* container;
 };
 
 struct List
@@ -23,7 +24,7 @@ struct List
     struct ListNode tail; /* 链表尾 */
 };
 
-typedef BOOL (func) (struct ListNode* ,uint32_t arg);
+typedef BOOL (func) (struct ListNode* ,UINTN arg);
 
 /**
  * @brief 初始化链表

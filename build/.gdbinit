@@ -1,5 +1,5 @@
 target remote localhost:1234
-file ../kernel/kernel.o
+file ../src/kernel/kernel.o
 b kernel_main
 
 define regs

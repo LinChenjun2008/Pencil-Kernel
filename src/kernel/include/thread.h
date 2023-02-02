@@ -5,6 +5,9 @@
 #include <list.h>
 
 typedef UINTN pid_t;
+
+#include <message.h>
+
 typedef void thread_function(void*);
 
 #define PCB_SIZE (64 * 1024) /* 64KB */
@@ -87,20 +90,25 @@ struct task_struct
     // struct MEMMAN prog_vaddr;            /* 进程的虚拟地址 */
     // struct mem_desc u_desc[MEM_DESCS];
 
-    // struct MESSAGE msg;                  /* 进程消息体 */
-    // pid_t send_to;                       /* 记录进程想要向谁发送消息 */
-    // pid_t recv_from;                     /* 记录进程想要从谁获取消息 */
-    // int int_msg;                         /* 如果进程在等待中断发生,用于记录中断号 */
-    // struct List sender_list;             /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的send_tag加入这个队列 */
+    struct MESSAGE msg;                  /* 进程消息体 */
+    pid_t send_to;                       /* 记录进程想要向谁发送消息 */
+    pid_t recv_from;                     /* 记录进程想要从谁获取消息 */
+    struct List sender_list;             /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的send_tag加入这个队列 */
 
     UINTN stack_magic;                   /* 用于检测是否栈溢出 */
 };
 
 void init_thread();
 PUBLIC struct task_struct* thread_start(char* name,UINTN priority,thread_function func,void* arg);
+PUBLIC void thread_init(struct task_struct* thread,char* name,UINTN priority);
+void thread_create(struct task_struct* thread,thread_function func,void* arg);
 PUBLIC struct task_struct* running_thread();
 PUBLIC void schedule();
 
 PUBLIC void thread_block(enum task_status status);
 PUBLIC void thread_unblock(struct task_struct* pthread);
+PUBLIC struct task_struct* pid2thread(pid_t pid);
+
+extern struct List ready_list;
+extern struct List all_list;
 #endif

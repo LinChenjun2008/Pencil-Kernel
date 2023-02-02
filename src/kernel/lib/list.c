@@ -107,7 +107,7 @@ BOOL list_find(struct List* plist,struct ListNode* objNode)
  * @param plist 在此链表中查找
  * @param function 回调函数,用于判断节点是否满足条件
  * @param arg 作为回调函数function的一个参数
- * @return 符合条件的链表指针
+ * @return 符合条件的链表节点指针,没有符合的则返回0
 */
 struct ListNode* list_traversal(struct List* plist,func function,int arg)
 {

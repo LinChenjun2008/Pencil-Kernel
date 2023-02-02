@@ -222,11 +222,11 @@ void gotoKernel(BootConfig* Config)
     __asm__ __volatile__
     (
         "movq %[PML4E_POS],%%cr3 \n\t"
-        "movq $0x310000,%%rsp \n\t"
+        "movq $0xffff800000310000,%%rsp \n\t"
         "movq %[KernelEntry],%%rax \n\t"
         "callq *%%rax"
         :
-        :[PML4E_POS]"r"(PML4E),[KernelEntry]"r"(KernelFileBase)
+        :[PML4E_POS]"r"(PML4E),[KernelEntry]"r"(KernelFileBase + 0xffff800000000000)
         :"rsp","rax"
     );
 }
@@ -249,7 +249,8 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     * 0x600000 - 0x7fffff ( 2MB) -字体文件
     * 0x800000 - ....           -空闲内存
     映射:
-    0x0000000000000000 - 0x00000000ffffffff (1对1映射)
+    0x0000000000000000 - 0x00000000ffffffff ==> 0x0000000000000000 - 0x00000000ffffffff
+    0x0000000000000000 - 0x00000000ffffffff ==> 0xffff800000000000 - 0xffff8000ffffffff
     0xffff807fc0000000 - 显存
     PML4E 0         PDPTE 3       PDE 511       offset
     0(1)000 0000 0 | 000 0000 11 | 11 1111 111 | 1 1111 1111 1111 1111 1111
@@ -282,8 +283,7 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     PDE4   = PML4E + 6 * 0x1000;
 
     *((UINTN*)(PML4E + 0x000)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0x00000...
-    // *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
-    // *((UINTN*)(PML4E + 0xff8)) = PML4E | PG_US_U | PG_RW_W | PG_P; // 最后一项指向页目录自己
+    *((UINTN*)(PML4E + 0x800)) = PDPTE | PG_US_U | PG_RW_W | PG_P; // 0xffff8...
 
     *((UINTN*)(PDPTE + 0x000)) = PDE0 | PG_US_U | PG_RW_W | PG_P;
     *((UINTN*)(PDPTE + 0x008)) = PDE1 | PG_US_U | PG_RW_W | PG_P;
@@ -321,6 +321,6 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
         *((UINTN*)(PDE4 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Binfo->GraphicsInfo.FrameBufferBase = 0x0000007fc0000000;
+    Binfo->GraphicsInfo.FrameBufferBase = 0xffff807fc0000000;
     return PML4E;
 }

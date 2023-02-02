@@ -1,17 +1,44 @@
 #include <global.h>
 #include <thread.h>
 #include <debug.h>
+#include <bitmap.h>
+#include <sync.h>
 #include <interrupt.h>
 #include <list.h>
 #include <memory.h>
 #include <graphic.h>
 #include <stdio.h>
 #include <string.h>
+#include <syscall.h>
+
+#include <process.h>
 
 PRIVATE struct task_struct* main_thread;
 PRIVATE struct task_struct* idle_thread;
 PUBLIC struct List ready_list;
 PUBLIC struct List all_list;
+
+struct
+{
+    struct Lock lock;
+    struct Bitmap bitmap;
+    pid_t first_pid;
+}pid_pool;
+
+
+/* 用于分配pid 可分配的pid为0~1024 */
+PRIVATE uint8_t pid_bits[128] = { 0 };
+
+PRIVATE pid_t alloc_pid()
+{
+    pid_t pid;
+    lock_acquire(&(pid_pool.lock));
+    int idx = bitmap_alloc(&(pid_pool.bitmap),1);
+    bitmap_set(&(pid_pool.bitmap),idx,1);
+    lock_release(&(pid_pool.lock));
+    pid = idx + pid_pool.first_pid;
+    return pid;
+}
 
 PRIVATE void kernel_thread(void)
 {
@@ -35,7 +62,7 @@ PRIVATE void kernel_thread(void)
     return;
 }
 
-void thread_init(struct task_struct* thread,char* name,UINTN priority)
+PUBLIC void thread_init(struct task_struct* thread,char* name,UINTN priority)
 {
     memset(thread,0,sizeof(*thread));
     strcpy(thread->name,name);
@@ -48,10 +75,18 @@ void thread_init(struct task_struct* thread,char* name,UINTN priority)
         thread->status = TASK_RUNNING;
     }
     thread->priority = priority;
+    thread->ticks = 0;
+    thread->elapsed_ticks = 0;
+    thread->all_tag.container = thread;
+    thread->general_tag.container = thread;
+    thread->pid = alloc_pid();
     thread->self_kstack = (UINTN)(((MEMORY_ADDRESS)thread) + PCB_SIZE);
     ASSERT(thread->self_kstack != 0);
     thread->page_dir = NULL;
-
+    memset(&thread->msg,0,sizeof(struct MESSAGE));
+    thread->send_to = NO_TASK;
+    thread->recv_from = NO_TASK;
+    list_init(&(thread->sender_list));
     thread->stack_magic = StackMagic;
     return;
 }
@@ -87,7 +122,7 @@ void thread_create(struct task_struct* thread,thread_function func,void* arg)
 
 PUBLIC struct task_struct* thread_start(char* name,UINTN priority,thread_function func,void* arg)
 {
-    struct task_struct* thread = (struct task_struct*)kmalloc(PCB_SIZE);
+    struct task_struct* thread = (struct task_struct*)kAddrP2V(kmalloc(PCB_SIZE));
     thread_init(thread,name,priority);
     thread_create(thread,func,arg);
     /* 加入就绪队列 */
@@ -121,6 +156,13 @@ void init_thread()
 {
     list_init(&(ready_list));
     list_init(&(all_list));
+    pid_pool.first_pid = 0;
+    pid_pool.bitmap.map = pid_bits;
+    pid_pool.bitmap.btmp_bytes_len = 128;
+    memset(pid_bits,0,128);
+    bitmap_init(&pid_pool.bitmap);
+    lock_init(&pid_pool.lock);
+
     make_main_thread();
     idle_thread = thread_start("idle",31,idle,NULL);
     return;
@@ -138,6 +180,7 @@ void switch_to(void* cur,void* next)
         :[cur]"r"(cur),[next]"r"(next)
     );
 }
+
 __asm__
 (
     "asm_switch_to: \n\t"
@@ -163,6 +206,8 @@ __asm__
 PUBLIC void schedule()
 {
     struct task_struct* cur_thread = running_thread();
+    ASSERT(cur_thread->all_tag.container == running_thread());
+    ASSERT(cur_thread->general_tag.container == running_thread());
     ASSERT(cur_thread->stack_magic == StackMagic); /* 确保栈不溢出 */
     if(cur_thread->status == TASK_RUNNING)
     {
@@ -177,9 +222,12 @@ PUBLIC void schedule()
     }
     struct ListNode* next_thread_tag = NULL;
     next_thread_tag = list_pop(&ready_list);
-    next = container_of(struct task_struct,general_tag,next_thread_tag);
+    next = next_thread_tag->container;
 
     next->status = TASK_RUNNING;
+
+    process_activate(next);
+
     switch_to(&cur_thread->self_kstack,&next->self_kstack);
     return;
 }
@@ -190,6 +238,7 @@ PUBLIC void thread_block(enum task_status status)
     enum intr_status old_status = intr_disable();
     struct task_struct* cur_thread = running_thread();
     cur_thread->status = status;
+    ASSERT(cur_thread->status == status);
     schedule();
     intr_set_status(old_status);
     return;
@@ -198,6 +247,10 @@ PUBLIC void thread_block(enum task_status status)
 PUBLIC void thread_unblock(struct task_struct* pthread)
 {
     enum intr_status old_status = intr_disable();
+    if(!list_find(&all_list,&pthread->all_tag))
+    {
+        PANIC("thread_unblock: Error: thread not create");
+    }
     if(pthread->status != TASK_READY)
     {
         ASSERT(!list_find(&ready_list,&(pthread->general_tag)));
@@ -212,48 +265,22 @@ PUBLIC void thread_unblock(struct task_struct* pthread)
     return;
 }
 
-
-
-////////////////////////////////////////////////////////////////////////////
-//  下面是测试线程
-////////////////////////////////////////////////////////////////////////////
-
-void kthread(void* arg __attribute((unused)))
+/* list_traversal的回调函数pid_check */
+PRIVATE BOOL pid_check(struct ListNode* pNode,pid_t pid)
 {
-    PRIVATE BltPixel col =
-    {
-        .Red = 0,
-        .Green = 0,
-        .Blue = 0,
-    };
-    while(1)
-    {
-        col.Red++;
-        if(col.Red >= 250)
-        {
-            col.Red = 0;
-            col.Green++;
-        }
-        viewFill(&(gBI.GraphicsInfo),col,10,0,20,10);
-    };
+    return (((struct task_struct*)pNode->container)->pid == pid);
 }
 
-void kthread2(void* arg __attribute((unused)))
+PUBLIC struct task_struct* pid2thread(pid_t pid)
 {
-    PRIVATE BltPixel col =
+    if(pid > 1024)
     {
-        .Red = 0,
-        .Green = 0,
-        .Blue = 0,
-    };
-    while(1)
+        return NULL;
+    }
+    struct ListNode* pNode = list_traversal(&all_list,pid_check,pid);
+    if(pNode == NULL)
     {
-        col.Red++;
-        if(col.Red >= 250)
-        {
-            col.Red = 0;
-            col.Green++;
-        }
-        viewFill(&(gBI.GraphicsInfo),col,20,0,30,10);
-    };
+        return NULL;
+    }
+    return (struct task_struct*)pNode->container;
 }

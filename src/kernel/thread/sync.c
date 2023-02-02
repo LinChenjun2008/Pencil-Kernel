@@ -62,7 +62,7 @@ PUBLIC void sema_up(struct Semaphore* psema)
     if(!list_empty(&(psema->waiters)))
     {
         struct ListNode* blocked_tag = list_pop(&(psema->waiters));
-        struct task_struct* blocked_thread = container_of(struct task_struct,general_tag,blocked_tag);
+        struct task_struct* blocked_thread = blocked_tag->container;
         thread_unblock(blocked_thread);
     }
     psema->value++;

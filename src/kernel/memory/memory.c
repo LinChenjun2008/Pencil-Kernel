@@ -19,6 +19,8 @@ struct Bitmap PhysicalMemoryBitmap;
 byte VirtualMemoryBitmapBytes[MemoryBitmapBytesLen];
 struct Bitmap VirtualMemoryBitmap;
 
+MEMORY_ADDRESS MemoryLimit; // 物理内存最大地址
+
 void InitMemoryBlock(struct MemoryDesc* MemDesc)
 {
     int idx;
@@ -75,16 +77,18 @@ PUBLIC void init_memory()
     /* 内存描述符 */
     struct MEMDESC MemoryDescriptor[MemoryDescriptorCnt];
     int MemoryDescriptorNumber = 0;
-
-    // 合并内存块
     int i,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
+    MemoryLimit = 0;
     // 提前给第一项赋值
     MemoryDescriptor[0].AddrStart      = 0;
     MemoryDescriptor[0].MemoryPageSize = 0;
     MemoryDescriptor[0].Type           = FreeMemory;
     int MemoryDescriptorIndex = 1;
+    // 合并内存块
     for(i = 0;i < PageCnt;i++)
     {
+        MemoryLimit = (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart + 
+        ((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages << 12);
         // 先检查内存类型
         // 如果内存类型与上一个不同,则无法合并
         if(type_uefi2os(((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->Type)) == MemoryDescriptor[MemoryDescriptorIndex - 1].Type)
@@ -155,6 +159,31 @@ PUBLIC void init_memory()
        bitmap_set(&PhysicalMemoryBitmap,i,1);
     }
     InitMemoryBlock(KernelMemoryBlock);
+    if(MemoryLimit <= 0xffffffff)
+    {
+        return;
+    }
+    // 接下来将MemoryLimie地址以内的内存映射到页表中
+    int IndexOfPDE   = (MemoryLimit & 0x0000007fc0000000) >> 30;
+    if(MemoryLimit > 0x7fffffffff)
+    {
+        IndexOfPDE = 512;
+    }
+    UINTN NewPageTable = 0x800000;
+    bitmap_set(&PhysicalMemoryBitmap,5,1); // 512 * 4096正好一页,而实际最多是508 * 4096
+    UINTN Address = 0x100000000;
+    for(i = 4;i < IndexOfPDE;i++)
+    {
+        UINTN* PDPTE = (void*)(KERNEL_PAGE_DIR_TABLE_POS + 1 * 0x1000);
+        PDPTE[i] = (NewPageTable + (i - 4) * 4096) | PG_US_U | PG_RW_W | PG_P;
+        int j;
+        for(j = 0;j < 512;j++)
+        {
+            *(UINTN*)(NewPageTable + (i - 4) * 4096 + j * 8) = Address | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+            Address += 0x200000;
+        }
+    }
+    asm("movq %cr3,%rax \n\t""movq %rax,%cr3");
     return;
 }
 
@@ -179,14 +208,7 @@ PUBLIC void* AllocatePage(UINTN NumberOfPages)
     {
         bitmap_set(&PhysicalMemoryBitmap,i,1);
     }
-    if(PageIndex < (0x100000000 / PG_SIZE)) // 在4GB以内
-    {
-        return (void*)(PageIndex * PG_SIZE);
-    }
-    else // 以后处理
-    {
-        return NULL;
-    }
+    return (void*)(PageIndex * PG_SIZE);
 }
 
 /**
@@ -208,14 +230,7 @@ PUBLIC void FreePage(void* Addr,UINTN NumberOfPages)
     {
         bitmap_set(&PhysicalMemoryBitmap,i,0);
     }
-    if(PageIndex < (0x100000000 / PG_SIZE)) // 在4GB以内
-    {
-        return;
-    }
-    else // 以后处理
-    {
-        return;
-    }
+    return;
 }
 
 PRIVATE struct MemoryBlock* Zone2Block(struct Zone* z,int idx)
@@ -248,13 +263,12 @@ PUBLIC void* kmalloc(UINTN Size)
         if(list_empty(&(MemDesc[idx].FreeBlockList))) // 内存池已满
         {
             z = AllocatePage(1);
+            ASSERT(z != NULL);
             if(z == NULL)
             {
-                ASSERT(z != NULL);
                 return NULL;
             }
             // 初始化
-            // vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"init new memzone. ");
             memset(z,0,PG_SIZE);
             z->Desc = &MemDesc[idx];
             z->Large = FALSE;
@@ -265,14 +279,14 @@ PUBLIC void* kmalloc(UINTN Size)
             for(BlockIndex = 0;BlockIndex < MemDesc[idx].Blocks;BlockIndex++)
             {
                 b = Zone2Block(z,BlockIndex);
+                b->Free.container = b;
                 ASSERT(!(list_find(&(z->Desc->FreeBlockList),&(b->Free))));
                 list_append(&(z->Desc->FreeBlockList),&(b->Free));
             }
             intr_set_status(old_status);
         }
         /* 获取一个内存块 */
-        // vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"GET A MEMORY. ");
-        b = container_of(struct MemoryBlock,Free,list_pop(&(MemDesc[idx].FreeBlockList)));
+        b = list_pop(&(MemDesc[idx].FreeBlockList))->container;
         memset(b,0,MemDesc[idx].BlockSize);
         z = Block2Zone(b);
         z->Cnt--;
@@ -293,7 +307,6 @@ PUBLIC void* kmalloc(UINTN Size)
         z->Cnt = NumberOfPages;
         z->Large = TRUE;
         ASSERT(z->Desc == NULL && z->Cnt == NumberOfPages && z->Large == TRUE);
-        // vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Large memzone. ");
         return (void*)(z + 1); // 节约内存,不对齐
     }
     return NULL;
@@ -311,7 +324,6 @@ PUBLIC void kfree(void* Addr)
     z = Block2Zone(b);
     if(z->Desc == NULL && z->Large == TRUE)
     {
-        // vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Free Large memzone. ");
         FreePage(z,z->Cnt);
     }
     else
@@ -328,7 +340,6 @@ PUBLIC void kfree(void* Addr)
                 ASSERT(list_find(&(z->Desc->FreeBlockList),&(b->Free)));
                 list_remove(&(b->Free));
             }
-            // vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Free Total memzone. ");
             FreePage(z,1);
         }
     }

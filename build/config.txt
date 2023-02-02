@@ -20,9 +20,12 @@ $(KERNEL_DIR)/main.c \
 $(KERNEL_DIR)/init.c \
 $(KERNEL_DIR)/debug/debug.c \
 $(KERNEL_DIR)/interrupt/interrupt.c \
+$(KERNEL_DIR)/prog/tss.c \
+$(KERNEL_DIR)/prog/process.c \
 $(KERNEL_DIR)/thread/thread.c \
 $(KERNEL_DIR)/thread/sync.c \
 $(KERNEL_DIR)/memory/memory.c \
+$(KERNEL_DIR)/syscall/syscall.c \
 $(KERNEL_DIR)/driver/timer/$(TIMER).c \
 $(KERNEL_DIR)/driver/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
@@ -49,14 +52,17 @@ REAL_KERNEL_OUTPUT    = $(REAL_DISK)/Kernel/kernel.sys
 TOOL_DIR = ../../tools/
 
 #编译器
-CC = $(TOOL_DIR)MinGW64/bin/gcc
+Mingw_CC = $(TOOL_DIR)MinGW64/bin/gcc
+CC = $(TOOL_DIR)/cross-compiler/bin/x86_64-elf-gcc
+
 #连接器和链接脚本
-LD  = $(TOOL_DIR)/MinGW64/bin/ld
+LD  = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/ld
 KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 
 #其他
 GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
 OBJCOPY = $(TOOL_DIR)/objcopy
+OBJDUMP = $(TOOL_DIR)MinGW64/bin/objdump
 RM             = $(TOOL_DIR)/rm
 ECHO = echo
 

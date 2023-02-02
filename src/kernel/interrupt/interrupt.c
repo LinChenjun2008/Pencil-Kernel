@@ -6,33 +6,34 @@
 #include <thread.h>
 #include <stdio.h>
 #include <interrupt.h>
+#include <syscall.h>
 
-#define IDT_DESC_CNT 0x30 /* 总共支持的中断数 */
+#define IDT_DESC_CNT 0x41 /* 总共支持的中断数 */
 
 void* intr_handle_entry[IDT_DESC_CNT];
 
 PRIVATE char* intr_name[IDT_DESC_CNT] = 
 {
-    "#DE 除法异常 Divide Error",
-    "#DB 调试异常 Debug Exception",
-    "NMI中断 NMI Interrupt",
-    "#BP 断点 Breakpoint Exception",
-    "#OF 溢出异常 Overflow Exception",
-    "#BR 超出范围异常 BOUND Range Exceeded Exception",
-    "#UD 无效指令异常 Invalid Opcode Exception",
-    "#NM 设备不可用异常 Device Not Available Exception",
-    "#DF 双重异常 Double Fault Exception",
-    "协处理器段错误 Coprocessor Segment Overrun",
-    "#TS 无效TSS异常 Invalid TSS Exception",
-    "#NP 段不存在 Segment Not Present",
-    "#SS 栈异常 Stack Fault Exception",
-    "#GP 一般保护性异常 General Protection Exception",
-    "#PF 缺页异常 Page-Fault Exception",
-    "Reserved",
-    "#MF x87浮点异常 x87 FPU Floating-Point Error",
-    "#AC Alignment Check Exception",
-    "#MC Machine-Check Exception",
-    "#XF SIMD Floating-Point Exception",
+    "#DE 除法异常 Divide Error\n",
+    "#DB 调试异常 Debug Exception\n",
+    "NMI中断 NMI Interrupt\n",
+    "#BP 断点 Breakpoint Exception\n",
+    "#OF 溢出异常 Overflow Exception\n",
+    "#BR 超出范围异常 BOUND Range Exceeded Exception\n",
+    "#UD 无效指令异常 Invalid Opcode Exception\n",
+    "#NM 设备不可用异常 Device Not Available Exception\n",
+    "#DF 双重异常 Double Fault Exception\n",
+    "协处理器段错误 Coprocessor Segment Overrun\n",
+    "#TS 无效TSS异常 Invalid TSS Exception\n",
+    "#NP 段不存在 Segment Not Present\n",
+    "#SS 栈异常 Stack Fault Exception\n",
+    "#GP 一般保护性异常 General Protection Exception\n",
+    "#PF 缺页异常 Page-Fault Exception\n",
+    "Reserved\n",
+    "#MF x87浮点异常 x87 FPU Floating-Point Error\n",
+    "#AC Alignment Check Exception\n",
+    "#MC Machine-Check Exception\n",
+    "#XF SIMD Floating-Point Exception\n",
 };
 
 PRIVATE void init_pic()
@@ -139,6 +140,8 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
         vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Error: ",FontSize);
         vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr],FontSize);
     }
+    sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     while(1);
 }
 
@@ -151,14 +154,15 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
 */
 PRIVATE void idt_desc_init(void)
 {
-    #define INTR_HANDLER(Entry,NR,ErrorCode) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
-    #include <intrlist.h>
-    #undef INTR_HANDLER
     int i;
     for(i = 0;i < IDT_DESC_CNT;i++)
     {
+        set_gatedesc(&idt[i],asm_intr0x0d_handler,SelectorCode64_K,AR_IDT_DESC_DPL0);
         intr_handle_entry[i] = general_intr_handler;
     }
+    #define INTR_HANDLER(Entry,NR,ErrorCode) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
+    #include <intrlist.h>
+    #undef INTR_HANDLER
 }
 
 /**
@@ -213,12 +217,12 @@ __asm__ \
     "movw  %ds,%ax \n\t" \
     "pushq %rax \n\t" \
  \
+    "movq $"#NR",%rdi \n\t" \
+    "movq %rsp,%rsi \n\t" \
+ \
     "leaq intr_handle_entry(%rip),%rax \n\t"/* rax = &intr_handle_entry */    \
     "addq $"#NR"* 8,%rax \n\t"              /*rax = &intr_handle_entry[NR] */ \
     "movq (%rax),%rax \n\t"                 /* rax = intr_handle_entry[NR] */ \
- \
-    "movq $"#NR",%rdi \n\t" \
-    "movq %rsp,%rsi \n\t" \
     "callq *%rax \n\t" \
     "jmp intr_exit" \
 );
