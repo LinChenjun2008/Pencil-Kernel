@@ -56,10 +56,10 @@ PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
             Type = ReservedMemory;
             break;
         case EfiACPIReclaimMemory:
-            Type = APICMemory;
+            Type = ACPIMemory;
             break;
         case EfiACPIMemoryNVS:
-            Type = APICMemoryNVS;
+            Type = ACPIMemoryNVS;
             break;
         case EfiUnusableMemory:
         case EfiMaxMemoryType:

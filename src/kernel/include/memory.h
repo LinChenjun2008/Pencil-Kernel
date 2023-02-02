@@ -7,8 +7,8 @@ enum MemoryType
 {
     FreeMemory = 1,  // 可用内存 EfiConventionalMemory EfiBootServices(Code/Data) EfiLoader(Code/Data) EfiReservedMemoryType
     ReservedMemory,  // 保留(不可用) EfiRuntimeServices(Code/Data) EfiMemoryMappedIO EfiMemoryMappedIOPortSpace EfiPalCode
-    APICMemory,      // APIC可回收内存 EfiACPIReclaimMemory
-    APICMemoryNVS,   // APIC NVS内存  EfiACPIMemoryNVS
+    ACPIMemory,      // ACPI可回收内存 EfiACPIReclaimMemory
+    ACPIMemoryNVS,   // ACPI NVS内存  EfiACPIMemoryNVS
     UnuseableMemory, // 不可用的内存 EfiUnusableMemory 
     MaxMemoryType,   // (EfiMaxMemoryType)
 };
