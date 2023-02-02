@@ -257,9 +257,6 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
     0(8)    0    0       0    f       f    f       f    f    f    f    f
        1000 0000 0 | 111 1111 11 | 00 0000 000 | 0 0000 0000 0000 0000 0000
        8    0    7       f    c       0    0       0    0    0    0    0
-       
-    页表占用内存: PML4E 1 * 4096 PDPTE 1 * 4096 PDE 4 * 4096 (2 * 4096 显存大于4GB时)
-                == 245760B == 6 * 4kb(4kb是UEFI使用的页大小)
     */
     EFI_PHYSICAL_ADDRESS PML4E = 0x5f9000;
     EFI_PHYSICAL_ADDRESS PDPTE;
