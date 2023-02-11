@@ -74,5 +74,6 @@ extern struct BootInfo gBI;
 /** STATIC_ASSERT(CONDITION,MESSAGE) */
 #define STATIC_ASSERT _Static_assert
 
+#include <symbo.h>
 
 #endif

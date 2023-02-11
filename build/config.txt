@@ -29,6 +29,7 @@ $(KERNEL_DIR)/syscall/syscall.c \
 $(KERNEL_DIR)/driver/timer/$(TIMER).c \
 $(KERNEL_DIR)/driver/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
+$(KERNEL_DIR)/lib/symbol.c \
 $(KERNEL_DIR)/lib/lib.c \
 $(KERNEL_DIR)/lib/list.c \
 $(KERNEL_DIR)/lib/bitmap.c \
@@ -61,10 +62,12 @@ KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 
 #其他
 GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
+NM     = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/nm
 OBJCOPY = $(TOOL_DIR)/objcopy
 OBJDUMP = $(TOOL_DIR)MinGW64/bin/objdump
 RM             = $(TOOL_DIR)/rm
 ECHO = echo
+KALLSYMS = $(TOOL_DIR)/mytools/kallsyms
 
 #模拟器和UEFI-BIOS
 QEMU = $(TOOL_DIR)/qemu/qemu-system-x86_64

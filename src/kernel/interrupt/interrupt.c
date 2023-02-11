@@ -53,6 +53,8 @@ PRIVATE void init_pic()
 
     io_out8(PIC_M_DATA, 0xfc ); /* 1 1 1 1 1 1 键盘 时钟*/
     io_out8(PIC_S_DATA, 0xff ); /* 1 硬盘 1 PS/2鼠标 1 1 1 实时时钟*/
+    
+    __asm__("int $0x80");
     return;
 }
 
@@ -140,9 +142,27 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
         vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Error: ",FontSize);
         vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr],FontSize);
     }
+    Pos.x = 10;
     sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    while(1);
+   
+    UINTN rbp = stack[Stack_Rbp];
+    char* name;
+    // 打印内核层函数调用顺序
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"触发异常",FontSize);
+    while(1)
+    {
+        if(address_available(*((UINTN*)rbp + 1)))
+        {
+            name = address2symbol(*((UINTN*)rbp + 1));
+            if(name)
+            {
+                vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col," <+--- ",FontSize);
+                vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
+            }
+            rbp = *((UINTN*)rbp);
+        }
+    }
 }
 
 #define INTR_HANDLER(Entry,NR,ErrorCode) extern void Entry();
@@ -177,9 +197,9 @@ PUBLIC void register_handle(UINTN NR,void* handle)
 PUBLIC void init_interrupt()
 {
     idt_desc_init();
-    init_pic();
     uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) | (sizeof(idt) - 1);
     __asm__ __volatile__ ("lidt %[idt_ptr]"::[idt_ptr]"m"(idt_ptr):);
+    init_pic();
     return;
 }
 
