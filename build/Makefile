@@ -14,7 +14,7 @@ include config.txt
 	@$(ECHO) link
 	@$(LD) -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map --no-warn-rwx-segments -o $(KERNEL_OBJ) $^
 
-	@"$(NM)" -n $(KERNEL_OBJ) > kernel.sym
+	@$(NM) -n $(KERNEL_OBJ) > kernel.sym
 	@$(KALLSYMS) kernel.sym kallsyms.c
 	@$(CC) kallsyms.c -c -o kallsyms.o
 

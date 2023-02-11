@@ -62,7 +62,7 @@ KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 
 #其他
 GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
-NM     = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/nm
+NM     = "$(TOOL_DIR)/cross-compiler/x86_64-elf/bin/nm"
 OBJCOPY = $(TOOL_DIR)/objcopy
 OBJDUMP = $(TOOL_DIR)MinGW64/bin/objdump
 RM             = $(TOOL_DIR)/rm
