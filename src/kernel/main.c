@@ -16,13 +16,12 @@ struct BootInfo gBI;
 struct Position Pos = {10,10};
 void kthread(void* arg);
 void kthread2(void* arg);
+
 PUBLIC uint64_t kernel_main()
 {
     intr_disable();
     gBI = *((struct BootInfo*)0x7c00);
     init_all();
-    pid_table[0] = thread_start("test 1",31,kthread,NULL)->pid;
-    pid_table[1] = thread_start("test 2",31,kthread2,NULL)->pid;
     intr_enable();
     const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
     struct Position Pos = {10,10};
@@ -49,6 +48,12 @@ PUBLIC uint64_t kernel_main()
     gBI.GraphicsInfo.HorizontalResolution,
     gBI.GraphicsInfo.VerticalResolution);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,str,FontNormal);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"中文显示测试。这是普通点阵字体《》。；‘’“”【】、|\n",FontNormal);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"中文显示测试。这是中号点阵字体\n",FontMedium);
+    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"中文显示测试。这是大号点阵字体\n",FontLarge);
+    pid_table[0] = thread_start("test 1",31,kthread,NULL)->pid;
+    pid_table[1] = thread_start("test 2",31,kthread2,NULL)->pid;
+    
     process_execute(k_prog,"kProg1");
     while(1)
     {
@@ -62,7 +67,6 @@ PUBLIC uint64_t kernel_main()
     };
     return 0;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////
 //  下面是测试线程
@@ -121,6 +125,7 @@ void kthread2(void* arg __attribute((unused)))
 
 void k_prog(void* arg __attribute((unused)))
 {
+    PANIC("In user Prog");
     PRIVATE BltPixel col =
     {
         .Red = 0,

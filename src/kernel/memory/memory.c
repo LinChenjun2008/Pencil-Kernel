@@ -7,33 +7,7 @@
 #include <interrupt.h>
 
 #include <graphic.h>
-
-/** @brief 内核内存块描述符,用于kmalloc和kfree */
-struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];
-
-/** @brief 物理内存页位图 */
-byte PhysicalMemoryBitmapBytes[MemoryBitmapBytesLen];
-struct Bitmap PhysicalMemoryBitmap;
-
-/** @brief 虚拟内存页位图 */
-byte VirtualMemoryBitmapBytes[MemoryBitmapBytesLen];
-struct Bitmap VirtualMemoryBitmap;
-
-MEMORY_ADDRESS MemoryLimit; // 物理内存最大地址
-
-void InitMemoryBlock(struct MemoryDesc* MemDesc)
-{
-    int idx;
-    UINTN BlockSize = 128;
-    for(idx = 0;idx < NumberOfMemoryBlocks;idx++)
-    {
-        MemDesc[idx].BlockSize = BlockSize;
-        MemDesc[idx].Blocks = DIV_ROUND_UP((PG_SIZE - sizeof(struct Zone)),MemDesc[idx].BlockSize);
-        list_init(&(MemDesc[idx].FreeBlockList));
-        BlockSize *= 2;
-    }
-    return;
-}
+#include <thread.h>
 
 PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
 {
@@ -70,6 +44,43 @@ PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
             break;
     }
     return Type;
+}
+
+MEMORY_ADDRESS PageAddressRoundUp(MEMORY_ADDRESS Addr)
+{
+    return DIV_ROUND_UP(PG_SIZE,Addr) * PG_SIZE;
+}
+
+MEMORY_ADDRESS PageAddressRoundDown(MEMORY_ADDRESS Addr)
+{
+    return (Addr & ~(PG_SIZE - 1UL));
+}
+
+/** @brief 内核内存块描述符,用于kmalloc和kfree */
+struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];
+
+/** @brief 物理内存页位图 */
+byte PhysicalMemoryBitmapBytes[MemoryBitmapBytesLen];
+struct Bitmap PhysicalMemoryBitmap;
+
+/** @brief 虚拟内存页位图 */
+byte VirtualMemoryBitmapBytes[MemoryBitmapBytesLen];
+struct Bitmap VirtualMemoryBitmap;
+
+MEMORY_ADDRESS MemoryLimit; // 物理内存最大地址
+
+void InitMemoryBlock(struct MemoryDesc* MemDesc)
+{
+    int idx;
+    UINTN BlockSize = 128;
+    for(idx = 0;idx < NumberOfMemoryBlocks;idx++)
+    {
+        MemDesc[idx].BlockSize = BlockSize;
+        MemDesc[idx].Blocks = DIV_ROUND_UP((PG_SIZE - sizeof(struct Zone)),MemDesc[idx].BlockSize);
+        list_init(&(MemDesc[idx].FreeBlockList));
+        BlockSize *= 2;
+    }
+    return;
 }
 
 PUBLIC void init_memory()
@@ -198,9 +209,11 @@ PUBLIC void* AllocatePage(UINTN NumberOfPages)
     {
         return NULL;
     }
+    enum intr_status old_status = intr_disable();
     INTN PageIndex = bitmap_alloc(&PhysicalMemoryBitmap,NumberOfPages);
     if(PageIndex == -1) // 分配失败
     {
+        intr_set_status(old_status);
         return NULL;
     }
     UINTN i;
@@ -208,6 +221,7 @@ PUBLIC void* AllocatePage(UINTN NumberOfPages)
     {
         bitmap_set(&PhysicalMemoryBitmap,i,1);
     }
+    intr_set_status(old_status);
     return (void*)(PageIndex * PG_SIZE);
 }
 
@@ -226,10 +240,12 @@ PUBLIC void FreePage(void* Addr,UINTN NumberOfPages)
     }
     INTN PageIndex = (MEMORY_ADDRESS)Addr / PG_SIZE;
     UINTN i;
+    enum intr_status old_status = intr_disable();
     for(i = PageIndex;i < (PageIndex + NumberOfPages);i++)
     {
         bitmap_set(&PhysicalMemoryBitmap,i,0);
     }
+    intr_set_status(old_status);
     return;
 }
 
@@ -276,7 +292,7 @@ PUBLIC void* kmalloc(UINTN Size)
             UINTN BlockIndex;
             enum intr_status old_status = intr_disable();
             // 将内存拆分成内存块,加入到FreeBlockList队列中
-            for(BlockIndex = 0;BlockIndex < MemDesc[idx].Blocks;BlockIndex++)
+            for(BlockIndex = 0;BlockIndex <= MemDesc[idx].Blocks;BlockIndex++)
             {
                 b = Zone2Block(z,BlockIndex);
                 b->Free.container = b;

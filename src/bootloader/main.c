@@ -25,6 +25,8 @@ typedef struct
     CHAR16   KernelName[256];
     int typeface_flage;
     CHAR16 TypefaceName[256];
+    int ttf_flage;
+    CHAR16 TTFName[256];
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
@@ -158,6 +160,30 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
                 Config->TypefaceName[i - 1] = L'\0';
                 Config->typeface_flage = 1;
             }
+            else if(strncmp(s,L"TrueTypeFont",12) == 0)
+            {
+                s += 12;
+                s = skip_space(s);
+                if(*s == L'=')
+                {
+                    s++;
+                }
+                s = skip_space(s);
+                if(*s != L'\"')
+                {
+                    continue;
+                }
+                s++;
+                int i = 0;
+                while((Config->TTFName[i++] = *s++) != L'\"');
+                Config->TTFName[i - 1] = L'\0';
+                Config->ttf_flage = 1;
+            }
+            else
+            {
+                gST->ConOut->OutputString(gST->ConOut,L"Unknow Config: ");
+                while(1);
+            }
         }
         s++;
     }
@@ -194,6 +220,7 @@ void gotoKernel(BootConfig* Config)
         while(1);
     }
     EFI_PHYSICAL_ADDRESS TypefaceBase = 0x600000;
+    EFI_PHYSICAL_ADDRESS TTF_Base = 0;
     if(Config->typeface_flage == 1)
     {
         if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAddress)))
@@ -201,6 +228,15 @@ void gotoKernel(BootConfig* Config)
             gST->ConOut->OutputString(gST->ConOut,L"ERROR:typeface file needed but not found. Press any key to continue. \n\r");
             get_char();
             TypefaceBase = (EFI_PHYSICAL_ADDRESS)NULL;
+        }
+    }
+    if(Config->ttf_flage == 1)
+    {
+        if(EFI_ERROR(ReadFile(Config->TTFName,&TTF_Base,AllocateAnyPages)))
+        {
+            gST->ConOut->OutputString(gST->ConOut,L"ERROR:TTF font file needed but not found. Press any key to continue. \n\r");
+            get_char();
+            TTF_Base = (EFI_PHYSICAL_ADDRESS)NULL;
         }
     }
     /* 设置显示模式 */

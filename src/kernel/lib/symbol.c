@@ -3,7 +3,7 @@
 
 BOOL address_available(MEMORY_ADDRESS address)
 {
-    return (address >= KERNEL_VMA_BASE && address <= 0xffffffffffffffff);
+    return (address >= KERNEL_VMA_BASE && address <= symbol_table[symbols - 1].Address);
 }
 
 MEMORY_ADDRESS symbol2address(char* name)

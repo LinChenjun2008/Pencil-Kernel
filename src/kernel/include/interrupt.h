@@ -14,34 +14,6 @@ enum intr_status
     INTR_ON   /* 中断打开 */
 };
 
-enum OffsetInStack
-{
-    Stack_Ds,
-    Stack_Es,
-    Stack_Fs,
-    Stack_Gs,
-
-    Stack_Rax,
-    Stack_Rbx,
-    Stack_Rcx,
-    Stack_Rdx,
-    Stack_Rbp,
-    Stack_Rsi,
-    Stack_Rdi,
-    Stack_R8,
-    Stack_R9,
-    Stack_R10,
-    Stack_R11,
-    Stack_R12,
-    Stack_R13,
-    Stack_R14,
-    Stack_R15,
-
-    Stack_ErrorCode,
-    Stack_Rip,
-    Stack_Cs,
-};
-
 void init_interrupt();
 void register_handle(UINTN NR,void* handle);
 enum intr_status intr_enable();

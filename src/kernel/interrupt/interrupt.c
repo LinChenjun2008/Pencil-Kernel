@@ -53,8 +53,6 @@ PRIVATE void init_pic()
 
     io_out8(PIC_M_DATA, 0xfc ); /* 1 1 1 1 1 1 键盘 时钟*/
     io_out8(PIC_S_DATA, 0xff ); /* 1 硬盘 1 PS/2鼠标 1 1 1 实时时钟*/
-    
-    __asm__("int $0x80");
     return;
 }
 
@@ -92,7 +90,7 @@ PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
 /**
  * @brief 通用中断处理函数
 */
-void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
+void ASMCALL general_intr_handler(UINTN Nr,struct intr_stack* stack)
 {
     ASSERT(intr_get_status() == INTR_OFF);
     BltPixel col =
@@ -118,13 +116,13 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     "你的设备遇到问题,需要重新启动.\n"
     "接下来显示错误信息,然后你可以重新启动.\n\n"
     ,FontSize);
-    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack[Stack_Rax],stack[Stack_Rbx],stack[Stack_Rcx],stack[Stack_Rdx]);
+    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack->rax,stack->rbx,stack->rcx,stack->rdx);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack[Stack_Rbp],stack[Stack_Rsi],stack[Stack_Rdi]);
+    sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack->rbp,stack->rsi,stack->rdi);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack[Stack_R8],stack[Stack_R9],stack[Stack_R10],stack[Stack_R11]);
+    sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack->r8,stack->r9,stack->r10,stack->r11);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack[Stack_R12],stack[Stack_R13],stack[Stack_R14],stack[Stack_R15]);
+    sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack->r12,stack->r13,stack->r14,stack->r15);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
@@ -133,9 +131,9 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
     sprintf(s,"cr3 = %016x\n",crN);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"CS:RIP %04x:%016x\n",stack[Stack_Cs],stack[Stack_Rip]);
+    sprintf(s,"CS:RIP %04x:%016x\n",stack->cs,stack->rip);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack[Stack_ErrorCode]);
+    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack->ErrorCode);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
     if(Nr <= 0x1f)
     {
@@ -146,10 +144,17 @@ void ASMCALL general_intr_handler(UINTN Nr,UINTN* stack)
     sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
     vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
    
-    UINTN rbp = stack[Stack_Rbp];
+    UINTN rbp = stack->rbp;
     char* name;
     // 打印内核层函数调用顺序
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"触发异常",FontSize);
+    if(address_available((UINTN)stack->rip))
+    {
+        name = address2symbol((UINTN)stack->rip);
+        if(name)
+        {
+            vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
+        }
+    }
     while(1)
     {
         if(address_available(*((UINTN*)rbp + 1)))
@@ -241,9 +246,8 @@ __asm__ \
     "movq %rsp,%rsi \n\t" \
  \
     "leaq intr_handle_entry(%rip),%rax \n\t"/* rax = &intr_handle_entry */    \
-    "addq $"#NR"* 8,%rax \n\t"              /*rax = &intr_handle_entry[NR] */ \
-    "movq (%rax),%rax \n\t"                 /* rax = intr_handle_entry[NR] */ \
-    "callq *%rax \n\t" \
+    "movq $"#NR",%rbx \n\t"              /*rax = &intr_handle_entry[NR] */ \
+    "callq *(%rax,%rbx,8) \n\t" \
     "jmp intr_exit" \
 );
 

@@ -172,35 +172,49 @@ void switch_to(void* cur,void* next)
 {
     __asm__ __volatile__
     (
-        "movq %[cur],%%r8 \n\t"
-        "movq %[next],%%r9 \n\t"
+        "pushq %[cur] \n\t"
+        "pushq %[next] \n\t"
         "leaq asm_switch_to(%%rip),%%rax \n\t"
         "callq *%%rax \n\t"
         :
-        :[cur]"r"(cur),[next]"r"(next)
+        :[cur]"g"(cur),[next]"g"(next)
     );
 }
 
 __asm__
 (
     "asm_switch_to: \n\t"
+    // cur
+    // next
     // 栈中这里是返回地址
     "pushq %rsi \n\t"
     "pushq %rdi \n\t"
     "pushq %rbx \n\t"
     "pushq %rbp \n\t"
 
+    "pushq %r12 \n\t"
+    "pushq %r13 \n\t"
+    "pushq %r14 \n\t"
+    "pushq %r15 \n\t"
+
     /* 接下来切换栈 */
-    "movq %rsp,(%r8) \n\t"
-    "movq (%r9),%rsp \n\t"
+    "movq 80(%rsp),%rax \n\t"
+    "movq %rsp,(%rax) \n\t"
+    "movq 88(%rsp),%rax \n\t"
+    "movq (%rax),%rsp \n\t"
     /* 现在已经切换到next的栈了 */
     /* 所以下面pop的值并不是刚才push的值 */
+    "popq %r15 \n\t"
+    "popq %r14 \n\t"
+    "popq %r13 \n\t"
+    "popq %r12 \n\t"
 
     "popq %rbp \n\t"
     "popq %rbx \n\t"
     "popq %rdi \n\t"
     "popq %rsi \n\t"
-    "ret \n\t"
+
+    "retq \n\t"
 );
 
 PUBLIC void schedule()

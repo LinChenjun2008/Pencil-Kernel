@@ -138,14 +138,14 @@ int msg_recv(pid_t src,struct MESSAGE* msg)
     return 0;
 }
 
-UINTN ASMCALL sys_sendrec(UINTN Nr __attribute__((unused)),UINTN* stack)
+UINTN ASMCALL sys_sendrec(UINTN Nr __attribute__((unused)),struct intr_stack* stack)
 {
     int function;
     pid_t src_dst;
     struct MESSAGE* msg;
-    function = stack[Stack_Rax];
-    src_dst = stack[Stack_Rbx];
-    msg = (struct MESSAGE*)stack[Stack_Rcx];
+    function = stack->rax;
+    src_dst = stack->rbx;
+    msg = (struct MESSAGE*)stack->rcx;
     uint32_t res = 1;
     switch(function)
     {

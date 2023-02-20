@@ -64,6 +64,10 @@ struct intr_stack
 struct thread_stack
 {
     /* ABI规范要求保护下面寄存器的值 */
+    UINTN r15;
+    UINTN r14;
+    UINTN r13;
+    UINTN r12;
     UINTN rbp;
     UINTN rbx;
     UINTN rdi;

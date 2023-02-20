@@ -27,21 +27,15 @@ struct MemoryMap
     uint32_t DescriptorVersion;
 };
 
-typedef struct
-{
-    int flage; /* 1 - file | 0 - none */
-    CHAR16 NAME[32];
-    EFI_PHYSICAL_ADDRESS FileBufferAddress;
-    int Attribute;
-}FileDesc;
-
 struct BootInfo
 {
-    uint64_t KernelBaseAddress;
-    uint64_t TypefaceBase;
-    struct MemoryMap MemoryMap;
-    struct GraphicsInfo GraphicsInfo;
-    FileDesc FileDesc[32];
+    uint64_t KernelBaseAddress; // 内核加载地址
+    uint64_t TypefaceBase;      // 点阵字体加载地址
+    uint64_t TrueTypeFontBase;  // TrueType字体加载地址
+    uint64_t FreeAddrStart;     // 起始空闲内存地址
+    uint64_t TotalMemorySize;   // 内存总大小 
+    struct MemoryMap MemoryMap; // 内存描述符
+    struct GraphicsInfo GraphicsInfo; // 图形信息
 };
 
 typedef struct

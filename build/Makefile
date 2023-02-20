@@ -3,7 +3,7 @@ include config.txt
 # 编译所有文件
 %.o: %.c Makefile
 	@$(ECHO) compile $*.c
-	@$(CC) -Wall -Wextra -Werror $(INCLUDE_DIR) -nostdlib -nostdinc \
+	@$(CC) -Wall -Wextra $(INCLUDE_DIR) -nostdlib -nostdinc \
 	-finput-charset=UTF-8 -fexec-charset=UTF-8 \
 	-fno-builtin -fno-strict-aliasing -mno-red-zone \
 	-m64 -mcmodel=large -march=x86-64 \
