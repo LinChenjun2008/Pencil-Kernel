@@ -71,5 +71,5 @@ PUBLIC void init_all()
     init_memory();
     init_thread();
     init_keyboard();
-    // init_screen(&(gBI.GraphicsInfo));
+    init_screen(&(gBI.GraphicsInfo));
 }

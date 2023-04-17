@@ -92,6 +92,11 @@ PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
 */
 void ASMCALL general_intr_handler(UINTN Nr,struct intr_stack* stack)
 {
+    if(Nr == 0x27)
+    {
+        io_out8(PIC_M_CTRL,0x20);
+        return;
+    }
     ASSERT(intr_get_status() == INTR_OFF);
     BltPixel col =
     {
@@ -155,7 +160,8 @@ void ASMCALL general_intr_handler(UINTN Nr,struct intr_stack* stack)
             vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
         }
     }
-    while(1)
+    int i;
+    for(i = 0;i < 8;i++)
     {
         if(address_available(*((UINTN*)rbp + 1)))
         {
@@ -165,9 +171,18 @@ void ASMCALL general_intr_handler(UINTN Nr,struct intr_stack* stack)
                 vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col," <+--- ",FontSize);
                 vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
             }
-            rbp = *((UINTN*)rbp);
         }
+        else
+        {
+            break;
+        }
+        rbp = *((UINTN*)rbp);
     }
+    if(i >= 8)
+    {
+        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col," <+--- [...]",FontSize);
+    }
+    while(1){;}
 }
 
 #define INTR_HANDLER(Entry,NR,ErrorCode) extern void Entry();
@@ -286,8 +301,7 @@ __asm__
     "popq %r15 \n\t"
 
     "addq $8,%rsp \n\t"
-    ".byte 0x48 \n\t" // 64bit
-    ".byte 0xcf"      // iretd
+    "iretq"
 );
 
 /**
@@ -346,10 +360,4 @@ PUBLIC enum intr_status intr_get_status()
 {
     /* 判断flage寄存器的if位 */
     return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);
-}
-
-void intr0x27_handler()
-{
-    io_out8(PIC_M_CTRL,0x20);
-    return;
 }

@@ -17,10 +17,11 @@ void panic_spin(const char* file,const char* base_file,int line,const char* func
     col.Green = 64;
     col.Blue = 64;
     viewFill(&(gBI.GraphicsInfo),col,
-    gBI.GraphicsInfo.HorizontalResolution / 2 - (600 / 2),
-    gBI.GraphicsInfo.VerticalResolution / 2 - (250 / 2),
-    gBI.GraphicsInfo.HorizontalResolution / 2 + (600 / 2),
-    gBI.GraphicsInfo.VerticalResolution / 2 + (250 / 2));
+            gBI.GraphicsInfo.HorizontalResolution / 2 - (600 / 2),
+            gBI.GraphicsInfo.VerticalResolution / 2 - (250 / 2),
+            gBI.GraphicsInfo.HorizontalResolution / 2 + (600 / 2),
+            gBI.GraphicsInfo.VerticalResolution / 2 + (250 / 2)
+            );
     col.Red = 255;
     col.Green = 255;
     col.Blue = 255;

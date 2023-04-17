@@ -48,20 +48,20 @@ extern struct BootInfo gBI;
 
 #define PG_SIZE 0x200000
 
-#define PG_P 0x1
-#define PG_RW_R 0x0
-#define PG_RW_W 0x2
-#define PG_US_S 0x0
-#define PG_US_U 0x4
-#define PG_SIZE_2M 0x80
+#define PG_P       0b00000001
+#define PG_RW_R    0b00000000
+#define PG_RW_W    0b00000010
+#define PG_US_S    0b00000000
+#define PG_US_U    0b00000100
+#define PG_SIZE_2M 0b10000000
 
 /* TSS描述符属性 */
 #define TSS_D_0 0
 #define AR_TSS32 (AR_G_4K | TSS_D_0 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_SYS | AR_TYPE_TSS)
 
-#define EFLAGS_MBS (1 << 1)
-#define EFLAGS_IF_1 (1 << 9)
-#define EFLAGS_IF_0 (0 << 9)
+#define EFLAGS_MBS    (1 << 1)
+#define EFLAGS_IF_1   (1 << 9)
+#define EFLAGS_IF_0   (0 << 9)
 #define EFLAGS_IOPL_0 (0 << 12)
 
 #define PUBLIC

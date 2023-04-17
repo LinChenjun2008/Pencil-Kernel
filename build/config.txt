@@ -29,6 +29,7 @@ $(KERNEL_DIR)/syscall/syscall.c \
 $(KERNEL_DIR)/driver/timer/$(TIMER).c \
 $(KERNEL_DIR)/driver/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
+$(KERNEL_DIR)/lib/alloc_table.c \
 $(KERNEL_DIR)/lib/symbol.c \
 $(KERNEL_DIR)/lib/lib.c \
 $(KERNEL_DIR)/lib/list.c \

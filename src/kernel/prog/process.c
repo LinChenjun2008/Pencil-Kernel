@@ -20,13 +20,16 @@ void start_process(void* process_name)
     proc_stack->rip = func;
     proc_stack->cs = SelectorCode64_U;
     proc_stack->rflages = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
+    
     proc_stack->rsp = ((MEMORY_ADDRESS)kmalloc(PCB_SIZE)) + PCB_SIZE;
+    
+    // asm("int $0x80");
     proc_stack->ss = SelectorData64_U;
     __asm__ __volatile__
     (
         "movq %0, %%rsp\n\t"
-        "leaq intr_exit(%%rip),%%rax \n\t"
         ".1: jmp .1 \n\t"
+        "leaq intr_exit(%%rip),%%rax \n\t"
         "jmp *%%rax \n\t"
         :
         :"g"(proc_stack)
@@ -79,7 +82,8 @@ UINTN* create_page_dir(void)
     {
         return NULL;
     }
-    memcpy((UINTN*)(pgdir_v + 0x000),(UINTN*)(KERNEL_PAGE_DIR_TABLE_POS + 0x000),4096);
+    memcpy((UINTN*)(pgdir_v + 0x800),(UINTN*)(KERNEL_PAGE_DIR_TABLE_POS + 0x800),2048);
+    memcpy((UINTN*)(pgdir_v + 0x000),(UINTN*)(KERNEL_PAGE_DIR_TABLE_POS + 0x000),2048);
     return (UINTN*)pgdir_v;
 }
 

@@ -46,15 +46,15 @@ PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
     return Type;
 }
 
-MEMORY_ADDRESS PageAddressRoundUp(MEMORY_ADDRESS Addr)
-{
-    return DIV_ROUND_UP(PG_SIZE,Addr) * PG_SIZE;
-}
+// MEMORY_ADDRESS PageAddressRoundUp(MEMORY_ADDRESS Addr)
+// {
+//     return DIV_ROUND_UP(PG_SIZE,Addr) * PG_SIZE;
+// }
 
-MEMORY_ADDRESS PageAddressRoundDown(MEMORY_ADDRESS Addr)
-{
-    return (Addr & ~(PG_SIZE - 1UL));
-}
+// MEMORY_ADDRESS PageAddressRoundDown(MEMORY_ADDRESS Addr)
+// {
+//     return (Addr & ~(PG_SIZE - 1UL));
+// }
 
 /** @brief 内核内存块描述符,用于kmalloc和kfree */
 struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];

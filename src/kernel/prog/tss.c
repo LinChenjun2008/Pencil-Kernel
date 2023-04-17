@@ -10,7 +10,8 @@ PUBLIC void init_tss()
     tss.io_map = tss_size << 16;
     UINTN tss_base_l = ((UINTN)&tss) & 0xffffffff;
     UINTN tss_base_h = (((UINTN)&tss) >> 32) & 0xffffffff;
-            GDT_table[9    ] = make_segmdesc((uint32_t)(tss_base_l & 0xffffffff),0,AR_TYPE_TSS | AR_P);
+            
+            GDT_table[9    ] = make_segmdesc((uint32_t)(tss_base_l & 0xffffffff),tss_size,AR_TYPE_TSS | AR_P);
     memcpy(&GDT_table[9 + 1],&tss_base_h,8);
     return;
 }

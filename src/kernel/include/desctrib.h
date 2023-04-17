@@ -54,12 +54,24 @@
 
 struct SEGMDESC
 {
-    word limit_low;
-    word base_low;
-    byte base_mid;
-    byte access_right;
-    byte limit_high;
-    byte base_high;
+    word limit_low; //0-15 limit1
+    word base_low;  // 16 - 31 base0
+    byte base_mid;  // 32 - 39 base1
+    byte access_right; // 40 - 47 flag descType privilege isVaild
+    byte limit_high;   // 48 - 55 limit1 usused 
+    byte base_high;    // 56 - 63 base2 
+};
+
+struct SSEGMDESC
+{
+    word limit_low; //0-15 limit1
+    word base_low;  // 16 - 31 base0
+    byte base_mid;  // 32 - 39 base1
+    byte access_right; // 40 - 47 flag descType privilege isVaild
+    byte limit_high;   // 48 - 55 limit1 usused 
+    byte base_high;    // 56 - 63 base2 
+    dword base_3;
+    dword base_4; 
 };
 
 extern struct SEGMDESC GDT_table[17];
