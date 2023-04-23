@@ -142,5 +142,5 @@ int list_len(struct List* plist)
 
 BOOL list_empty(struct List* plist)
 {
-    return (list_len(plist) == 0 ? TRUE : FALSE);
+    return plist->head.next == &plist->tail;
 }

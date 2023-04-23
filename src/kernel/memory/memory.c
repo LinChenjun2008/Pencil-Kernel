@@ -67,7 +67,7 @@ void InitMemoryBlock(struct MemoryDesc* MemDesc)
     for(idx = 0;idx < NumberOfMemoryBlocks;idx++)
     {
         MemDesc[idx].BlockSize = BlockSize;
-        MemDesc[idx].Blocks = DIV_ROUND_UP((PG_SIZE - sizeof(struct Zone)),MemDesc[idx].BlockSize);
+        MemDesc[idx].Blocks = DIV_ROUND_UP((PG_SIZE - sizeof(struct Zone)),MemDesc[idx].BlockSize) - 1;
         list_init(&(MemDesc[idx].FreeBlockList));
         BlockSize *= 2;
     }
@@ -82,8 +82,6 @@ void init_memory()
     init_AllocateTable(&Mdesc.FreeMemDescTable,MemDescEntries,1024);
     int i,DescCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
     MEMORY_ADDRESS total_free = 0;
-    // 提前给第一项赋值
-    // 合并内存块
     EFI_MEMORY_DESCRIPTOR* EfiMemDesc = (EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer;
     int MemoryLimit;
     char s[256];
