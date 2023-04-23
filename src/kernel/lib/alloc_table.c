@@ -18,6 +18,8 @@ void init_AllocateTable(struct ALLOCATE_TABLE* Table,struct ALLOCATE_TABLE_ENTRY
  * @brief 在表中分配单元
  * @param Table 从这个表中分配
  * @param NumberOfUnits 分配的单元个数
+ * 
+ * @return 分配到的单元下标
 */
 uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits)
 {

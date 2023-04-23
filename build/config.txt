@@ -1,6 +1,7 @@
 #定时器类型:8254
 TIMER = 8254
 
+GuestMemory = 128M
 #文件路径
 
 UEFI_DIR = ../src/bootloader/

@@ -68,8 +68,10 @@ PUBLIC void init_all()
     init_interrupt();
     init_pit();
     init_syscall();
+    init_screen(&(gBI.GraphicsInfo));
     init_memory();
+    // init_memory();
     init_thread();
     init_keyboard();
-    init_screen(&(gBI.GraphicsInfo));
+    
 }

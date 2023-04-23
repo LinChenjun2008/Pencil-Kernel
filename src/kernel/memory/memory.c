@@ -1,13 +1,27 @@
+#include <common.h>
 #include <global.h>
 #include <debug.h>
 #include <memory.h>
 #include <list.h>
-#include <bitmap.h>
-#include <string.h>
-#include <interrupt.h>
-
 #include <graphic.h>
-#include <thread.h>
+#include <interrupt.h>
+#include <stdio.h>
+#include <string.h>
+
+struct MEMDESC Mdesc;
+struct ALLOCATE_TABLE_ENTRY MemDescEntries[1024];
+
+struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];
+
+MEMORY_ADDRESS PageAddressRoundUp(MEMORY_ADDRESS Addr)
+{
+    return DIV_ROUND_UP(Addr,PG_SIZE) * PG_SIZE;
+}
+
+MEMORY_ADDRESS PageAddressRoundDown(MEMORY_ADDRESS Addr)
+{
+    return (Addr & ~(PG_SIZE - 1UL));
+}
 
 PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
 {
@@ -46,29 +60,6 @@ PRIVATE enum MemoryType type_uefi2os(EFI_MEMORY_TYPE EfiType)
     return Type;
 }
 
-// MEMORY_ADDRESS PageAddressRoundUp(MEMORY_ADDRESS Addr)
-// {
-//     return DIV_ROUND_UP(PG_SIZE,Addr) * PG_SIZE;
-// }
-
-// MEMORY_ADDRESS PageAddressRoundDown(MEMORY_ADDRESS Addr)
-// {
-//     return (Addr & ~(PG_SIZE - 1UL));
-// }
-
-/** @brief 内核内存块描述符,用于kmalloc和kfree */
-struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks];
-
-/** @brief 物理内存页位图 */
-byte PhysicalMemoryBitmapBytes[MemoryBitmapBytesLen];
-struct Bitmap PhysicalMemoryBitmap;
-
-/** @brief 虚拟内存页位图 */
-byte VirtualMemoryBitmapBytes[MemoryBitmapBytesLen];
-struct Bitmap VirtualMemoryBitmap;
-
-MEMORY_ADDRESS MemoryLimit; // 物理内存最大地址
-
 void InitMemoryBlock(struct MemoryDesc* MemDesc)
 {
     int idx;
@@ -83,176 +74,79 @@ void InitMemoryBlock(struct MemoryDesc* MemDesc)
     return;
 }
 
-PUBLIC void init_memory()
+void init_memory()
 {
-    /* 内存描述符 */
-    struct MEMDESC MemoryDescriptor[MemoryDescriptorCnt];
-    int MemoryDescriptorNumber = 0;
-    int i,PageCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
-    MemoryLimit = 0;
+    struct Position Pos;
+    Pos.x = 10;
+    Pos.y = 250;
+    init_AllocateTable(&Mdesc.FreeMemDescTable,MemDescEntries,1024);
+    int i,DescCnt = gBI.MemoryMap.MapSize / gBI.MemoryMap.DescriptorSize;
+    MEMORY_ADDRESS total_free = 0;
     // 提前给第一项赋值
-    MemoryDescriptor[0].AddrStart      = 0;
-    MemoryDescriptor[0].MemoryPageSize = 0;
-    MemoryDescriptor[0].Type           = FreeMemory;
-    int MemoryDescriptorIndex = 1;
     // 合并内存块
-    for(i = 0;i < PageCnt;i++)
+    EFI_MEMORY_DESCRIPTOR* EfiMemDesc = (EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer;
+    int MemoryLimit;
+    char s[256];
+    for(i = 0;i < DescCnt;i++)
     {
-        MemoryLimit = (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart + 
-        ((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages << 12);
-        // 先检查内存类型
-        // 如果内存类型与上一个不同,则无法合并
-        if(type_uefi2os(((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->Type)) == MemoryDescriptor[MemoryDescriptorIndex - 1].Type)
+        // 检查内存类型,只有FreeMemory才记录
+        if (type_uefi2os(EfiMemDesc[i].Type) == FreeMemory)
         {
-            //能否合并?
-            if(MemoryDescriptor[MemoryDescriptorIndex - 1].AddrStart + (MemoryDescriptor[MemoryDescriptorIndex - 1].MemoryPageSize << 12) == (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart)
+            MEMORY_ADDRESS Start = EfiMemDesc[i].PhysicalStart;
+            MEMORY_ADDRESS End = Start + (EfiMemDesc[i].NumberOfPages << 12);
+            // 继续寻找,直到不是FreeMemory
+            int j;
+            for(j = i + 1;j < DescCnt;j++)
             {
-                //合并
-                MemoryDescriptor[MemoryDescriptorIndex - 1].MemoryPageSize +=  (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages;
-                continue; // 继续下一个
+                if (type_uefi2os(EfiMemDesc[j].Type) != FreeMemory || End != EfiMemDesc[j].PhysicalStart)
+                {
+                    break;
+                }
+                End += EfiMemDesc[j].NumberOfPages << 12;
+            }
+            i = j - 1; // 由于会 i++
+            MemoryLimit = EfiMemDesc[i].PhysicalStart + (EfiMemDesc[i].NumberOfPages << 12);
+            // 对齐到2MB
+            Start = PageAddressRoundUp(Start) / PG_SIZE;
+            if(Start <= 4) {Start = 5;}
+            End = PageAddressRoundDown(End) / PG_SIZE;
+            if(End > Start && End - Start >= 1) // 满1页
+            {
+                sprintf(s,"Free: %p - %p Page: %d\n",Start * PG_SIZE,End * PG_SIZE,End - Start);
+                vput_utf8_str(&gBI.GraphicsInfo,&Pos,color(0,255,0),s,FontNormal);
+                FreeUnits(&Mdesc.FreeMemDescTable,Start,End - Start);
+                total_free += (End - Start) * PG_SIZE;
             }
         }
-        // 不能合并
-        MemoryDescriptor[MemoryDescriptorIndex].AddrStart = (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->PhysicalStart;
-        MemoryDescriptor[MemoryDescriptorIndex].MemoryPageSize = (((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->NumberOfPages;
-        MemoryDescriptor[MemoryDescriptorIndex].Type = type_uefi2os((((EFI_MEMORY_DESCRIPTOR*)gBI.MemoryMap.Buffer) + i)->Type);
-        MemoryDescriptorIndex++;
-    }
-    MemoryDescriptorNumber = MemoryDescriptorIndex;
-    for(i = 0;i < MemoryDescriptorNumber;i++)
-    {
-        //UEFI里1页等于4KB,内核里1页等于2MB
-        MemoryDescriptor[i].MemoryByteSize = MemoryDescriptor[i].MemoryPageSize << 12;
-        MemoryDescriptor[i].MemoryPageSize >>= 9;
-    }
-    // 初始化内存位图,为内存分配做准备
-    PhysicalMemoryBitmap.map = PhysicalMemoryBitmapBytes;
-    PhysicalMemoryBitmap.btmp_bytes_len = MemoryBitmapBytesLen;
-    bitmap_init(&PhysicalMemoryBitmap);
-
-    VirtualMemoryBitmap.map = VirtualMemoryBitmapBytes;
-    VirtualMemoryBitmap.btmp_bytes_len = MemoryBitmapBytesLen;
-    bitmap_init(&VirtualMemoryBitmap);
-
-    for(i = 0;i < MemoryBitmapBytesLen;i++)
-    {
-       bitmap_set(&PhysicalMemoryBitmap,i,1);
-    }
-
-    // 空闲物理内存
-    for(i = 0;i < MemoryDescriptorNumber;i++)
-    {
-        // 只记录空闲内存
-        if(MemoryDescriptor[i].Type == FreeMemory && MemoryDescriptor[i].MemoryPageSize > 1)
-        {
-            // 记录到bitmap
-            UINTN StartAddr = ((MemoryDescriptor[i].AddrStart + 0x1fffff) & 0xffffffffffe00000);
-            UINTN EndAddr = (MemoryDescriptor[i].AddrStart + MemoryDescriptor[i].MemoryByteSize) & 0xffffffffffe00000;
-            /* 内存不足一页 */
-            if(StartAddr == EndAddr)
-            {
-                continue;
-            }
-            int index = ((MemoryDescriptor[i].AddrStart + 0x1fffff) & 0xffffffffffe00000) / PG_SIZE;
-            UINTN j;
-            for(j = index;j < ((EndAddr - StartAddr) / PG_SIZE);j++)
-            {
-                bitmap_set(&PhysicalMemoryBitmap,j,0);
-            }
-        }
-    }
-    /*
-        已用内存:内核所用内存+页表占用内存+字体文件占用内存
-        内核占用:0x100000 - 0x800000(0 - 8M) 即总内存前4页
-    */
-    for(i = 0;i < 4;i++)
-    {
-       bitmap_set(&PhysicalMemoryBitmap,i,1);
     }
     InitMemoryBlock(KernelMemoryBlock);
-    if(MemoryLimit <= 0xffffffff)
-    {
-        return;
-    }
-    // 接下来将MemoryLimie地址以内的内存映射到页表中
-    int IndexOfPDE   = (MemoryLimit & 0x0000007fc0000000) >> 30;
-    if(MemoryLimit > 0x7fffffffff)
-    {
-        IndexOfPDE = 512;
-    }
-    UINTN NewPageTable = 0x800000;
-    bitmap_set(&PhysicalMemoryBitmap,5,1); // 512 * 4096正好一页,而实际最多是508 * 4096
-    UINTN Address = 0x100000000;
-    for(i = 4;i < IndexOfPDE;i++)
-    {
-        UINTN* PDPTE = (void*)(KERNEL_PAGE_DIR_TABLE_POS + 1 * 0x1000);
-        PDPTE[i] = (NewPageTable + (i - 4) * 4096) | PG_US_U | PG_RW_W | PG_P;
-        int j;
-        for(j = 0;j < 512;j++)
-        {
-            *(UINTN*)(NewPageTable + (i - 4) * 4096 + j * 8) = Address | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
-            Address += 0x200000;
-        }
-    }
-    asm("movq %cr3,%rax \n\t""movq %rax,%cr3");
+    sprintf(s,"Memlim: %p == %d(MB)\ntotal free: %dMB",MemoryLimit,MemoryLimit / 0x100000,total_free / 0x100000);
+    vput_utf8_str(&gBI.GraphicsInfo,&Pos,color(0,255,0),s,FontNormal);
     return;
 }
 
-/**
- * @brief 分配指定页数
- * @param NumberOfPages 要分配的内存页数
- * @return 分配的内存页起始地址
-*/
-PUBLIC void* AllocatePage(UINTN NumberOfPages)
+PUBLIC void* AllocPage(int NumberOfPage)
 {
-    if(NumberOfPages == 0)
-    {
-        return NULL;
-    }
-    enum intr_status old_status = intr_disable();
-    INTN PageIndex = bitmap_alloc(&PhysicalMemoryBitmap,NumberOfPages);
-    if(PageIndex == -1) // 分配失败
-    {
-        intr_set_status(old_status);
-        return NULL;
-    }
-    UINTN i;
-    for(i = PageIndex;i < (PageIndex + NumberOfPages);i++)
-    {
-        bitmap_set(&PhysicalMemoryBitmap,i,1);
-    }
-    intr_set_status(old_status);
-    return (void*)(PageIndex * PG_SIZE);
+    if(NumberOfPage == 0) {return NULL;}
+    return (void*)(0UL + AllocateUnits(&Mdesc.FreeMemDescTable,NumberOfPage) * PG_SIZE);
 }
 
-/**
- * @brief 释放指定页数
- * @param Addr 释放内存页的起始地址(对齐到2MB边界)
- * @param NumberOfPages 要释放的内存页数
- * @return 分配的内存页起始地址
-*/
-PUBLIC void FreePage(void* Addr,UINTN NumberOfPages)
+PUBLIC void FreePage(void* Addr,int NumberOfPage)
 {
-    ASSERT(((((MEMORY_ADDRESS)Addr) & 0x1fffff) == 0));
-    if(NumberOfPages == 0 || Addr == NULL || ((((MEMORY_ADDRESS)Addr) & 0x1fffff) != 0))
+    if(NumberOfPage == 0 || Addr == NULL || ((((MEMORY_ADDRESS)Addr) & 0x1fffff) != 0))
     {
         return;
     }
-    INTN PageIndex = (MEMORY_ADDRESS)Addr / PG_SIZE;
-    UINTN i;
-    enum intr_status old_status = intr_disable();
-    for(i = PageIndex;i < (PageIndex + NumberOfPages);i++)
-    {
-        bitmap_set(&PhysicalMemoryBitmap,i,0);
-    }
-    intr_set_status(old_status);
+    // if(NumberOfPage == 0){return;}
+    FreeUnits(&Mdesc.FreeMemDescTable,(MEMORY_ADDRESS)Addr / PG_SIZE,NumberOfPage);
     return;
 }
+
 
 PRIVATE struct MemoryBlock* Zone2Block(struct Zone* z,int idx)
 {
     // 使地址对齐到大小的整倍数
-    MEMORY_ADDRESS Addr = DIV_ROUND_UP(((MEMORY_ADDRESS)z) + sizeof(struct Zone),z->Desc->BlockSize) * (z->Desc->BlockSize);
+    MEMORY_ADDRESS Addr = DIV_ROUND_UP(((MEMORY_ADDRESS)z) + sizeof(*z),z->Desc->BlockSize) * (z->Desc->BlockSize);
     return ((struct MemoryBlock*)(Addr + (idx * (z->Desc->BlockSize))));
 }
 
@@ -278,10 +172,11 @@ PUBLIC void* kmalloc(UINTN Size)
         }
         if(list_empty(&(MemDesc[idx].FreeBlockList))) // 内存池已满
         {
-            z = AllocatePage(1);
+            z = AllocPage(1);
             ASSERT(z != NULL);
             if(z == NULL)
             {
+                PANIC("No enough Memory.");
                 return NULL;
             }
             // 初始化
@@ -312,8 +207,8 @@ PUBLIC void* kmalloc(UINTN Size)
     {
         // 直接分配整页内存
         UINTN NumberOfPages;
-        NumberOfPages = DIV_ROUND_UP(Size + sizeof(struct Zone),PG_SIZE);
-        z = AllocatePage(NumberOfPages);
+        NumberOfPages = DIV_ROUND_UP(Size + sizeof(*z),PG_SIZE);
+        z = AllocPage(NumberOfPages);
         if(z == NULL)
         {
             ASSERT(z != NULL);
@@ -325,6 +220,7 @@ PUBLIC void* kmalloc(UINTN Size)
         ASSERT(z->Desc == NULL && z->Cnt == NumberOfPages && z->Large == TRUE);
         return (void*)(z + 1); // 节约内存,不对齐
     }
+    PANIC("No enough Memory.");
     return NULL;
 }
 
