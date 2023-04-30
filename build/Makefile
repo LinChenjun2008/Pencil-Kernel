@@ -37,7 +37,7 @@ kernel: $(KERNEL_SRC:c=o) $(KERNEL_OUTPUT)
 
 .PHONY: run
 run: uefi kernel Makefile config.txt
-	-@$(QEMU) -m 1G -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
+	-@$(QEMU) -m $(GuestMemory) -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
 	-device nec-usb-xhci,id=xhci \
 	-device usb-mouse \
 	-no-shutdown \
@@ -45,7 +45,7 @@ run: uefi kernel Makefile config.txt
 
 .PHONY: debug
 debug: $(UEFI_OUTPUT) $(KERNEL_OUTPUT) Makefile config.txt
-	-@$(QEMU) -m 1G -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
+	-@$(QEMU) -m $(GuestMemory) -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
 	-device nec-usb-xhci,id=xhci \
 	-device usb-mouse \
 	-no-shutdown \

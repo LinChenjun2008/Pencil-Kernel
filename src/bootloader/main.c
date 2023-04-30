@@ -191,6 +191,14 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
 
 void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase)
 {
+    Binfo->Magic[0] = 0x5a;
+    Binfo->Magic[1] = 0x42;
+    Binfo->Magic[2] = 0xcb;
+    Binfo->Magic[3] = 0x16;
+    Binfo->Magic[4] = 0x13;
+    Binfo->Magic[5] = 0xd4;
+    Binfo->Magic[6] = 0xa6;
+    Binfo->Magic[7] = 0x2f;
     Binfo->KernelBaseAddress                   = KernelBase;
     Binfo->TypefaceBase                       = TypefaceBase;
     Binfo->GraphicsInfo.FrameBufferBase        = Gop->Mode->FrameBufferBase;

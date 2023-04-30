@@ -67,7 +67,7 @@ void InitMemoryBlock(struct MemoryDesc* MemDesc)
     for(idx = 0;idx < NumberOfMemoryBlocks;idx++)
     {
         MemDesc[idx].BlockSize = BlockSize;
-        MemDesc[idx].Blocks = DIV_ROUND_UP((PG_SIZE - sizeof(struct Zone)),MemDesc[idx].BlockSize) - 1;
+        MemDesc[idx].Blocks = (PG_SIZE - sizeof(struct Zone)) / MemDesc[idx].BlockSize;
         list_init(&(MemDesc[idx].FreeBlockList));
         BlockSize *= 2;
     }
@@ -185,7 +185,7 @@ PUBLIC void* kmalloc(UINTN Size)
             UINTN BlockIndex;
             enum intr_status old_status = intr_disable();
             // 将内存拆分成内存块,加入到FreeBlockList队列中
-            for(BlockIndex = 0;BlockIndex <= MemDesc[idx].Blocks;BlockIndex++)
+            for(BlockIndex = 0;BlockIndex < MemDesc[idx].Blocks;BlockIndex++)
             {
                 b = Zone2Block(z,BlockIndex);
                 b->Free.container = b;

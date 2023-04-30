@@ -1,4 +1,5 @@
 #include <alloc_table.h>
+#include <interrupt.h>
 
 /**
  * @brief 初始化分配表
@@ -23,6 +24,7 @@ void init_AllocateTable(struct ALLOCATE_TABLE* Table,struct ALLOCATE_TABLE_ENTRY
 */
 uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits)
 {
+    enum intr_status old_status = intr_disable();
     uint64_t i;
     uint64_t Index;
     for (i = 0;i < Table->NumberOfEntries;i++)
@@ -41,9 +43,11 @@ uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits)
                     i++;
                 }
             }
+            intr_set_status(old_status);
             return Index;
         }
     }
+    intr_set_status(old_status);
     return 0;
 }
 
@@ -55,6 +59,7 @@ uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits)
 */
 void FreeUnits(struct ALLOCATE_TABLE* Table,uint32_t Index,uint32_t NumberOfUnits)
 {
+    enum intr_status old_status = intr_disable();
     uint32_t i,j;
     for (i = 0;i < Table->Frees;i++)
     {
@@ -81,6 +86,7 @@ void FreeUnits(struct ALLOCATE_TABLE* Table,uint32_t Index,uint32_t NumberOfUnit
                     }
                 }
             }
+            intr_set_status(old_status);
             return;
         }
     }
@@ -90,19 +96,22 @@ void FreeUnits(struct ALLOCATE_TABLE* Table,uint32_t Index,uint32_t NumberOfUnit
         {
             Table->Entries[i].Index = Index;
             Table->Entries[i].NumberOfUnits += NumberOfUnits;
+            intr_set_status(old_status);
             return;
         }
     }
     if (Table->Frees < Table->NumberOfEntries)
     {
-        for (j = Table->Frees;j > i;j++)
+        for (j = Table->Frees;j > i;j--)
         {
             Table->Entries[j] = Table->Entries[j - 1];
         }
         Table->Frees++;
         Table->Entries[i].Index = Index;
         Table->Entries[i].NumberOfUnits = NumberOfUnits;
+        intr_set_status(old_status);
         return;
     }
+    intr_set_status(old_status);
     return;
 }

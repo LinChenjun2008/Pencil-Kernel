@@ -29,6 +29,7 @@ struct MemoryMap
 
 struct BootInfo
 {
+    uint8_t Magic[8]; // 5a 42 cb 16 13 d4 a6 2f
     uint64_t KernelBaseAddress; // 内核加载地址
     uint64_t TypefaceBase;      // 点阵字体加载地址
     uint64_t TrueTypeFontBase;  // TrueType字体加载地址
