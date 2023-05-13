@@ -12,7 +12,7 @@
 
 void* intr_handle_entry[IDT_DESC_CNT];
 
-PRIVATE char* intr_name[IDT_DESC_CNT] = 
+PRIVATE char* intr_name[IDT_DESC_CNT] =
 {
     "#DE 除法异常 Divide Error\n",
     "#DB 调试异常 Debug Exception\n",
@@ -56,7 +56,7 @@ PRIVATE void init_pic()
     return;
 }
 
-struct gate_desc
+typedef struct
 {
     uint16_t offset_low;  /* 偏移15~0 */
     uint16_t selector;    /* 目标代码段选择子 */
@@ -65,9 +65,9 @@ struct gate_desc
     uint16_t offset_mid;  /* 偏移31~16 */
     uint32_t offset_high; /* 偏移63~32 */
     uint32_t reserved;    /* 保留 */
-}__attribute__((packed));
+} __attribute__((packed)) gate_desc_t;
 
-PRIVATE struct gate_desc idt[IDT_DESC_CNT];
+PRIVATE gate_desc_t idt[IDT_DESC_CNT];
 
 /** set_gatedesc
  * @brief          创建中断描述符
@@ -76,7 +76,7 @@ PRIVATE struct gate_desc idt[IDT_DESC_CNT];
  * @param selector 目标代码段选择子
  * @param ar       属性
 */
-PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
+PRIVATE void set_gatedesc(gate_desc_t* gd,void* func,int selector,int ar)
 {
     gd->offset_low = ((uint64_t)func) & 0x000000000000ffff;
     gd->selector = selector;
@@ -90,102 +90,102 @@ PRIVATE void set_gatedesc(struct gate_desc* gd,void* func,int selector,int ar)
 /**
  * @brief 通用中断处理函数
 */
-void ASMCALL general_intr_handler(UINTN Nr,struct intr_stack* stack)
+void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
 {
-    if(Nr == 0x27)
+    if (nr == 0x27)
     {
         io_out8(PIC_M_CTRL,0x20);
         return;
     }
     ASSERT(intr_get_status() == INTR_OFF);
-    BltPixel col =
+    pixel_t col =
     {
-        .Red = 0,
-        .Green = 0,
-        .Blue = 132,
+        .red = 0,
+        .green = 0,
+        .blue = 132,
     };
-    viewFill(&(gBI.GraphicsInfo),col,0,0,gBI.GraphicsInfo.HorizontalResolution - 1,gBI.GraphicsInfo.VerticalResolution - 1);
-    struct Position Pos = {10,10};
+    view_fill(&(g_boot_info.graph_info),col,0,0,g_boot_info.graph_info.horizontal_resolution - 1,g_boot_info.graph_info.vertical_resolution - 1);
+    position_t pos = {10,10};
     char s[512];
-    col.Red = 255;
-    col.Green = 255;
-    col.Blue = 255;
-    enum FontSize FontSize = 7;
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,":",FontSize);
-    Pos.y += 2 * FontSize;
-    Pos.x -= 2 * FontSize;
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"(\n",FontSize);
-    Pos.x = 10;
-    FontSize = FontNormal;
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,
+    col.red = 255;
+    col.green = 255;
+    col.blue = 255;
+    fontsize_t font_size = 7;
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,":",font_size);
+    pos.y += 2 * font_size;
+    pos.x -= 2 * font_size;
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,"(\n",font_size);
+    pos.x = 10;
+    font_size = FONT_NORMAL;
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,
     "你的设备遇到问题,需要重新启动.\n"
     "接下来显示错误信息,然后你可以重新启动.\n\n"
-    ,FontSize);
+    ,font_size);
     sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack->rax,stack->rbx,stack->rcx,stack->rdx);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack->rbp,stack->rsi,stack->rdi);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack->r8,stack->r9,stack->r10,stack->r11);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack->r12,stack->r13,stack->r14,stack->r15);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
     sprintf(s,"cr2 = %016x\n",crN);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
     sprintf(s,"cr3 = %016x\n",crN);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"CS:RIP %04x:%016x\n",stack->cs,stack->rip);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    sprintf(s,"Nr: 0x%02x 错误码 ERROR CODE: %016x\n",Nr,stack->ErrorCode);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-    if(Nr <= 0x1f)
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    sprintf(s,"nr: 0x%02x 错误码 ERROR CODE: %016x\n",nr,stack->error_code);
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    if (nr <= 0x1f)
     {
-        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,"Error: ",FontSize);
-        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,intr_name[Nr],FontSize);
+        vput_utf8_str(&(g_boot_info.graph_info),&pos,col,"Error: ",font_size);
+        vput_utf8_str(&(g_boot_info.graph_info),&pos,col,intr_name[nr],font_size);
     }
-    Pos.x = 10;
+    pos.x = 10;
     sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
-    vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,s,FontSize);
-   
-    UINTN rbp = stack->rbp;
+    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+
+    wordsize_t rbp = stack->rbp;
     char* name;
     // 打印内核层函数调用顺序
-    if(address_available((UINTN)stack->rip))
+    if (address_available((wordsize_t)stack->rip))
     {
-        name = address2symbol((UINTN)stack->rip);
-        if(name)
+        name = address2symbol((wordsize_t)stack->rip);
+        if (name)
         {
-            vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
+            vput_utf8_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
         }
     }
     int i;
     for(i = 0;i < 8;i++)
     {
-        if(address_available(*((UINTN*)rbp + 1)))
+        if (address_available(*((wordsize_t*)rbp + 1)))
         {
-            name = address2symbol(*((UINTN*)rbp + 1));
-            if(name)
+            name = address2symbol(*((wordsize_t*)rbp + 1));
+            if (name)
             {
-                vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col," <+--- ",FontSize);
-                vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col,name,FontSize);
+                vput_utf8_str(&(g_boot_info.graph_info),&pos,col," <+--- ",font_size);
+                vput_utf8_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
             }
         }
         else
         {
             break;
         }
-        rbp = *((UINTN*)rbp);
+        rbp = *((wordsize_t*)rbp);
     }
-    if(i >= 8)
+    if (i >= 8)
     {
-        vput_utf8_str(&(gBI.GraphicsInfo),&Pos,col," <+--- [...]",FontSize);
+        vput_utf8_str(&(g_boot_info.graph_info),&pos,col," <+--- [...]",font_size);
     }
-    while(1){;}
+    while (1){;}
 }
 
-#define INTR_HANDLER(Entry,NR,ErrorCode) extern void Entry();
+#define INTR_HANDLER(ENTRY,NR,ERROR_CODE) extern void ENTRY();
 #include <intrlist.h>
 #undef INTR_HANDLER
 
@@ -197,20 +197,17 @@ PRIVATE void idt_desc_init(void)
     int i;
     for(i = 0;i < IDT_DESC_CNT;i++)
     {
-        set_gatedesc(&idt[i],asm_intr0x0d_handler,SelectorCode64_K,AR_IDT_DESC_DPL0);
+        set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
         intr_handle_entry[i] = general_intr_handler;
     }
-    #define INTR_HANDLER(Entry,NR,ErrorCode) set_gatedesc(&idt[NR],Entry,SelectorCode64_K,AR_IDT_DESC_DPL0);
+    #define INTR_HANDLER(ENTRY,NR,ERROR_CODE) set_gatedesc(&idt[NR],ENTRY,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
     #include <intrlist.h>
     #undef INTR_HANDLER
 }
 
-/**
- * @brief 注册中断处理函数
-*/
-PUBLIC void register_handle(UINTN NR,void* handle)
+PUBLIC void register_handle(uint8_t nr,void* handle)
 {
-    intr_handle_entry[NR] = handle;
+    intr_handle_entry[nr] = handle;
     return;
 }
 
@@ -223,12 +220,12 @@ PUBLIC void init_interrupt()
     return;
 }
 
-#define INTR_HANDLER(Entry,NR,ErrorCode) \
+#define INTR_HANDLER(ENTRY,NR,ERROR_CODE) \
 __asm__ \
 ( \
-    ".global "#Entry" \n\t" \
-    #Entry": \n\t" \
-    #ErrorCode"\n\t" \
+    ".global "#ENTRY" \n\t" \
+    #ENTRY": \n\t" \
+    #ERROR_CODE"\n\t" \
  \
     "pushq %r15 \n\t" \
     "pushq %r14 \n\t" \
@@ -304,14 +301,9 @@ __asm__
     "iretq"
 );
 
-/**
- * @brief  开中断
-
- * @return 开中断前的状态
-*/
-PUBLIC enum intr_status intr_enable()
+PUBLIC intr_status_t intr_enable()
 {
-    enum intr_status old_status;
+    intr_status_t old_status;
     if (intr_get_status() == INTR_ON)
     {
         old_status = INTR_ON;
@@ -325,14 +317,9 @@ PUBLIC enum intr_status intr_enable()
     }
 }
 
-/**
- * @brief  关中断
-
- * @return 关中断前的状态
-*/
-PUBLIC enum intr_status intr_disable()
+PUBLIC intr_status_t intr_disable()
 {
-    enum intr_status old_status;
+    intr_status_t old_status;
     if (intr_get_status() == INTR_ON)
     {
         old_status = INTR_ON;
@@ -346,17 +333,12 @@ PUBLIC enum intr_status intr_disable()
     }
 }
 
-/**
- * @brief 将中断状态设为status
-
- * @return 之前的中断状态
-*/
-PUBLIC enum intr_status intr_set_status(enum intr_status status)
+PUBLIC intr_status_t intr_set_status(intr_status_t status)
 {
     return (status == INTR_ON ? intr_enable() : intr_disable());
 }
 
-PUBLIC enum intr_status intr_get_status()
+PUBLIC intr_status_t intr_get_status()
 {
     /* 判断flage寄存器的if位 */
     return ((get_flages() & 0x00000200) ? INTR_ON : INTR_OFF);

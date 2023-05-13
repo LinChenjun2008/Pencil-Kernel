@@ -1,34 +1,34 @@
 #include <global.h>
 #include <string.h>
 
-BOOL address_available(MEMORY_ADDRESS address)
+BOOL address_available(uintptr_t address)
 {
-    return (address >= KERNEL_VMA_BASE && address <= symbol_table[symbols - 1].Address);
+    return (address >= KERNEL_VMA_BASE && address <= symbol_table[symbols - 1].address);
 }
 
-MEMORY_ADDRESS symbol2address(char* name)
+uintptr_t symbol2address(char* name)
 {
     int i;
     for(i = 0;i < symbols;i++)
     {
-        if(strcmp(name,symbol_table[i].name) == 0)
+        if (strcmp(name,symbol_table[i].name) == 0)
         {
-            return symbol_table[i].Address;
+            return symbol_table[i].address;
         }
     }
     return 0;
 }
 
-char* address2symbol(MEMORY_ADDRESS address)
+char* address2symbol(uintptr_t address)
 {
-    if(!address_available(address))
+    if (!address_available(address))
     {
         return NULL;
     }
     int i;
     for(i = 0;i < symbols;i++)
     {
-        if(address >= symbol_table[i].Address && address < symbol_table[i + 1].Address)
+        if (address >= symbol_table[i].address && address < symbol_table[i + 1].address)
         {
             return symbol_table[i].name;
         }

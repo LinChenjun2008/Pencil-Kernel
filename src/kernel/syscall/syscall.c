@@ -6,9 +6,9 @@
 #include <string.h>
 #include <thread.h>
 
-INTN send_recv(int function,pid_t src_dst,struct MESSAGE* msg)
+syscall_return_t send_recv(int function,pid_t src_dst,message_t* msg)
 {
-    INTN res;
+    syscall_return_t res;
     __asm__ __volatile__
     (
         "movq %q[function],%%rax \n\t"
@@ -23,26 +23,26 @@ INTN send_recv(int function,pid_t src_dst,struct MESSAGE* msg)
 
 pid_t pid_table[TASKPID_END - ANY];
 
-void resetmsg(struct MESSAGE* msg)
+void resetmsg(message_t* msg)
 {
-    memset(msg,0,sizeof(struct MESSAGE));
+    memset(msg,0,sizeof(message_t));
     return;
 }
 
 BOOL deadlock(pid_t src,pid_t dst)
 {
-    struct task_struct* pthread = pid2thread(dst);
-    while(1)
+    task_struct_t* pthread = pid2thread(dst);
+    while (1)
     {
-        if(pthread->status == TASK_SENDING)
+        if (pthread->status == TASK_SENDING)
         {
-            if(pthread->send_to == src)
+            if (pthread->send_to == src)
             {
                 /* 死锁 */
                 return TRUE;
             }
             pthread = pid2thread(pthread->send_to);
-            if(pthread == NULL)
+            if (pthread == NULL)
             {
                 return FALSE;
             }
@@ -55,10 +55,10 @@ BOOL deadlock(pid_t src,pid_t dst)
     return FALSE;
 }
 
-PRIVATE uint32_t msg_send(pid_t dst,struct MESSAGE* msg)
+PRIVATE uint32_t msg_send(pid_t dst,message_t* msg)
 {
-    struct task_struct* sender;
-    struct task_struct* pdest;
+    task_struct_t* sender;
+    task_struct_t* pdest;
     sender = running_thread();
     sender->send_to = dst;
     ASSERT(dst <= 1024);
@@ -67,7 +67,7 @@ PRIVATE uint32_t msg_send(pid_t dst,struct MESSAGE* msg)
     ASSERT(sender != pdest);
     msg->source = running_thread()->pid;
     /* 判断是否死锁 */
-    if(deadlock(sender->pid,dst))
+    if (deadlock(sender->pid,dst))
     {
         char str[128];
         sprintf(str,"src:%s -> dst:%s dead lock",running_thread()->name,pid2thread(dst)->name);
@@ -75,13 +75,13 @@ PRIVATE uint32_t msg_send(pid_t dst,struct MESSAGE* msg)
         return 1;
     }
     /* 消息复制到当前进程pcb */
-    memcpy(&(running_thread()->msg),msg,sizeof(struct MESSAGE));
+    memcpy(&(running_thread()->msg),msg,sizeof(message_t));
     ASSERT(sender->msg.source == msg->source);
     /* 加入队列 */
     ASSERT(!list_find(&(pdest->sender_list),&(sender->general_tag)));
     list_append(&(pdest->sender_list),&(sender->general_tag));
     /* 对方正准备接收消息 */
-    if(pdest->status == TASK_RECEIVING && (pdest->recv_from == ANY || pdest->recv_from == sender->pid))
+    if (pdest->status == TASK_RECEIVING && (pdest->recv_from == ANY || pdest->recv_from == sender->pid))
     {
         /* 唤醒对方 */
         thread_unblock(pdest);
@@ -95,21 +95,21 @@ PRIVATE uint32_t msg_send(pid_t dst,struct MESSAGE* msg)
     return 0;
 }
 
-int msg_recv(pid_t src,struct MESSAGE* msg)
+int msg_recv(pid_t src,message_t* msg)
 {
     ASSERT(src == ANY || src <= 1024);
-    struct task_struct* psrc;
-    struct task_struct* receiver;
+    task_struct_t* psrc;
+    task_struct_t* receiver;
     receiver = running_thread();
 
     ASSERT(src != receiver->pid);
     receiver->recv_from = src;
 
     /* 从任意进程接收消息 */
-    if(src == ANY)
+    if (src == ANY)
     {
         /* 没有进程发消息,阻塞 */
-        if(list_empty(&(receiver->sender_list)))
+        if (list_empty(&(receiver->sender_list)))
         {
             thread_block(TASK_RECEIVING);
         }
@@ -121,7 +121,7 @@ int msg_recv(pid_t src,struct MESSAGE* msg)
     else
     {
         /* 阻塞,直到收到消息 */
-        while(!list_find(&receiver->sender_list,&pid2thread(src)->general_tag))
+        while (!list_find(&receiver->sender_list,&pid2thread(src)->general_tag))
         {
             thread_block(TASK_RECEIVING);
         }
@@ -130,7 +130,7 @@ int msg_recv(pid_t src,struct MESSAGE* msg)
         psrc = pid2thread(src)->general_tag.container;
     }
     ASSERT(psrc != NULL);
-    memcpy(msg,&(psrc->msg),sizeof(struct MESSAGE));
+    memcpy(msg,&(psrc->msg),sizeof(message_t));
     ASSERT(psrc->status == TASK_SENDING)
     psrc->send_to = NO_TASK;
     thread_unblock(psrc);
@@ -138,15 +138,15 @@ int msg_recv(pid_t src,struct MESSAGE* msg)
     return 0;
 }
 
-UINTN ASMCALL sys_sendrec(UINTN Nr __attribute__((unused)),struct intr_stack* stack)
+syscall_return_t ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),intr_stack_t* stack)
 {
     int function;
     pid_t src_dst;
-    struct MESSAGE* msg;
+    message_t* msg;
     function = stack->rax;
     src_dst = stack->rbx;
-    msg = (struct MESSAGE*)stack->rcx;
-    uint32_t res = 1;
+    msg = (message_t*)stack->rcx;
+    syscall_return_t res = 1;
     switch(function)
     {
         case SEND:
@@ -157,7 +157,7 @@ UINTN ASMCALL sys_sendrec(UINTN Nr __attribute__((unused)),struct intr_stack* st
             break;
         case BOTH:
             res = msg_send(src_dst,msg);
-            if(res == 0)
+            if (res == 0)
             {
                 res = msg_recv(src_dst,msg);
             }

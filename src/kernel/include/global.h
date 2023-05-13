@@ -1,6 +1,8 @@
 #ifndef __BASE_TYPE_H__
 #define __BASE_TYPE_H__
 
+#include <common.h>
+
 #define NULL ((void*) 0)
 
 typedef int BOOL;
@@ -8,43 +10,45 @@ typedef int BOOL;
 #define TRUE  (1 == 1)
 #define FALSE (1 == 0)
 
-typedef signed char          INT8;
-typedef signed short         INT16;
-typedef signed int           INT32;
-typedef signed long long int INT64;
-typedef signed __int128      INT128;
+// typedef signed char          INT8;
+// typedef signed short         INT16;
+// typedef signed int           INT32;
+// typedef signed long long int INT64;
+// typedef signed __int128      INT128;
 
-typedef unsigned char          UINT8;
-typedef unsigned short         UINT16;
-typedef unsigned int           UINT32;
-typedef unsigned long long int UINT64;
-typedef unsigned __int128      UINT128;
+// typedef unsigned char          UINT8;
+// typedef unsigned short         UINT16;
+// typedef unsigned int           UINT32;
+// typedef unsigned long long int UINT64;
+// typedef unsigned __int128      UINT128;
 
-typedef unsigned char  CHAR8;
-typedef unsigned short CHAR16;
+// typedef unsigned char  CHAR8;
+// typedef unsigned short CHAR16;
 
-typedef UINT64 UINTN;
-typedef INT64  INTN;
+// typedef UINT64 UINTN;
+// typedef INT64  INTN;
 
-typedef UINT64 MEMORY_ADDRESS;
-typedef UINT64 PHYSICAL_ADDRESS;
-typedef UINT64 VIRTUAL_ADDRESS;
+// typedef UINT8  byte;
+// typedef UINT16 word;
+// typedef UINT32 dword;
+// typedef UINT64 qword;
 
-typedef UINT8  byte;
-typedef UINT16 word;
-typedef UINT32 dword;
-typedef UINT64 qword;
+typedef unsigned long long int wordsize_t;
 
-extern struct BootInfo gBI;
+extern boot_info_t g_boot_info;
+
+
+
 
 /* gdt描述符 */
 #include <desctrib.h>
 
-#define KERNEL_PAGE_DIR_TABLE_POS ((MEMORY_ADDRESS)0x5f9000)
+#define KERNEL_PAGE_DIR_TABLE_POS ((uintptr_t)0x5f9000)
 #define KERNEL_VMA_BASE 0xffff800000000000
 
-#define kAddrV2P(Addr) ((MEMORY_ADDRESS)Addr - KERNEL_VMA_BASE)
-#define kAddrP2V(Addr) ((MEMORY_ADDRESS)Addr + KERNEL_VMA_BASE)
+#define KADDR_P2V(ADDR) ((ADDR) + KERNEL_VMA_BASE)
+#define KADDR_V2P(ADDR) ((ADDR) - KERNEL_VMA_BASE)
+
 
 #define PG_SIZE 0x200000
 

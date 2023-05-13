@@ -1,6 +1,7 @@
 #include <global.h>
 #include <debug.h>
 #include <stdint.h>
+#include <stddef.h>
 
 /** memset
 
@@ -10,11 +11,11 @@
  * @param value :设置成的值
  * @param size  :要设置的大小(字节)
 */
-void memset(void* dst__,uint8_t value,uint32_t size)
+void memset(void* dst__,uint8_t value,size_t size)
 {
     ASSERT(dst__ != NULL);
     uint8_t* dst = (uint8_t*)dst__;
-    uint32_t i;
+    size_t i;
     for(i = 0;i < size;i++)
     {
         (*dst) = value;
@@ -31,12 +32,12 @@ void memset(void* dst__,uint8_t value,uint32_t size)
  * @param src__ :原地址
  * @param size  :要复制的字节数
 */
-void memcpy(void* dst__,const void* src__,uint32_t size)
+void memcpy(void* dst__,const void* src__,size_t size)
 {
     ASSERT(dst__ != NULL && src__ != NULL);
     uint8_t* dst = (uint8_t*)dst__;
     uint8_t* src = (uint8_t*)src__;
-    uint32_t i;
+    size_t i;
     for(i = 0;i < size;i++)
     {
         *dst = *src;
@@ -59,15 +60,15 @@ void memcpy(void* dst__,const void* src__,uint32_t size)
  * @retval  1  p1__  > p2__
 
 */
-int32_t memcmp(const void* p1__,void* p2__,uint32_t size)
+int32_t memcmp(const void* p1__,void* p2__,size_t size)
 {
     ASSERT(p1__ != NULL && p2__ != NULL);
     uint8_t* p1 = (uint8_t*)p1__;
     uint8_t* p2 = (uint8_t*)p2__;
-    uint32_t i;
+    size_t i;
     for(i = 0;i < size;i++)
     {
-        if(*p1 != *p2)
+        if (*p1 != *p2)
         {
             break;
         }
@@ -79,14 +80,14 @@ char* strcpy(char* dst__,const char* src__)
 {
 /* 将字符串从src_复制到dst_ */
    char* r = dst__;		       // 用来返回目的字符串起始地址
-   while((*dst__++ = *src__++));
+   while ((*dst__++ = *src__++));
    return r;
 }
 
-uint32_t strlen(const char* str)
+size_t strlen(const char* str)
 {
     int len = 0;
-    while(*(str++))
+    while (*(str++))
     {
         len++;
     }
@@ -96,7 +97,7 @@ uint32_t strlen(const char* str)
 int32_t strcmp(const char* str1__,const char* str2__)
 {
     ASSERT(str1__ != NULL && str2__ != NULL);
-    while(*str1__ != 0 && *str1__ == *str2__)
+    while (*str1__ != 0 && *str1__ == *str2__)
     {
         str1__++;
         str2__++;
@@ -108,5 +109,5 @@ int32_t strcmp(const char* str1__,const char* str2__)
 char* strchr(const char* str,const uint8_t ch);
 char* strrchr(const char* str,const uint8_t ch);
 char* strcat(char* dst__,const char* src__);
-uint32_t strchrs(const char* name,uint8_t ch);
+size_t strchrs(const char* name,uint8_t ch);
 */

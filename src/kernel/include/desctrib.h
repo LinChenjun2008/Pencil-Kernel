@@ -35,16 +35,16 @@
 #define TI_GDT 0x0
 #define TI_LDT 0x4
 
-#define SelectorCode64_K     ((1 << 3) | TI_GDT | RPL0) /* 代码段 */
-#define SelectorData64_K     ((2 << 3) | TI_GDT | RPL0) /* 数据段 */
+#define SELECTOR_CODE64_K     ((1 << 3) | TI_GDT | RPL0) /* 代码段 */
+#define SELECTOR_DATA64_K     ((2 << 3) | TI_GDT | RPL0) /* 数据段 */
 
-#define SelectorTSS          ((9 << 3) | TI_GDT | RPL0) /* TSS段 */
+#define SELECTOR_TSS          ((9 << 3) | TI_GDT | RPL0) /* TSS段 */
 
-#define SelectorCode64_U     ((3 << 3) | TI_GDT | RPL3) /* 用户代码段 */
-#define SelectorData64_U     ((4 << 3) | TI_GDT | RPL3) /* 用户数据段 */
+#define SELECTOR_CODE64_U     ((3 << 3) | TI_GDT | RPL3) /* 用户代码段 */
+#define SELECTOR_DATA64_U     ((4 << 3) | TI_GDT | RPL3) /* 用户数据段 */
 
-#define SelectorCode32_K     ((7 << 3) | TI_GDT | RPL0) /* 代码段 */
-#define SelectorData32_K     ((8 << 3) | TI_GDT | RPL0) /* 数据段 */
+#define SELECTOR_CODE32_K     ((7 << 3) | TI_GDT | RPL0) /* 代码段 */
+#define SELECTOR_DATA32_K     ((8 << 3) | TI_GDT | RPL0) /* 数据段 */
 
 #define AR_DESC_32 0xe
 #define AR_DESC_16 0x6
@@ -52,32 +52,20 @@
 #define AR_IDT_DESC_DPL0 (AR_P | AR_DPL_0 | AR_DESC_32)
 #define AR_IDT_DESC_DPL3 (AR_P | AR_DPL_3 | AR_DESC_32)
 
-struct SEGMDESC
+typedef struct
 {
-    word limit_low; //0-15 limit1
-    word base_low;  // 16 - 31 base0
-    byte base_mid;  // 32 - 39 base1
-    byte access_right; // 40 - 47 flag descType privilege isVaild
-    byte limit_high;   // 48 - 55 limit1 usused 
-    byte base_high;    // 56 - 63 base2 
-};
+    uint16_t limit_low;    //0-15 limit1
+    uint16_t base_low;     // 16 - 31 base0
+    uint8_t  base_mid;     // 32 - 39 base1
+    uint8_t  access_right; // 40 - 47 flag descType privilege isVaild
+    uint8_t  limit_high;   // 48 - 55 limit1 usused
+    uint8_t  base_high;    // 56 - 63 base2
+} segmdesc_t;
 
-struct SSEGMDESC
-{
-    word limit_low; //0-15 limit1
-    word base_low;  // 16 - 31 base0
-    byte base_mid;  // 32 - 39 base1
-    byte access_right; // 40 - 47 flag descType privilege isVaild
-    byte limit_high;   // 48 - 55 limit1 usused 
-    byte base_high;    // 56 - 63 base2 
-    dword base_3;
-    dword base_4; 
-};
-
-extern struct SEGMDESC GDT_table[17];
+extern segmdesc_t gdt_table[17];
 
 #include <stdint.h>
 
-struct SEGMDESC make_segmdesc(uint32_t base,uint32_t limit,uint16_t access);
+segmdesc_t make_segmdesc(uint32_t base,uint32_t limit,uint16_t access);
 
 #endif

@@ -13,17 +13,17 @@
 
 #include <process.h>
 
-PRIVATE struct task_struct* main_thread;
-PRIVATE struct task_struct* idle_thread;
-PUBLIC struct List ready_list;
-PUBLIC struct List all_list;
+PRIVATE task_struct_t* main_thread;
+PRIVATE task_struct_t* idle_thread;
+PUBLIC list_t ready_list;
+PUBLIC list_t all_list;
 
 struct
 {
-    struct Lock lock;
-    struct Bitmap bitmap;
+    lock_t lock;
+    bitmap_t bitmap;
     pid_t first_pid;
-}pid_pool;
+} pid_pool;
 
 
 /* 用于分配pid 可分配的pid为0~1024 */
@@ -42,8 +42,8 @@ PRIVATE pid_t alloc_pid()
 
 PRIVATE void kernel_thread(void)
 {
-    UINTN __func;
-    UINTN __arg;
+    uintptr_t  func;
+    wordsize_t arg;
     // 获取暂存的值
     __asm__ __volatile__
     (
@@ -51,22 +51,20 @@ PRIVATE void kernel_thread(void)
         "movq %%rdi,%[arg] \n\t"
         "movq $0,%%rsi \n\t"
         "movq $0,%%rdi \n\t"
-        :[func]"=g"(__func),[arg]"=g"(__arg)
+        :[func]"=g"(func),[arg]"=g"(arg)
         :
         :"rsi","rdi"
     );
     intr_enable();
-    thread_function* func = (thread_function*)__func;
-    void* arg = (void*)__arg;
-    func(arg);
+    ((thread_function_t*)func)((void*)arg);
     return;
 }
 
-PUBLIC void thread_init(struct task_struct* thread,char* name,UINTN priority)
+PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int priority)
 {
     memset(thread,0,sizeof(*thread));
     strcpy(thread->name,name);
-    if(thread != main_thread)
+    if (thread != main_thread)
     {
         thread->status = TASK_READY;
     }
@@ -80,20 +78,20 @@ PUBLIC void thread_init(struct task_struct* thread,char* name,UINTN priority)
     thread->all_tag.container = thread;
     thread->general_tag.container = thread;
     thread->pid = alloc_pid();
-    thread->self_kstack = (UINTN)(((MEMORY_ADDRESS)thread) + PCB_SIZE);
+    thread->self_kstack = (thread_stack_t*)(((uintptr_t)thread) + PCB_SIZE);
     ASSERT(thread->self_kstack != 0);
     thread->page_dir = NULL;
-    memset(&thread->msg,0,sizeof(struct MESSAGE));
+    memset(&thread->msg,0,sizeof(message_t));
     thread->send_to = NO_TASK;
     thread->recv_from = NO_TASK;
     list_init(&(thread->sender_list));
-    thread->stack_magic = StackMagic;
+    thread->stack_magic = STACK_MAGIC;
     return;
 }
 
-PUBLIC struct task_struct* running_thread()
+PUBLIC task_struct_t* running_thread()
 {
-    UINTN rsp;
+    wordsize_t rsp;
     __asm__ __volatile__
     (
         "movq %%rsp,%0"
@@ -101,28 +99,28 @@ PUBLIC struct task_struct* running_thread()
         :
         :
     );
-    return (struct task_struct*)(rsp & 0xffffffffffff0000);
+    return (task_struct_t*)(rsp & 0xffffffffffff0000);
 }
 
-void thread_create(struct task_struct* thread,thread_function func,void* arg)
+void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
 {
-    thread->self_kstack -= sizeof(struct intr_stack);
-    thread->self_kstack -= sizeof(struct thread_stack);
+    thread->self_kstack -= sizeof(intr_stack_t);
+    thread->self_kstack -= sizeof(unsigned long long int);
     ASSERT(thread->self_kstack != 0);
-    struct thread_stack* kthread_stack;
-    kthread_stack = ((struct thread_stack*)(thread->self_kstack));
+    thread_stack_t* kthread_stack;
+    kthread_stack = thread->self_kstack;
 
     kthread_stack->rip = kernel_thread;
     kthread_stack->rbp = 0;
     kthread_stack->rbx = 0;
-    kthread_stack->rsi = (UINTN)func; /* 借用rsi暂存 */
-    kthread_stack->rdi = (UINTN)arg;  /* 借用rdi暂存 */
+    kthread_stack->rsi = (wordsize_t)func; /* 借用rsi暂存 */
+    kthread_stack->rdi = (wordsize_t)arg;  /* 借用rdi暂存 */
     return;
 }
 
-PUBLIC struct task_struct* thread_start(char* name,UINTN priority,thread_function func,void* arg)
+PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg)
 {
-    struct task_struct* thread = (struct task_struct*)kAddrP2V(kmalloc(PCB_SIZE));
+    task_struct_t* thread = (task_struct_t*)KADDR_P2V(kmalloc(PCB_SIZE));
     thread_init(thread,name,priority);
     thread_create(thread,func,arg);
     /* 加入就绪队列 */
@@ -144,7 +142,7 @@ PRIVATE void make_main_thread(void)
 
 PRIVATE void idle(void* arg __attribute__((unused)))
 {
-    while(1)
+    while (1)
     {
         thread_block(TASK_BLOCKED);
         __asm__ __volatile__("sti\n\t""hlt\n\t":::);
@@ -219,22 +217,22 @@ __asm__
 
 PUBLIC void schedule()
 {
-    struct task_struct* cur_thread = running_thread();
+    task_struct_t* cur_thread = running_thread();
     ASSERT(cur_thread->all_tag.container == running_thread());
     ASSERT(cur_thread->general_tag.container == running_thread());
-    ASSERT(cur_thread->stack_magic == StackMagic); /* 确保栈不溢出 */
-    if(cur_thread->status == TASK_RUNNING)
+    ASSERT(cur_thread->stack_magic == STACK_MAGIC); /* 确保栈不溢出 */
+    if (cur_thread->status == TASK_RUNNING)
     {
         ASSERT(!(list_find(&ready_list,&cur_thread->general_tag)));
         list_append(&ready_list,&(cur_thread->general_tag));
         cur_thread->status = TASK_RUNNING;
     }
-    struct task_struct* next = NULL;
-    if(list_empty(&ready_list))
+    task_struct_t* next = NULL;
+    if (list_empty(&ready_list))
     {
         thread_unblock(idle_thread);
     }
-    struct ListNode* next_thread_tag = NULL;
+    list_node_t* next_thread_tag = NULL;
     next_thread_tag = list_pop(&ready_list);
     next = next_thread_tag->container;
 
@@ -246,11 +244,11 @@ PUBLIC void schedule()
     return;
 }
 
-PUBLIC void thread_block(enum task_status status)
+PUBLIC void thread_block(task_status_t status)
 {
     ASSERT(status != TASK_RUNNING && status != TASK_READY);
-    enum intr_status old_status = intr_disable();
-    struct task_struct* cur_thread = running_thread();
+    intr_status_t old_status = intr_disable();
+    task_struct_t* cur_thread = running_thread();
     cur_thread->status = status;
     ASSERT(cur_thread->status == status);
     schedule();
@@ -258,17 +256,17 @@ PUBLIC void thread_block(enum task_status status)
     return;
 }
 
-PUBLIC void thread_unblock(struct task_struct* pthread)
+PUBLIC void thread_unblock(task_struct_t* pthread)
 {
-    enum intr_status old_status = intr_disable();
-    if(!list_find(&all_list,&pthread->all_tag))
+    intr_status_t old_status = intr_disable();
+    if (!list_find(&all_list,&pthread->all_tag))
     {
         PANIC("thread_unblock: Error: thread not create");
     }
-    if(pthread->status != TASK_READY)
+    if (pthread->status != TASK_READY)
     {
         ASSERT(!list_find(&ready_list,&(pthread->general_tag)));
-        if(list_find(&ready_list,&(pthread->general_tag)))
+        if (list_find(&ready_list,&(pthread->general_tag)))
         {
             PANIC("thread unblock: blocked thread in ready list");
         }
@@ -280,21 +278,21 @@ PUBLIC void thread_unblock(struct task_struct* pthread)
 }
 
 /* list_traversal的回调函数pid_check */
-PRIVATE BOOL pid_check(struct ListNode* pNode,pid_t pid)
+PRIVATE BOOL pid_check(list_node_t* node,pid_t pid)
 {
-    return (((struct task_struct*)pNode->container)->pid == pid);
+    return (((task_struct_t*)node->container)->pid == pid);
 }
 
-PUBLIC struct task_struct* pid2thread(pid_t pid)
+PUBLIC task_struct_t* pid2thread(pid_t pid)
 {
-    if(pid > 1024)
+    if (pid > 1024)
     {
         return NULL;
     }
-    struct ListNode* pNode = list_traversal(&all_list,pid_check,pid);
-    if(pNode == NULL)
+    list_node_t* node = list_traversal(&all_list,pid_check,pid);
+    if (node == NULL)
     {
         return NULL;
     }
-    return (struct task_struct*)pNode->container;
+    return (task_struct_t*)node->container;
 }

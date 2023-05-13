@@ -10,12 +10,12 @@ void intr0x20_handler()
 {
     io_out8(PIC_M_CTRL,0x20);
 
-    struct task_struct* cur_thread = running_thread();
+    task_struct_t* cur_thread = running_thread();
 
-    ASSERT(cur_thread->stack_magic == StackMagic);
+    ASSERT(cur_thread->stack_magic == STACK_MAGIC);
 
     cur_thread->elapsed_ticks++;
-    if(cur_thread->ticks == 0)
+    if (cur_thread->ticks == 0)
     {
         schedule();
     }

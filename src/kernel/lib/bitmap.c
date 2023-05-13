@@ -6,7 +6,7 @@
  * @brief 初始化位图
  * @param btmp 要初始化的位图指针
 */
-void bitmap_init(struct Bitmap* btmp)
+void bitmap_init(bitmap_t* btmp)
 {
     memset(btmp->map,0,btmp->btmp_bytes_len);
     return;
@@ -18,10 +18,10 @@ void bitmap_init(struct Bitmap* btmp)
  * @param bit_index   :bit位下标
  * @return true: 为1 false: 为0
 */
-BOOL bitmap_scan_test(struct Bitmap* btmp,UINTN bit_index)
+BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
 {
-    UINTN byte_index = bit_index / 8;
-    UINTN bit_odd = bit_index % 8;
+    size_t byte_index = bit_index / 8;
+    size_t bit_odd = bit_index % 8;
     return (btmp->map[byte_index] & (BITMAP_MASK << bit_odd));
 }
 
@@ -31,40 +31,40 @@ BOOL bitmap_scan_test(struct Bitmap* btmp,UINTN bit_index)
  * @param cnt        :要分配的位数
  * @retval 返回值为位的下标. 返回-1为分配失败
 */
-signed int bitmap_alloc(struct Bitmap* btmp,UINTN cnt)
+signed int bitmap_alloc(bitmap_t* btmp,size_t cnt)
 {
-    UINTN byte_index = 0;
+    size_t byte_index = 0;
     /* 寻找第一个空的bit所在位 */
-    while((byte_index < (btmp->btmp_bytes_len)) && (btmp->map[byte_index] == 0xff))
+    while ((byte_index < (btmp->btmp_bytes_len)) && (btmp->map[byte_index] == 0xff))
     {
         byte_index++;
     }
     ASSERT(byte_index < (btmp->btmp_bytes_len));
     /* bitmap已满,找不到空位 */
-    if(byte_index == (btmp->btmp_bytes_len))
+    if (byte_index == (btmp->btmp_bytes_len))
     {
         return -1;/* 分配失败 */
     }
     /* 发现有空位,*/
-    UINTN bit_index = 0;
+    size_t bit_index = 0;
     /* 在刚才发现空位的btmp->map[byte_index]中寻找空闲位的索引 */
-    while(((byte)(BITMAP_MASK << bit_index)) & btmp->map[byte_index])
+    while (((uint8_t)(BITMAP_MASK << bit_index)) & btmp->map[byte_index])
     {
         bit_index++;
     }
     signed int bit_index_start = byte_index * 8 + bit_index;/* 空闲位在整个bitmap中的下标 */
-    if(cnt == 1)/* 只分配一个位, 那就是bit_index_start位 */
+    if (cnt == 1)/* 只分配一个位, 那就是bit_index_start位 */
     {
         return bit_index_start;
     }
-    UINTN bit_rem = (btmp->btmp_bytes_len * 8 - bit_index_start); /* 剩下的位 */
-    UINTN next_bit_index = bit_index_start + 1;
-    UINTN count = 1;/* 找到的空闲位的个数,上面已经找到一个了 */
-    
+    size_t bit_rem = (btmp->btmp_bytes_len * 8 - bit_index_start); /* 剩下的位 */
+    size_t next_bit_index = bit_index_start + 1;
+    size_t count = 1;/* 找到的空闲位的个数,上面已经找到一个了 */
+
     bit_index_start = -1;/* 找不到时直接返回-1 */
-    while(bit_rem > 0)
+    while (bit_rem > 0)
     {
-        if(!(bitmap_scan_test(btmp,next_bit_index)))
+        if (!(bitmap_scan_test(btmp,next_bit_index)))
         {
             /* 下一个bit位是0,那就又找到一个空bit位 */
             count++;
@@ -74,7 +74,7 @@ signed int bitmap_alloc(struct Bitmap* btmp,UINTN cnt)
             /* next_bit_index位不是0,重新找空闲位 */
             count = 0;
         }
-        if(count == cnt)
+        if (count == cnt)
         {
             /* 找到了连续cnt个空闲位 */
             bit_index_start = next_bit_index - cnt + 1;/* 空闲位的起始下标 */
@@ -92,11 +92,11 @@ signed int bitmap_alloc(struct Bitmap* btmp,UINTN cnt)
  * @param bit_index 要设置的位的下标
  * @param value 设置值
 */
-void bitmap_set(struct Bitmap* btmp,UINTN bit_index,byte value)
+void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value)
 {
     ASSERT(value == 0 || value == 1);
-    UINTN byte_index = bit_index / 8;
-    UINTN bit_odd = bit_index % 8;
+    size_t byte_index = bit_index / 8;
+    size_t bit_odd = bit_index % 8;
     switch(value)
     {
         case 0:

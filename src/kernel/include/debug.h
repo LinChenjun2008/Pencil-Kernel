@@ -8,7 +8,7 @@ void panic_spin(const char* file,const char* base_file,int line,const char* func
 #define PANIC(...) panic_spin(__FILE__,__BASE_FILE__,__LINE__,__func__,__VA_ARGS__)
 
 #define ASSERT(CONDITION)          \
-            if(CONDITION)          \
+            if (CONDITION)         \
             {                      \
                                    \
             }                      \

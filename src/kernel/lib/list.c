@@ -3,144 +3,144 @@
 
 /**
  * @brief 初始化链表
- * @param plist 待初始化链表的指针
+ * @param list 待初始化链表的指针
 */
-void list_init(struct List* plist)
+void list_init(list_t* list)
 {
-    (plist->head).prev = NULL;
-    (plist->head).next = &(plist->tail);
-    (plist->tail).prev = &(plist->head);
-    (plist->tail).next = NULL;
+    (list->head).prev = NULL;
+    (list->head).next = &(list->tail);
+    (list->tail).prev = &(list->head);
+    (list->tail).next = NULL;
     return;
 }
 
 /**
- * @brief 插入Node到in_before前面
- * @param pNode     链表节点指针
- * @param in_before Node被插入到这个节点前面
+ * @brief 插入node到in_before前面
+ * @param node     链表节点指针
+ * @param in_before node被插入到这个节点前面
 */
-void list_in(struct ListNode* pNode,struct ListNode* in_before)
+void list_in(list_node_t* node,list_node_t* in_before)
 {
-    enum intr_status status= intr_disable();
+    intr_status_t status= intr_disable();
 
-    (in_before->prev)->next = pNode;
+    (in_before->prev)->next = node;
 
-    pNode->prev = in_before->prev;
-    pNode->next = in_before;
+    node->prev = in_before->prev;
+    node->next = in_before;
 
-    in_before->prev = pNode;
+    in_before->prev = node;
 
     intr_set_status(status);
     return;
 }
 
 /**
- * @brief 把pNode添加到队首,类似于push
- * @param plist 链表指针
- * @param pNode  要添加的元素的指针
+ * @brief 把pnode添加到队首,类似于push
+ * @param list 链表指针
+ * @param node  要添加的元素的指针
 */
-void list_push(struct List* plist,struct ListNode* pNode)
+void list_push(list_t* list,list_node_t* node)
 {
-    list_in(pNode,(plist->head).next);
+    list_in(node,(list->head).next);
     return;
 }
 
 /**
- * @brief 添加pNode到队尾
- * @param plist 链表指针
- * @param pNode 要添加的元素的指针
+ * @brief 添加pnode到队尾
+ * @param list 链表指针
+ * @param node 要添加的元素的指针
 */
-void list_append(struct List* plist,struct ListNode* pNode)
+void list_append(list_t* list,list_node_t* node)
 {
-    list_in(pNode,&(plist->tail));
+    list_in(node,&(list->tail));
     return;
 }
 
 /**
  * @brief 将元素从链中退出
- * @param pNode 要弹出的元素
+ * @param node 要弹出的元素
 */
-void list_remove(struct ListNode* pNode)
+void list_remove(list_node_t* node)
 {
-    enum intr_status status = intr_disable();
-    (pNode->prev)->next = pNode->next;
-    (pNode->next)->prev = pNode->prev;
+    intr_status_t status = intr_disable();
+    (node->prev)->next = node->next;
+    (node->next)->prev = node->prev;
     intr_set_status(status);
     return;
 }
 
 /**
- * @brief 从队首弹出一个Node,类似于pop
- * @param plist 链表指针
+ * @brief 从队首弹出一个node,类似于pop
+ * @param list 链表指针
  * @return 弹出的元素指针
 */
-struct ListNode* list_pop(struct List* plist)
+list_node_t* list_pop(list_t* list)
 {
-    struct ListNode* pNode = plist->head.next;
-    list_remove(pNode);
-    return pNode;
+    list_node_t* node = list->head.next;
+    list_remove(node);
+    return node;
 }
 
 /**
- * @brief 在链表中查找objNode
- * @param plist 在此链表中查找
- * @param objNode 要查找的节点
+ * @brief 在链表中查找objnode
+ * @param list 在此链表中查找
+ * @param objnode 要查找的节点
  * @retval false 查找失败
  * @retval true  找到元素
 */
-BOOL list_find(struct List* plist,struct ListNode* objNode)
+BOOL list_find(list_t* list,list_node_t* objnode)
 {
-    struct ListNode* pNode = (plist->head).next;
-    while(pNode != &(plist->tail))
+    list_node_t* node = (list->head).next;
+    while (node != &(list->tail))
     {
-        if(pNode == objNode)
+        if (node == objnode)
         {
             return TRUE;
         }
-        pNode = pNode->next;
+        node = node->next;
     }
     return FALSE;
 }
 
 /**
  * @brief 在链表中查找符合条件的节点
- * @param plist 在此链表中查找
+ * @param list 在此链表中查找
  * @param function 回调函数,用于判断节点是否满足条件
  * @param arg 作为回调函数function的一个参数
  * @return 符合条件的链表节点指针,没有符合的则返回0
 */
-struct ListNode* list_traversal(struct List* plist,func function,int arg)
+list_node_t* list_traversal(list_t* list,func function,int arg)
 {
-    struct ListNode* pNode = plist->head.next;
-    while(pNode != &(plist->tail))
+    list_node_t* node = list->head.next;
+    while (node != &(list->tail))
     {
-        if(function(pNode,arg))
+        if (function(node,arg))
         {
-            return pNode;
+            return node;
         }
-        pNode = pNode->next;
+        node = node->next;
     }
     return NULL;
 }
 
 /**
  * @brief 计算链表长度
- * @param plist 计算此链表的长度
+ * @param list 计算此链表的长度
  * @return 链表长度
 */
-int list_len(struct List* plist)
+int list_len(list_t* list)
 {
-    struct ListNode* pNode = plist->head.next;
+    list_node_t* node = list->head.next;
     int len = 0;
-    while(pNode != &(plist->tail))
+    while (node != &(list->tail))
     {
         len++;
-        pNode = pNode->next;
+        node = node->next;
     }
     return len;
 }
 
-BOOL list_empty(struct List* plist)
+BOOL list_empty(list_t* list)
 {
-    return plist->head.next == &plist->tail;
+    return list->head.next == &list->tail;
 }

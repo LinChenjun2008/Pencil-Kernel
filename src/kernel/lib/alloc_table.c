@@ -1,117 +1,117 @@
 #include <alloc_table.h>
-#include <interrupt.h>
+// #include <interrupt.h>
 
 /**
  * @brief 初始化分配表
- * @param Table 要初始化的表
- * @param Entries 表项
- * @param NumberOfEntries 表项个数
+ * @param table 要初始化的表
+ * @param entries 表项
+ * @param number_of_entries 表项个数
 */
-void init_AllocateTable(struct ALLOCATE_TABLE* Table,struct ALLOCATE_TABLE_ENTRY* Entries,uint64_t NumberOfEntries)
+void allocate_table_init(allocate_table_t* table,allocate_table_entry_t* entries,uint64_t number_of_entries)
 {
-    Table->NumberOfEntries = NumberOfEntries;
-    Table->Frees = 0;
-    Table->Entries = Entries;
+    table->number_of_entries = number_of_entries;
+    table->frees = 0;
+    table->entries = entries;
     return;
 }
 
 /**
  * @brief 在表中分配单元
- * @param Table 从这个表中分配
- * @param NumberOfUnits 分配的单元个数
- * 
+ * @param table 从这个表中分配
+ * @param number_of_units 分配的单元个数
+ *
  * @return 分配到的单元下标
 */
-uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits)
+uint32_t allocate_units(allocate_table_t* table,uint32_t number_of_units)
 {
-    enum intr_status old_status = intr_disable();
+    // enum intr_status old_status = intr_disable();
     uint64_t i;
-    uint64_t Index;
-    for (i = 0;i < Table->NumberOfEntries;i++)
+    uint64_t index;
+    for (i = 0;i < table->number_of_entries;i++)
     {
-        if (Table->Entries[i].NumberOfUnits > NumberOfUnits)
+        if (table->entries[i].number_of_units > number_of_units)
         {
-            Index = Table->Entries[i].Index;
-            Table->Entries[i].Index += NumberOfUnits;
-            Table->Entries[i].NumberOfUnits -= NumberOfUnits;
-            if (Table->Entries[i].NumberOfUnits == 0)
+            index = table->entries[i].index;
+            table->entries[i].index += number_of_units;
+            table->entries[i].number_of_units -= number_of_units;
+            if (table->entries[i].number_of_units == 0)
             {
-                Table->Frees--;
-                while (i < Table->Frees)
+                table->frees--;
+                while (i < table->frees)
                 {
-                    Table->Entries[i] = Table->Entries[i + 1];
+                    table->entries[i] = table->entries[i + 1];
                     i++;
                 }
             }
-            intr_set_status(old_status);
-            return Index;
+            // intr_set_status(old_status);
+            return index;
         }
     }
-    intr_set_status(old_status);
+    // intr_set_status(old_status);
     return 0;
 }
 
 /**
  * @brief 在表中释放单元
- * @param Table 从这个表中释放
- * @param Index 单元编号
- * @param NumberOfUnits 释放的单元个数
+ * @param table 从这个表中释放
+ * @param index 单元编号
+ * @param number_of_units 释放的单元个数
 */
-void FreeUnits(struct ALLOCATE_TABLE* Table,uint32_t Index,uint32_t NumberOfUnits)
+void free_units(allocate_table_t* table,uint32_t index,uint32_t number_of_units)
 {
-    enum intr_status old_status = intr_disable();
+    // enum intr_status old_status = intr_disable();
     uint32_t i,j;
-    for (i = 0;i < Table->Frees;i++)
+    for (i = 0;i < table->frees;i++)
     {
-        if (Table->Entries[i].Index > Index)
+        if (table->entries[i].index > index)
         {
             break;
         }
     }
     if (i > 0)
     {
-        if (Table->Entries[i - 1].Index + Table->Entries[i - 1].NumberOfUnits == NumberOfUnits)
+        if (table->entries[i - 1].index + table->entries[i - 1].number_of_units == number_of_units)
         {
-            Table->Entries[i - 1].NumberOfUnits += NumberOfUnits;
-            if (i < Table->Frees)
+            table->entries[i - 1].number_of_units += number_of_units;
+            if (i < table->frees)
             {
-                if (Index + NumberOfUnits == Table->Entries[i].Index)
+                if (index + number_of_units == table->entries[i].index)
                 {
-                    Table->Entries[i - 1].NumberOfUnits += Table->Entries[i].NumberOfUnits;
-                    Table->Frees--;
-                    while (i < Table->Frees)
+                    table->entries[i - 1].number_of_units += table->entries[i].number_of_units;
+                    table->frees--;
+                    while (i < table->frees)
                     {
-                        Table->Entries[i] = Table->Entries[i + 1];
+                        table->entries[i] = table->entries[i + 1];
                         i++;
                     }
                 }
             }
-            intr_set_status(old_status);
+            // intr_set_status(old_status);
             return;
         }
     }
-    if (i < Table->Frees)
+    if (i < table->frees)
     {
-        if (Index + NumberOfUnits == Table->Entries[i].Index)
+        if (index + number_of_units == table->entries[i].index)
         {
-            Table->Entries[i].Index = Index;
-            Table->Entries[i].NumberOfUnits += NumberOfUnits;
-            intr_set_status(old_status);
+            table->entries[i].index = index;
+            table->entries[i].number_of_units += number_of_units;
+            // intr_set_status(old_status);
             return;
         }
     }
-    if (Table->Frees < Table->NumberOfEntries)
+    if (table->frees < table->number_of_entries)
     {
-        for (j = Table->Frees;j > i;j--)
+        for (j = table->frees;j > i;j--)
         {
-            Table->Entries[j] = Table->Entries[j - 1];
+            table->entries[j] = table->entries[j - 1];
         }
-        Table->Frees++;
-        Table->Entries[i].Index = Index;
-        Table->Entries[i].NumberOfUnits = NumberOfUnits;
-        intr_set_status(old_status);
+        table->frees++;
+        table->entries[i].index = index;
+        table->entries[i].number_of_units = number_of_units;
+        // intr_set_status(old_status);
         return;
     }
-    intr_set_status(old_status);
+    // intr_set_status(old_status);
     return;
 }

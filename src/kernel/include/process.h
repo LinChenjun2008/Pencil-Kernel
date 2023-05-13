@@ -9,7 +9,7 @@
 extern void intr_exit(void);
 
 void process_execute(void* process_name,char* name);
-void process_activate(struct task_struct* pthread);
+void process_activate(task_struct_t* pthread);
 
 void k_prog(void* arg __attribute((unused)));
 

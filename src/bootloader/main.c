@@ -30,7 +30,6 @@ typedef struct
 } BootConfig;
 
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
-void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase);
 void gotoKernel(BootConfig* Config);
 
 EFI_STATUS
@@ -46,12 +45,12 @@ UefiMain
     gST = SystemTable;
     /* 禁用计时器 */
     SystemTable->BootServices->SetWatchdogTimer(0,0,0,NULL);
-    
+
     gBS->LocateProtocol(&gEfiGraphicsOutputProtocolGuid,NULL,(VOID**)&Gop);
     gBS->LocateProtocol(&gEfiSimpleFileSystemProtocolGuid,NULL,(VOID**)&Sfsp);
 
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
-    CHAR16* logo = 
+    CHAR16* logo =
     L"     _______   ______   __   __   ______   ______   __       \n\r"
      "    / ___  /| / ____/| /  | / /| / ____/| /_  __/| / /|      \n\r"
      "   / /__/ / // /____|// | |/ / // /|___|/ |/ /|_|// / /      \n\r"
@@ -61,7 +60,7 @@ UefiMain
      "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n\r";
     SystemTable->ConOut->OutputString(SystemTable->ConOut,logo);
     /* 读取启动配置 */
-    
+
     BootConfig Config =
     {
         .hr             = 0,
@@ -103,14 +102,14 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
         if(*s == L'.')
         {
             s++;
-        
+
             if(*s == L'x' || *s == L'X')
             {
                 s += 2;
                 Config->hr = 0;
                 while(*s <= L'9' && *s >= L'0')
                 {
-                    Config->hr = Config->hr * 10 + *(s++) - L'0'; 
+                    Config->hr = Config->hr * 10 + *(s++) - L'0';
                 }
             }
             else if(*s == L'y' || *s == L'Y')
@@ -119,7 +118,7 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
                 Config->vr = 0;
                 while(*s <= L'9' && *s >= L'0')
                 {
-                    Config->vr = Config->vr * 10 + *(s++) - L'0'; 
+                    Config->vr = Config->vr * 10 + *(s++) - L'0';
                 }
             }
             else if(strncmp(s,L"kernel",6) == 0)
@@ -189,25 +188,26 @@ void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
     }
 }
 
-void PrepareBootInfo(struct BootInfo* Binfo,struct MemoryMap* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase)
+void PrepareBootInfo(struct BootInfo* Binfo,memory_map_t* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase,EFI_PHYSICAL_ADDRESS TTF_base)
 {
-    Binfo->Magic[0] = 0x5a;
-    Binfo->Magic[1] = 0x42;
-    Binfo->Magic[2] = 0xcb;
-    Binfo->Magic[3] = 0x16;
-    Binfo->Magic[4] = 0x13;
-    Binfo->Magic[5] = 0xd4;
-    Binfo->Magic[6] = 0xa6;
-    Binfo->Magic[7] = 0x2f;
-    Binfo->KernelBaseAddress                   = KernelBase;
-    Binfo->TypefaceBase                       = TypefaceBase;
-    Binfo->GraphicsInfo.FrameBufferBase        = Gop->Mode->FrameBufferBase;
-    Binfo->GraphicsInfo.HorizontalResolution   = Gop->Mode->Info->HorizontalResolution;
-    Binfo->GraphicsInfo.VerticalResolution     = Gop->Mode->Info->VerticalResolution;
-    Binfo->GraphicsInfo.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
-    Binfo->GraphicsInfo.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
-    Binfo->GraphicsInfo.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
-    Binfo->MemoryMap = *memmap;
+    Binfo->magic[0] = 0x5a;
+    Binfo->magic[1] = 0x42;
+    Binfo->magic[2] = 0xcb;
+    Binfo->magic[3] = 0x16;
+    Binfo->magic[4] = 0x13;
+    Binfo->magic[5] = 0xd4;
+    Binfo->magic[6] = 0xa6;
+    Binfo->magic[7] = 0x2f;
+    Binfo->kernel_base_address                = KernelBase;
+    Binfo->typeface_base                      = TypefaceBase;
+    Binfo->ttf_base                           = TTF_base;
+    Binfo->graph_info.frame_buffer_base     = Gop->Mode->FrameBufferBase;
+    Binfo->graph_info.horizontal_resolution = Gop->Mode->Info->HorizontalResolution;
+    Binfo->graph_info.vertical_resolution   = Gop->Mode->Info->VerticalResolution;
+    // Binfo->graph_info.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
+    // Binfo->graph_info.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
+    // Binfo->graph_info.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
+    Binfo->memory_map = *memmap;
 }
 
 EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo);
@@ -249,20 +249,20 @@ void gotoKernel(BootConfig* Config)
     }
     /* 设置显示模式 */
     SetVideoMode(Config->hr,Config->vr);
-    struct MemoryMap Memmap = 
+    memory_map_t Memmap =
     {
-        .MapSize = 4096 * 4,
-        .Buffer = NULL,
-        .MapKey = 0,
-        .DescriptorSize = 0,
-        .DescriptorVersion = 0,
+        .map_size = 4096 * 4,
+        .buffer = NULL,
+        .map_key = 0,
+        .descriptor_size = 0,
+        .descriptor_version = 0,
     };
     GetMemoryMap(&Memmap);
     struct BootInfo* BootInfo = (VOID*)0x7c00;
-    PrepareBootInfo(BootInfo,&Memmap,KernelFileBase,TypefaceBase);
+    PrepareBootInfo(BootInfo,&Memmap,KernelFileBase,TypefaceBase,TTF_Base);
     EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
     // 退出启动时服务,进入内核
-    gBS->ExitBootServices(gImageHandle,Memmap.MapKey);
+    gBS->ExitBootServices(gImageHandle,Memmap.map_key);
     __asm__ __volatile__
     (
         "movq %[PML4E_POS],%%cr3 \n\t"
@@ -275,12 +275,12 @@ void gotoKernel(BootConfig* Config)
     );
 }
 
-#define PG_P 0x1
-#define PG_RW_R 0x0
-#define PG_RW_W 0x2
-#define PG_US_S 0x0
-#define PG_US_U 0x4
-#define PG_SIZE_2M 0x80
+// #define PG_P 0x1
+// #define PG_RW_R 0x0
+// #define PG_RW_W 0x2
+// #define PG_US_S 0x0
+// #define PG_US_U 0x4
+// #define PG_SIZE_2M 0x80
 
 EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
 {
@@ -339,13 +339,13 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
         *((UINTN*)(PDE0 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    
+
     for(i = 0;i < 512;i++)
     {
         *((UINTN*)(PDE1 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    
+
     for(i = 0;i < 512;i++)
     {
         *((UINTN*)(PDE2 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
@@ -356,12 +356,12 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
         *((UINTN*)(PDE3 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Addr = Binfo->GraphicsInfo.FrameBufferBase;
+    Addr = Binfo->graph_info.frame_buffer_base;
     for(i = 0;i < 8;i++)
     {
         *((UINTN*)(PDE4 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Binfo->GraphicsInfo.FrameBufferBase = 0xffff807fc0000000;
+    Binfo->graph_info.frame_buffer_base = 0xffff807fc0000000;
     return PML4E;
 }

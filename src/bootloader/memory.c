@@ -32,22 +32,22 @@ EFI_STATUS GetPage(UINTN PageSize,EFI_PHYSICAL_ADDRESS* Address)
     return Status;
 }
 
-void GetMemoryMap(struct MemoryMap* memmap)
+void GetMemoryMap(memory_map_t* memmap)
 {
-    if(EFI_ERROR(gBS->AllocatePool(EfiLoaderData,memmap->MapSize,&memmap->Buffer)))
+    if(EFI_ERROR(gBS->AllocatePool(EfiLoaderData,memmap->map_size,&memmap->buffer)))
     {
         gST->ConOut->OutputString(gST->ConOut,L"Allocate memory failed for Memmap.\n\r");
     }
-    // if(EFI_ERROR(gBS->AllocatePages(AllocateAnyPages,EfiLoaderData,(memmap->MapSize + 1) / 0x1000,&memmap->Buffer)))
+    // if(EFI_ERROR(gBS->AllocatePages(AllocateAnyPages,EfiLoaderData,(memmap->map_size + 1) / 0x1000,&memmap->buffer)))
     // {
     //     gST->ConOut->OutputString(gST->ConOut,L"Allocate memory failed for Memmap.\n\r");
     // }
     gBS->GetMemoryMap
     (
-        &memmap->MapSize,
-        (EFI_MEMORY_DESCRIPTOR*)memmap->Buffer,
-        &memmap->MapKey,
-        &memmap->DescriptorSize,
-        &memmap->DescriptorVersion
+        &memmap->map_size,
+        (EFI_MEMORY_DESCRIPTOR*)memmap->buffer,
+        &memmap->map_key,
+        &memmap->descriptor_size,
+        &memmap->descriptor_version
     );
 }

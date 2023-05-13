@@ -24,11 +24,11 @@ static inline double pow(double x,double y)
 {
 	double res = 1;
     int i = 1;
-    if(y == 0)
+    if (y == 0)
     {
         return res;
     }
-    while(i++ <= y)
+    while (i++ <= y)
     {
         res *= x;
     }

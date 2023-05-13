@@ -76,5 +76,5 @@ QEMU = $(TOOL_DIR)/qemu/qemu-system-x86_64
 UEFI_BIOS      = ../../run/bios.bin
 
 #输出文件格式
-KERNEL_OBJ_FORMAT    = pe-x86-64
+KERNEL_OBJ_FORMAT    = elf64-x86-64
 KERNEL_OUTPUT_FORMAT = binary

@@ -19,9 +19,9 @@ void itoa(int64_t a,char* str,int base)
 {
     static char digits[37] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     int i; /* 作为下标来索引 */
-    int isNegative; /* 是否是负的？ */
-    isNegative = a;
-    if(a < 0) /* 如果是负数 */
+    int is_negative; /* 是否是负的？ */
+    is_negative = a;
+    if (a < 0) /* 如果是负数 */
     {
         a = -a; /* 先转换为正数 */
     }
@@ -32,9 +32,9 @@ void itoa(int64_t a,char* str,int base)
         str[i] = digits[a % base];
         i++;
         a = a / base;
-    }while(a > 0);
+    } while (a > 0);
     /* 是负数,就加上负号 */
-    if(isNegative < 0)
+    if (is_negative < 0)
     {
         str[i] = '-';
         i++;
@@ -43,13 +43,13 @@ void itoa(int64_t a,char* str,int base)
     char* p = str;
     char* q = str;
     char tmp;
-    while(*q != '\0')
+    while (*q != '\0')
     {
         q++;
-    } 
+    }
     q--;
     /* 把字符串倒过来 */
-    while(q > p)
+    while (q > p)
     {
         tmp = *p;
         *p = *q;
@@ -77,18 +77,18 @@ void utoa(uint64_t a,char* str,int base)
         str[i] = digits[a % base];
         i++;
         a = a / base;
-    }while(a > 0);
+    } while (a > 0);
     str[i] = '\0'; /* 加上字符串结尾 */
     char* p = str;
     char* q = str;
     char tmp;
-    while(*q != '\0')
+    while (*q != '\0')
     {
         q++;
-    } 
+    }
     q--;
     /* 把字符串倒过来 */
-    while(q > p)
+    while (q > p)
     {
         tmp = *p;
         *p = *q;

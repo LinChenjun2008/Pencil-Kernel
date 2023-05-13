@@ -5,9 +5,9 @@
 
 PUBLIC void wait_keyboard_ready()
 {
-    while(1)
+    while (1)
     {
-        if((io_in8(KEYBOARD_STA_PORT) & KEYBOARD_NOTREADY) == 0)
+        if ((io_in8(KEYBOARD_STA_PORT) & KEYBOARD_NOTREADY) == 0)
         {
             break;
         }

@@ -32,7 +32,7 @@ struct msg3
     void* m3p2;
 };
 
-struct MESSAGE
+typedef struct
 {
     volatile pid_t source;   /* 发出这个消息的进程pid */
     volatile uint32_t type;  /* 消息类型 */
@@ -42,8 +42,8 @@ struct MESSAGE
         volatile struct msg2 msg2;
         volatile struct msg3 msg3;
     };
-};
+} message_t;
 
-void resetmsg(struct MESSAGE* msg);
+void resetmsg(message_t* msg);
 
 #endif /* __MESSAGE_H__ */

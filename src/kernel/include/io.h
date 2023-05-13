@@ -109,7 +109,7 @@ static inline uint32_t get_flages()
     __asm__ __volatile__
     (
         "pushf;"      /* 将flage寄存器压栈 */
-        "pop %q[flages];" 
+        "pop %q[flages];"
         :[flages]"=a"(flages)
         :
         :"memory"
@@ -117,8 +117,4 @@ static inline uint32_t get_flages()
     return flages;
 }
 
-#endif /* __IO_H__ */
-
-/* 内联汇编 格式
-   asm [volatile](汇编代码:输出部分:输入部分:损坏部分);
-*/
+#endif

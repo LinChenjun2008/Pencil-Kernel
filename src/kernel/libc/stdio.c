@@ -17,7 +17,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
     int width;
     for(str = buf;*fmt != '\0';fmt++)
     {
-        if(*fmt != '%')
+        if (*fmt != '%')
         {
             *str = *fmt;
             str++;
@@ -28,7 +28,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
         flage = 0;
         align = FORMAT_RIGHT;
         repeat = 1;
-        while(repeat)
+        while (repeat)
         {
             /* %后可以加'+','-',' ','0','#' */
             switch(*fmt)
@@ -53,12 +53,12 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
             fmt++;
         }
         width = 0;
-        while(*fmt >= '0' && *fmt <= '9')
+        while (*fmt >= '0' && *fmt <= '9')
         {
             width = width * 10 + (*fmt - '0');
             fmt++;
         }
-        if(width == 0)
+        if (width == 0)
         {
             align = FORMAT_LEFT;
         }
@@ -84,7 +84,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
             s = digits;
             digits[0] = '0';
             digits[1] = 'x';
-            utoa((MEMORY_ADDRESS)va_arg(ap,MEMORY_ADDRESS),digits+2,16);
+            utoa((uintptr_t)va_arg(ap,uintptr_t),digits+2,16);
             break;
         case 's': /* %s */
             s = va_arg(ap,char*);
@@ -100,7 +100,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
             break;
         }
         width -= strlen(s);
-        while(width > 0 && align == FORMAT_RIGHT)
+        while (width > 0 && align == FORMAT_RIGHT)
         {
             *str = (flage & FORMAT_ZERO ? '0' : ' ');
             str++;
@@ -109,7 +109,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
         strcpy(str,s);
         str += strlen(s);
         /* 左对齐的情况 */
-        while(width > 0 && align == FORMAT_LEFT)
+        while (width > 0 && align == FORMAT_LEFT)
         {
             *str = ' ';
             str++;

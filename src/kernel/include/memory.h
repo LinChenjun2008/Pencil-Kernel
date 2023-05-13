@@ -3,63 +3,41 @@
 
 #include <alloc_table.h>
 #include <list.h>
+#include <sync.h>
+#include <stddef.h>
 
-enum MemoryType
+// 描述一种类型的内存块
+typedef struct
 {
-    FreeMemory = 1,  // 可用内存 EfiConventionalMemory EfiBootServices(Code/Data) EfiLoader(Code/Data) EfiReservedMemoryType
-    ReservedMemory,  // 保留(不可用) EfiRuntimeServices(Code/Data) EfiMemoryMappedIO EfiMemoryMappedIOPortSpace EfiPalCode
-    ACPIMemory,      // ACPI可回收内存 EfiACPIReclaimMemory
-    ACPIMemoryNVS,   // ACPI NVS内存  EfiACPIMemoryNVS
-    UnuseableMemory, // 不可用的内存 EfiUnusableMemory 
-    MaxMemoryType,   // (EfiMaxMemoryType)
-};
+    size_t block_size;
+    size_t number_of_blocks;
+    list_t free_block_list;
+} memory_block_desc_t;
 
-struct MEMDESC
-{
-    struct ALLOCATE_TABLE FreeMemDescTable;
-};
+// 所支持分配的最大内存块大小,超过这个数就直接分配整页
+#define MAX_ALLOCATE_MEMORY_SIZE 524288
 
-
-struct MemoryBlock
-{
-    struct ListNode Free;
-};
-
-struct MemoryDesc
-{
-    UINTN BlockSize;
-    UINTN Blocks;
-    struct List FreeBlockList;
-};
-
-struct Zone
-{
-    struct MemoryDesc* Desc;
-    UINTN Cnt;
-    BOOL Large;
-};
-
-#define MaxAllocateSize 524288
-#define NumberOfMemoryBlocks 13
-extern struct MemoryDesc KernelMemoryBlock[NumberOfMemoryBlocks]; // 128,256,512,1024,2048,4096,8192,16384,32768,65536,131072 ,262144,524288
+// 内存块种类的数量
+#define NUMBER_OF_MEMORY_BLOCKES 13
 
 PUBLIC void init_memory();
+
 /**
  * @brief 分配指定页数
- * @param NumberOfPages 要分配的内存页数
+ * @param number_of_pages 要分配的内存页数
  * @return 分配的内存页起始地址
 */
-PUBLIC void* AllocPage(int NumberOfPages);
+PUBLIC void* alloc_page(int number_of_pages);
 
 /**
  * @brief 释放指定页数
- * @param Addr 释放内存页的起始地址(对齐到2MB边界)
- * @param NumberOfPages 要释放的内存页数
+ * @param addr 释放内存页的起始地址(对齐到2MB边界)
+ * @param number_of_pages 要释放的内存页数
  * @return 分配的内存页起始地址
 */
-PUBLIC void FreePage(void* Addr,int NumberOfPages);
+PUBLIC void free_page(void* addr,int number_of_pages);
 
-PUBLIC void* kmalloc(UINTN Size);
-PUBLIC void kfree(void* Addr);
+PUBLIC void* kmalloc(size_t size);
+PUBLIC void kfree(void* addr);
 
 #endif

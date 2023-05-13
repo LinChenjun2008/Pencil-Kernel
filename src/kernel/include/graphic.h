@@ -3,44 +3,44 @@
 
 #include <common.h>
 
-struct Position
+typedef struct
 {
     int x;
     int y;
-};
+} position_t;
 
 /** @brief 字体大小 */
-enum FontSize
+typedef enum
 {
-    FontNormal = 1,
-    FontMedium,
-    FontLarge,
-};
+    FONT_NORMAL = 1,
+    FONT_MEDIUM,
+    FONT_LARGE,
+} fontsize_t;
 
 // typedef uint32_t pixel_t;
-void viewFill(struct GraphicsInfo* Ginfo,BltPixel color,int x0,int y0,int x1,int y1);
-void init_screen(struct GraphicsInfo* Ginfo);
+void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y1);
+void init_screen(graph_info_t* graph_info);
 
-// void vput_utf8(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,uint64_t ch);
+// void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch);
 /**
 
  * @brief 显示一个字符串.
- * @param Ginfo    显存的信息,
+ * @param graph_info    显存的信息,
                     用于获取显存地址、长宽等信息.
- * @param Pos      文字显示的坐标.显示后指向下一个字符的位置.
+ * @param pos      文字显示的坐标.显示后指向下一个字符的位置.
  * @param color    文字颜色
  * @param str      字符串(utf-8)
 
 */
-void vput_utf8_str(struct GraphicsInfo* Ginfo,struct Position* Pos,BltPixel color,const char* str,int FontSize);
+void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size);
 
-static inline BltPixel color(uint8_t red,uint8_t green,uint8_t blue)
+static inline pixel_t color(uint8_t red,uint8_t green,uint8_t blue)
 {
-    BltPixel col = 
+    pixel_t col =
     {
-        .Red = red,
-        .Green = green,
-        .Blue = blue
+        .red = red,
+        .green = green,
+        .blue = blue
     };
     return col;
 }

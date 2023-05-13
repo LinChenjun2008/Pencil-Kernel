@@ -15,4 +15,6 @@ typedef unsigned int           uint32_t;
 typedef unsigned long long int uint64_t;
 typedef unsigned __int128      uint128_t;
 
+typedef unsigned long long int uintptr_t;
+
 #endif /* __STDINT_H_ */

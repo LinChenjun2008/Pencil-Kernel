@@ -1,18 +1,18 @@
 #include <stdint.h>
 
-struct ALLOCATE_TABLE_ENTRY
+typedef struct
 {
-    uint32_t Index; /// 该条目的索引
-    uint32_t NumberOfUnits; /// 该条目包含几个空置单元
-};
+    uint32_t index;           /// 该条目的索引
+    uint32_t number_of_units; /// 该条目包含几个空置单元
+} allocate_table_entry_t;
 
-struct ALLOCATE_TABLE
+typedef struct
 {
-    uint32_t NumberOfEntries; /// 条目总数
-    uint32_t Frees;           /// 空闲条目数
-    struct ALLOCATE_TABLE_ENTRY* Entries; /// 条目内容
-};
+    uint32_t                number_of_entries; /// 条目总数
+    uint32_t                frees;             /// 空闲条目数
+    allocate_table_entry_t *entries;           /// 条目内容
+} allocate_table_t;
 
-void init_AllocateTable(struct ALLOCATE_TABLE* Table,struct ALLOCATE_TABLE_ENTRY* Entries,uint64_t NumberOfEntries);
-uint32_t AllocateUnits(struct ALLOCATE_TABLE* Table,uint32_t NumberOfUnits);
-void FreeUnits(struct ALLOCATE_TABLE* Table,uint32_t Index,uint32_t NumberOfUnits);
+void allocate_table_init(allocate_table_t* table,allocate_table_entry_t* entries,uint64_t number_of_entries);
+uint32_t allocate_units(allocate_table_t* table,uint32_t number_of_units);
+void free_units(allocate_table_t* table,uint32_t index,uint32_t number_of_units);
