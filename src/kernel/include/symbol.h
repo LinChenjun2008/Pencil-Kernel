@@ -3,8 +3,8 @@
 
 struct symbol_entry
 {
-    uintptr_t address;
-    char* name;
+    uintptr_t  address;
+    char      *name;
 };
 
 /**

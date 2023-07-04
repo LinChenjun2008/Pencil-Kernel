@@ -14,9 +14,9 @@
 typedef struct _list_node_t list_node_t;
 struct _list_node_t
 {
-    list_node_t* prev; /* 上一个节点 */
-    list_node_t* next; /* 下一个节点 */
-    void* container;
+    list_node_t *prev; /* 上一个节点 */
+    list_node_t *next; /* 下一个节点 */
+    void        *container;
 };
 
 typedef struct
@@ -25,7 +25,7 @@ typedef struct
     list_node_t tail; /* 链表尾 */
 } list_t;
 
-typedef BOOL (func) (list_node_t* ,UINTN arg);
+typedef BOOL (func) (list_node_t* ,wordsize_t arg);
 
 /**
  * @brief 初始化链表

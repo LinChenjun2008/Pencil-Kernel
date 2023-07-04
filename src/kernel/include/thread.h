@@ -4,13 +4,15 @@
 #include <global.h>
 #include <list.h>
 
+#include <fpu.h>
+
 typedef unsigned long long int pid_t;
 
 #include <message.h>
 
 typedef void thread_function_t(void*);
 
-#define PCB_SIZE (64 * 1024) /* 64KB */
+#define PCB_SIZE    (64 * 1024) /* 64KB */
 #define STACK_MAGIC 0x55aa55aa55aa55aa
 
 typedef enum
@@ -52,7 +54,7 @@ typedef struct
     wordsize_t r15;
     /* 以下是CPU 特权级切换时自动入栈的内容 */
     wordsize_t error_code;
-    void (*rip)(void);
+    void       (*rip)(void);
     wordsize_t cs;
     wordsize_t rflages;
     wordsize_t rsp;
@@ -73,33 +75,37 @@ typedef struct
     wordsize_t rdi;
     wordsize_t rsi;
     /* 线程中执行的函数 */
-    void* rip;
+    void*      rip;
 } thread_stack_t;
 
 /* 程序控制块pcb */
 typedef struct
 {
-    thread_stack_t* self_kstack;               /* 线程内核栈指针 */
+    uint64_t             *self_kstack;  /* 线程内核栈指针 */
+
     volatile task_status_t status;        /* 状态 */
-    pid_t pid;                            /* 进程或线程 pid */
-    char name[32];                        /* 名称 */
+    pid_t                  pid;           /* 进程或线程 pid */
+    char                   name[32];      /* 名称 */
     unsigned long long int priority;      /* 优先级 */
     unsigned long long int ticks;         /* 在CPU上运行的时间 */
     unsigned long long int elapsed_ticks; /* 总共运行的时间 */
 
-    list_node_t all_tag;                  /* 用于加入全部线程队列 */
-    list_node_t general_tag;              /* 用于加入就绪线程队列 */
+    list_node_t            all_tag;       /* 用于加入全部线程队列 */
+    list_node_t            general_tag;   /* 用于加入就绪线程队列 */
 
-    wordsize_t* page_dir;                 /* 线程的页表 */
+    wordsize_t             *page_dir;     /* 线程的页表 */
     // struct MEMMAN prog_vaddr;          /* 进程的虚拟地址 */
     // struct mem_desc u_desc[MEM_DESCS];
 
-    message_t msg;                        /* 进程消息体 */
-    pid_t send_to;                        /* 记录进程想要向谁发送消息 */
-    pid_t recv_from;                      /* 记录进程想要从谁获取消息 */
-    list_t sender_list;                   /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的send_tag加入这个队列 */
+    message_t              msg;           /* 进程消息体 */
+    pid_t                  send_to;       /* 记录进程想要向谁发送消息 */
+    pid_t                  recv_from;     /* 记录进程想要从谁获取消息 */
+    list_t                 sender_list;   /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的send_tag加入这个队列 */
 
-    wordsize_t stack_magic;               /* 用于检测是否栈溢出 */
+    int fpu_used;
+    fpu_t fpu_regs;
+
+    wordsize_t             stack_magic;  /* 用于检测是否栈溢出 */
 } task_struct_t;
 
 void init_thread();

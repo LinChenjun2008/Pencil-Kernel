@@ -9,7 +9,7 @@ BOOL address_available(uintptr_t address)
 uintptr_t symbol2address(char* name)
 {
     int i;
-    for(i = 0;i < symbols;i++)
+    for (i = 0;i < symbols;i++)
     {
         if (strcmp(name,symbol_table[i].name) == 0)
         {
@@ -26,7 +26,7 @@ char* address2symbol(uintptr_t address)
         return NULL;
     }
     int i;
-    for(i = 0;i < symbols;i++)
+    for (i = 0;i < symbols;i++)
     {
         if (address >= symbol_table[i].address && address < symbol_table[i + 1].address)
         {

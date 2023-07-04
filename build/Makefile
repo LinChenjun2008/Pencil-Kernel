@@ -1,13 +1,9 @@
 include config.txt
 
 # 编译所有文件
-%.o: %.c Makefile
+%.o: %.c
 	@$(ECHO) compile $*.c
-	@$(CC) -Wall -Wextra $(INCLUDE_DIR) -nostdlib -nostdinc \
-	-finput-charset=UTF-8 -fexec-charset=UTF-8 \
-	-fno-builtin -fno-strict-aliasing -mno-red-zone \
-	-m64 -mcmodel=large -march=x86-64 \
-	-O0 -c -o $*.o $*.c -g3 -gdwarf-2 -gstrict-dwarf
+	@$(CC)  $(INCLUDE_DIR) -nostdlib -nostdinc $(CFLAGS) -c -o $*.o $*.c
 
 # 链接内核文件
 %.sys: $(KERNEL_SRC:c=o)
@@ -20,36 +16,38 @@ include config.txt
 
 	@$(ECHO) relink
 	@$(LD) -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map --no-warn-rwx-segments -o $(KERNEL_OBJ) $^ kallsyms.o
-	@$(RM) kernel.sym kallsyms.c kallsyms.o
+#	@$(RM) kernel.sym kallsyms.c kallsyms.o
 	@$(OBJCOPY) -I $(KERNEL_OBJ_FORMAT) --strip-debug -S -R ".eh_frame" -R ".comment" -O $(KERNEL_OUTPUT_FORMAT) $(KERNEL_OBJ) $@
 
-%.efi: $(UEFI_SRC) Makefile
+%.efi: $(UEFI_SRC)
 	@$(ECHO) compile BootLoader...
-	@$(Mingw_CC) -Wall -Wextra  -Werror $(INCLUDE_DIR) -e UefiMain -nostdinc -nostdlib \
-	-finput-charset=UTF-8 -fexec-charset=UTF-16 \
+	@$(Mingw_CC) -Wall -Wextra -Werror $(INCLUDE_DIR) -e UefiMain -nostdinc -nostdlib \
+	-finput-charset=UTF-8 -fexec-charset=UTF-16 -fno-stack-protector -O0 \
 	-fno-builtin -Wl,--subsystem,10 -m64 -mcmodel=large -fpic -o $@ $(filter-out Makefile,$^)
 
-.PHONY: uefi
+.PHONY: uefi config.txt
 uefi: $(UEFI_OUTPUT)
 
 .PHONY: kernel
 kernel: $(KERNEL_SRC:c=o) $(KERNEL_OUTPUT)
 
 .PHONY: run
-run: uefi kernel Makefile config.txt
+run: uefi kernel config.txt
 	-@$(QEMU) -m $(GuestMemory) -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
 	-device nec-usb-xhci,id=xhci \
 	-device usb-mouse \
 	-no-shutdown \
-	-monitor stdio
+	-chardev stdio,mux=on,id=com1 \
+	-serial chardev:com1
 
 .PHONY: debug
-debug: $(UEFI_OUTPUT) $(KERNEL_OUTPUT) Makefile config.txt
+debug: $(UEFI_OUTPUT) $(KERNEL_OUTPUT) config.txt
 	-@$(QEMU) -m $(GuestMemory) -bios $(UEFI_BIOS) -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
 	-device nec-usb-xhci,id=xhci \
 	-device usb-mouse \
 	-no-shutdown \
-	-monitor stdio \
+	-chardev stdio,mux=on,id=com1 \
+	-serial chardev:com1 \
 	-device usb-kbd -S -s
 
 .PHONY: start-gdb
@@ -70,4 +68,5 @@ uninstall:
 
 .PHONY: clean
 clean:
-	-$(RM) $(KERNEL_SRC:c=o) $(KERNEL_DIR)kernel.map
+	-$(RM) -f $(KERNEL_SRC:c=o) $(KERNEL_DIR)kernel.map \
+	kernel.sym kallsyms.c kallsyms.o

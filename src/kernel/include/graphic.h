@@ -19,6 +19,8 @@ typedef enum
 
 // typedef uint32_t pixel_t;
 void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y1);
+void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,float font_size,uint8_t* bitmap);
+void pr_str(graph_info_t* graph_info,position_t* pos,pixel_t color,char* str,float font_size);
 void init_screen(graph_info_t* graph_info);
 
 // void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch);

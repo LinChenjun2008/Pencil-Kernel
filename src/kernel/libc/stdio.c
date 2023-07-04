@@ -15,7 +15,7 @@ int vsprintf(char* buf,const char* fmt,va_list ap)
     int flage;
     int align;
     int width;
-    for(str = buf;*fmt != '\0';fmt++)
+    for (str = buf;*fmt != '\0';fmt++)
     {
         if (*fmt != '%')
         {

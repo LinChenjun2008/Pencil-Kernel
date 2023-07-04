@@ -161,7 +161,7 @@ void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
         }
     }
     int i;
-    for(i = 0;i < 8;i++)
+    for (i = 0;i < 8;i++)
     {
         if (address_available(*((wordsize_t*)rbp + 1)))
         {
@@ -195,7 +195,7 @@ void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
 PRIVATE void idt_desc_init(void)
 {
     int i;
-    for(i = 0;i < IDT_DESC_CNT;i++)
+    for (i = 0;i < IDT_DESC_CNT;i++)
     {
         set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
         intr_handle_entry[i] = general_intr_handler;

@@ -1,24 +1,17 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
-#include <alloc_table.h>
 #include <list.h>
 #include <sync.h>
 #include <stddef.h>
 
-// 描述一种类型的内存块
-typedef struct
-{
-    size_t block_size;
-    size_t number_of_blocks;
-    list_t free_block_list;
-} memory_block_desc_t;
-
+// 所支持分配的最小内存块大小
+#define MIN_ALLOCATE_MEMORY_SIZE 8192
 // 所支持分配的最大内存块大小,超过这个数就直接分配整页
 #define MAX_ALLOCATE_MEMORY_SIZE 524288
 
 // 内存块种类的数量
-#define NUMBER_OF_MEMORY_BLOCKES 13
+#define NUMBER_OF_MEMORY_BLOCK_TYPES 7
 
 PUBLIC void init_memory();
 

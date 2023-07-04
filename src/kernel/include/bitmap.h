@@ -9,8 +9,8 @@
 
 typedef struct
 {
-    size_t btmp_bytes_len; // 位图以字节为单位的长度
-    uint8_t* map;            // 位图
+    size_t   btmp_bytes_len; // 位图以字节为单位的长度
+    uint8_t *map;            // 位图
 } bitmap_t;
 
 /**

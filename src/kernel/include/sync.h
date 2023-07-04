@@ -8,14 +8,14 @@
 typedef struct
 {
     volatile int value;
-    list_t waiters;
+    list_t       waiters;
 } semaphore_t;
 
 typedef struct
 {
-    task_struct_t* holder;
-    semaphore_t semaphore;
-    int holder_repeat_nr;
+    task_struct_t *holder;
+    semaphore_t    semaphore;
+    int            holder_repeat_nr;
 } lock_t;
 
 /**

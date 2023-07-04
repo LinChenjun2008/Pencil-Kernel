@@ -12,8 +12,11 @@
 
 #include <syscall.h>
 
+#include <serial.h>
+
+#include <fpu.h>
+
 boot_info_t g_boot_info;
-position_t pos = {10,10};
 void kthread(void* arg);
 void kthread2(void* arg);
 
@@ -37,35 +40,16 @@ PUBLIC uint64_t kernel_main()
     };
     init_all();
     intr_enable();
-    const char VERSION[] = "Pencil-Kernel(PKn) 0.1.1 ";
-    position_t pos = {10,10};
-    pixel_t col =
-    {
-        .red = 255,
-        .green = 255,
-        .blue = 255
-    };
-    char str[512];
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col, \
-    "     _______   ______   __   __   ______   ______   __       \n" \
-    "    / ___  /| / ____/| /  | / /| / ____/| /_  __/| / /|      \n" \
-    "   / /__/ / // /____|// | |/ / // /|___|/ |/ /|_|// / /      \n" \
-    "  / _____/ // ____/| / /| | / // / /      / / /  / / /       \n" \
-    " / /|____|// /____|// / |  / // /_/__  __/ /_/  / / /__      \n" \
-    "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n" \
-    "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n" \
-    ,FONT_NORMAL);
-    sprintf(str,"%s \n",VERSION);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,str,FONT_NORMAL);
-    sprintf(str,"TTF Base: %p\n",g_boot_info.ttf_base);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,str,FONT_NORMAL);
     pid_table[0] = thread_start("test 1",31,kthread,NULL)->pid;
-    sprintf(str,"线程 1: pid: %d, PCB: %p\n",pid_table[0],pid2thread(pid_table[0]));
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,str,FONT_NORMAL);
     pid_table[1] = thread_start("test 2",31,kthread2,NULL)->pid;
-    sprintf(str,"线程 2: pid: %d, PCB: %p\n",pid_table[1],pid2thread(pid_table[1]));
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,str,FONT_NORMAL);
-    // process_execute(k_prog,"kProg1");
+    process_execute(k_prog,"Kernel prog");
+    pixel_t col = {255,255,255,0};
+    position_t pos = {0,10};
+    pr_str(&(g_boot_info.graph_info),&pos,col,"12 Innovation in China 中国智造,慧及全球 0123456789\n",12.0);
+    pr_str(&(g_boot_info.graph_info),&pos,col,"18 Innovation in China 中国智造,慧及全球 0123456789\n",18.0);
+    pr_str(&(g_boot_info.graph_info),&pos,col,"24 Innovation in China 中国智造,慧及全球 0123456789\n",24.0);
+    pr_str(&(g_boot_info.graph_info),&pos,col,"36 Innovation in China 中国智造,慧及全球 0123456789\n",36.0);
+    pr_str(&(g_boot_info.graph_info),&pos,col,"48 Innovation in China 中国智造,慧及全球 0123456789\n",48.0);
     while (1)
     {
         col.red++;

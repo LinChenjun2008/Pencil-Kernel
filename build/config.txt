@@ -4,6 +4,14 @@ TIMER = 8254
 GuestMemory = 128M
 #文件路径
 
+CFLAGS := \
+ -Wall -Wextra \
+ -finput-charset=UTF-8 -fexec-charset=UTF-8 \
+ -fno-builtin -fno-strict-aliasing -fstrength-reduce \
+ -mno-red-zone -m64 -mcmodel=large -march=x86-64 \
+ -O0 \
+ -g3 -gdwarf-2 -gstrict-dwarf
+
 UEFI_DIR = ../src/bootloader/
 KERNEL_DIR = ../src/kernel/
 INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../src/
@@ -12,6 +20,7 @@ INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../src/
 UEFI_SRC = \
 $(UEFI_DIR)/main.c \
 $(UEFI_DIR)/video.c \
+$(UEFI_DIR)/script.c \
 $(UEFI_DIR)/file.c \
 $(UEFI_DIR)/memory.c \
 $(UEFI_DIR)/lib.c
@@ -27,8 +36,10 @@ $(KERNEL_DIR)/thread/thread.c \
 $(KERNEL_DIR)/thread/sync.c \
 $(KERNEL_DIR)/memory/memory.c \
 $(KERNEL_DIR)/syscall/syscall.c \
-$(KERNEL_DIR)/driver/timer/$(TIMER).c \
-$(KERNEL_DIR)/driver/keyboard.c \
+$(KERNEL_DIR)/device/timer/$(TIMER).c \
+$(KERNEL_DIR)/device/serial/serial.c \
+$(KERNEL_DIR)/device/fpu/fpu.c \
+$(KERNEL_DIR)/device/keyboard.c \
 $(KERNEL_DIR)/graphic/graphic.c \
 $(KERNEL_DIR)/lib/alloc_table.c \
 $(KERNEL_DIR)/lib/symbol.c \
@@ -52,7 +63,7 @@ REAL_UEFI_OUTPUT      = $(REAL_DISK)/EFI/Boot/BootX64.efi
 REAL_KERNEL_OUTPUT    = $(REAL_DISK)/Kernel/kernel.sys
 
 #工具路径
-TOOL_DIR = ../../tools/
+TOOL_DIR = ../tools/
 
 #编译器
 Mingw_CC = $(TOOL_DIR)MinGW64/bin/gcc

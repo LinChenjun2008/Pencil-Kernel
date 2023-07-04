@@ -16,7 +16,7 @@ void memset(void* dst__,uint8_t value,size_t size)
     ASSERT(dst__ != NULL);
     uint8_t* dst = (uint8_t*)dst__;
     size_t i;
-    for(i = 0;i < size;i++)
+    for (i = 0;i < size;i++)
     {
         (*dst) = value;
         dst++;
@@ -38,7 +38,7 @@ void memcpy(void* dst__,const void* src__,size_t size)
     uint8_t* dst = (uint8_t*)dst__;
     uint8_t* src = (uint8_t*)src__;
     size_t i;
-    for(i = 0;i < size;i++)
+    for (i = 0;i < size;i++)
     {
         *dst = *src;
         dst++;
@@ -66,7 +66,7 @@ int32_t memcmp(const void* p1__,void* p2__,size_t size)
     uint8_t* p1 = (uint8_t*)p1__;
     uint8_t* p2 = (uint8_t*)p2__;
     size_t i;
-    for(i = 0;i < size;i++)
+    for (i = 0;i < size;i++)
     {
         if (*p1 != *p2)
         {

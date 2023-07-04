@@ -2,10 +2,12 @@
 
 #include "common.h"
 
+#include "boot.h"
 #include "file.h"
 #include "lib.h"
 #include "video.h"
 #include "memory.h"
+#include "script.h"
 
 EFI_BOOT_SERVICES*               gBS;
 EFI_GRAPHICS_OUTPUT_PROTOCOL*    Gop;
@@ -17,20 +19,21 @@ EFI_GUID gEfiGraphicsOutputProtocolGuid   = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 EFI_GUID gEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 EFI_GUID gEfiFileInfoGuid                 = EFI_FILE_INFO_ID;
 
-typedef struct
-{
-    int hr;
-    int vr;
-    int kernel_flage;
-    CHAR16   KernelName[256];
-    int typeface_flage;
-    CHAR16 TypefaceName[256];
-    int ttf_flage;
-    CHAR16 TTFName[256];
-} BootConfig;
-
 void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config);
 void gotoKernel(BootConfig* Config);
+
+BootConfig Config =
+{
+    .hr             = 0,
+    .vr             = 0,
+    .kernel_flage   = 0,
+    .KernelName     = L"\0",
+    .files          = 0,
+    .file_name      = {{0}},
+    .flag           = {0}
+    // .typeface_flage = 0,
+    // .TypefaceName   = L"\0"
+};
 
 EFI_STATUS
 EFIAPI
@@ -51,7 +54,8 @@ UefiMain
 
     SystemTable->ConOut->ClearScreen(SystemTable->ConOut); /* 清屏 */
     CHAR16* logo =
-    L"     _______   ______   __   __   ______   ______   __       \n\r"
+    L"\n\r"
+     "     _______   ______   __   __   ______   ______   __       \n\r"
      "    / ___  /| / ____/| /  | / /| / ____/| /_  __/| / /|      \n\r"
      "   / /__/ / // /____|// | |/ / // /|___|/ |/ /|_|// / /      \n\r"
      "  / _____/ // ____/| / /| | / // / /      / / /  / / /       \n\r"
@@ -59,161 +63,57 @@ UefiMain
      "/_/ /     /______/|/_/ /|_/ //______/|/______/|/______/|     \n\r"
      "|_|/      |______|/|_|/ |_|/ |______|/|______|/|______|/     \n\r";
     SystemTable->ConOut->OutputString(SystemTable->ConOut,logo);
-    /* 读取启动配置 */
 
-    BootConfig Config =
-    {
-        .hr             = 0,
-        .vr             = 0,
-        .kernel_flage   = 0,
-        .KernelName     = L"\0",
-        .typeface_flage = 0,
-        .TypefaceName   = L"\0"
-    };
+    /* 读取启动配置 */
     EFI_PHYSICAL_ADDRESS FileBase;
-    if(EFI_ERROR(ReadFile(L"EFI\\Boot\\BootConfig.txt",&FileBase,AllocateAnyPages)))
+    if(EFI_ERROR(ReadFile(L"EFI\\Boot\\BootConfig.txt",&FileBase,NULL,AllocateAnyPages)))
     {
         gST->ConOut->OutputString(SystemTable->ConOut,L"'BootConfig.txt' not found. Press Any key to continue.\n\r");
         get_char();
     }
     else
     {
-        ReadConfig(FileBase,&Config);
+        ReadBootConfig(FileBase,&Config);
     }
     gotoKernel(&Config);
     return 0;
 }
 
-CHAR16* skip_space(CHAR16* s)
-{
-    while(*s == L' ' || *s == L'\n' || *s == L'\r')
-    {
-        s++;
-    }
-    return s;
-}
+// void PrepareBootInfo(boot_info_t* binfo,BootConfig* Config)
+// {
+//     binfo->magic[0] = 0x5a;
+//     binfo->magic[1] = 0x42;
+//     binfo->magic[2] = 0xcb;
+//     binfo->magic[3] = 0x16;
+//     binfo->magic[4] = 0x13;
+//     binfo->magic[5] = 0xd4;
+//     binfo->magic[6] = 0xa6;
+//     binfo->magic[7] = 0x2f;
+//     binfo->kernel_base_address                = KernelBase;
+//     binfo->typeface_base                      = TypefaceBase;
+//     binfo->ttf_base                           = TTF_base;
+//     binfo->graph_info.frame_buffer_base     = Gop->Mode->FrameBufferBase;
+//     binfo->graph_info.horizontal_resolution = Gop->Mode->Info->HorizontalResolution;
+//     binfo->graph_info.vertical_resolution   = Gop->Mode->Info->VerticalResolution;
+//     // binfo->graph_info.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
+//     // binfo->graph_info.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
+//     // binfo->graph_info.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
+//     binfo->memory_map = *memmap;
+// }
 
-void ReadConfig(EFI_PHYSICAL_ADDRESS FileBase,BootConfig* Config)
-{
-    gST->ConOut->OutputString(gST->ConOut,L"Reading Config...\n\r");
-    CHAR16* s = (CHAR16*)FileBase;
-    while(*s)
-    {
-        if(*s == L'.')
-        {
-            s++;
-
-            if(*s == L'x' || *s == L'X')
-            {
-                s += 2;
-                Config->hr = 0;
-                while(*s <= L'9' && *s >= L'0')
-                {
-                    Config->hr = Config->hr * 10 + *(s++) - L'0';
-                }
-            }
-            else if(*s == L'y' || *s == L'Y')
-            {
-                s += 2;
-                Config->vr = 0;
-                while(*s <= L'9' && *s >= L'0')
-                {
-                    Config->vr = Config->vr * 10 + *(s++) - L'0';
-                }
-            }
-            else if(strncmp(s,L"kernel",6) == 0)
-            {
-                s += 6;
-                s = skip_space(s);
-                if(*s == L'=')
-                {
-                    s++;
-                }
-                s = skip_space(s);
-                if(*s != L'\"')
-                {
-                    continue;
-                }
-                s++;
-                int i = 0;
-                while((Config->KernelName[i++] = *s++) != L'\"');
-                Config->KernelName[i - 1] = L'\0';
-                Config->kernel_flage = 1;
-            }
-            else if(strncmp(s,L"typeface",8) == 0)
-            {
-                s += 8;
-                s = skip_space(s);
-                if(*s == L'=')
-                {
-                    s++;
-                }
-                s = skip_space(s);
-                if(*s != L'\"')
-                {
-                    continue;
-                }
-                s++;
-                int i = 0;
-                while((Config->TypefaceName[i++] = *s++) != L'\"');
-                Config->TypefaceName[i - 1] = L'\0';
-                Config->typeface_flage = 1;
-            }
-            else if(strncmp(s,L"TrueTypeFont",12) == 0)
-            {
-                s += 12;
-                s = skip_space(s);
-                if(*s == L'=')
-                {
-                    s++;
-                }
-                s = skip_space(s);
-                if(*s != L'\"')
-                {
-                    continue;
-                }
-                s++;
-                int i = 0;
-                while((Config->TTFName[i++] = *s++) != L'\"');
-                Config->TTFName[i - 1] = L'\0';
-                Config->ttf_flage = 1;
-            }
-            else
-            {
-                gST->ConOut->OutputString(gST->ConOut,L"Unknow Config: ");
-                while(1);
-            }
-        }
-        s++;
-    }
-}
-
-void PrepareBootInfo(struct BootInfo* Binfo,memory_map_t* memmap,EFI_PHYSICAL_ADDRESS KernelBase,EFI_PHYSICAL_ADDRESS TypefaceBase,EFI_PHYSICAL_ADDRESS TTF_base)
-{
-    Binfo->magic[0] = 0x5a;
-    Binfo->magic[1] = 0x42;
-    Binfo->magic[2] = 0xcb;
-    Binfo->magic[3] = 0x16;
-    Binfo->magic[4] = 0x13;
-    Binfo->magic[5] = 0xd4;
-    Binfo->magic[6] = 0xa6;
-    Binfo->magic[7] = 0x2f;
-    Binfo->kernel_base_address                = KernelBase;
-    Binfo->typeface_base                      = TypefaceBase;
-    Binfo->ttf_base                           = TTF_base;
-    Binfo->graph_info.frame_buffer_base     = Gop->Mode->FrameBufferBase;
-    Binfo->graph_info.horizontal_resolution = Gop->Mode->Info->HorizontalResolution;
-    Binfo->graph_info.vertical_resolution   = Gop->Mode->Info->VerticalResolution;
-    // Binfo->graph_info.PixelBitMask.RedMask   = Gop->Mode->Info->PixelInformation.RedMask;
-    // Binfo->graph_info.PixelBitMask.GreenMask = Gop->Mode->Info->PixelInformation.GreenMask;
-    // Binfo->graph_info.PixelBitMask.BlueMask  = Gop->Mode->Info->PixelInformation.BlueMask;
-    Binfo->memory_map = *memmap;
-}
-
-EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo);
+EFI_PHYSICAL_ADDRESS CreatePage(boot_info_t* binfo);
 
 void gotoKernel(BootConfig* Config)
 {
+    boot_info_t* binfo = (VOID*)0x7c00;
+    binfo->magic[0] = 0x5a;
+    binfo->magic[1] = 0x42;
+    binfo->magic[2] = 0xcb;
+    binfo->magic[3] = 0x16;
+    binfo->magic[4] = 0x13;
+    binfo->magic[5] = 0xd4;
+    binfo->magic[6] = 0xa6;
+    binfo->magic[7] = 0x2f;
     /* 读取内核文件,默认加载到0x100000 */
     EFI_PHYSICAL_ADDRESS KernelFileBase = 0x100000;
     if(!Config->kernel_flage)
@@ -221,34 +121,36 @@ void gotoKernel(BootConfig* Config)
         gST->ConOut->OutputString(gST->ConOut,L"Press kernel file name:");
         get_line(Config->KernelName,256);
     }
-    if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,AllocateAddress)))
+    if(EFI_ERROR(ReadFile(Config->KernelName,&KernelFileBase,NULL,AllocateAddress)))
     {
         gST->ConOut->OutputString(gST->ConOut,L"Unable to load kernel\n\r");
         gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
-        while(1);
     }
-    EFI_PHYSICAL_ADDRESS TypefaceBase = 0x600000;
-    EFI_PHYSICAL_ADDRESS TTF_Base = 0;
-    if(Config->typeface_flage == 1)
+    binfo->loaded_files = Config->files;
+    int i;
+    for(i = 0;i < Config->files;i++)
     {
-        if(EFI_ERROR(ReadFile(Config->TypefaceName,&TypefaceBase,AllocateAddress)))
+        EFI_PHYSICAL_ADDRESS file_base_address = 0;
+        UINT64 FileSize;
+        gST->ConOut->OutputString(gST->ConOut,Config->file_name[i]);
+        gST->ConOut->OutputString(gST->ConOut,L" is Reading...\n\r");
+        if(EFI_ERROR(ReadFile(Config->file_name[i],&file_base_address,&FileSize,AllocateAnyPages)))
         {
-            gST->ConOut->OutputString(gST->ConOut,L"ERROR:typeface file needed but not found. Press any key to continue. \n\r");
-            get_char();
-            TypefaceBase = (EFI_PHYSICAL_ADDRESS)NULL;
+            gST->ConOut->OutputString(gST->ConOut,L"Unable to load file\n\r");
+            gST->ConOut->OutputString(gST->ConOut,L"Please restart your computer\n\r");
         }
-    }
-    if(Config->ttf_flage == 1)
-    {
-        if(EFI_ERROR(ReadFile(Config->TTFName,&TTF_Base,AllocateAnyPages)))
-        {
-            gST->ConOut->OutputString(gST->ConOut,L"ERROR:TTF font file needed but not found. Press any key to continue. \n\r");
-            get_char();
-            TTF_Base = (EFI_PHYSICAL_ADDRESS)NULL;
-        }
+        gST->ConOut->OutputString(gST->ConOut,Config->file_name[i]);
+        gST->ConOut->OutputString(gST->ConOut,L" Loaded\n\r");
+        binfo->loaded_file[i].base_address = file_base_address;
+        binfo->loaded_file[i].size         = FileSize;
+        gST->ConOut->OutputString(gST->ConOut,L" Load next.\n\r");
+        binfo->loaded_file[i].flag         = Config->flag[i];
     }
     /* 设置显示模式 */
     SetVideoMode(Config->hr,Config->vr);
+    binfo->graph_info.frame_buffer_base     = Gop->Mode->FrameBufferBase;
+    binfo->graph_info.horizontal_resolution = Gop->Mode->Info->HorizontalResolution;
+    binfo->graph_info.vertical_resolution   = Gop->Mode->Info->VerticalResolution;
     memory_map_t Memmap =
     {
         .map_size = 4096 * 4,
@@ -258,11 +160,13 @@ void gotoKernel(BootConfig* Config)
         .descriptor_version = 0,
     };
     GetMemoryMap(&Memmap);
-    struct BootInfo* BootInfo = (VOID*)0x7c00;
-    PrepareBootInfo(BootInfo,&Memmap,KernelFileBase,TypefaceBase,TTF_Base);
-    EFI_PHYSICAL_ADDRESS PML4E= CreatePage(BootInfo);
+    binfo->memory_map = Memmap;
+    // PrepareBootInfo(BootInfo,Config);
+    EFI_PHYSICAL_ADDRESS PML4E= CreatePage(binfo);
+    gST->ConOut->OutputString(gST->ConOut,L"goto kernel\n\r");
     // 退出启动时服务,进入内核
     gBS->ExitBootServices(gImageHandle,Memmap.map_key);
+    binfo->typeface_base = binfo->loaded_file[0].base_address;
     __asm__ __volatile__
     (
         "movq %[PML4E_POS],%%cr3 \n\t"
@@ -275,14 +179,14 @@ void gotoKernel(BootConfig* Config)
     );
 }
 
-// #define PG_P 0x1
-// #define PG_RW_R 0x0
-// #define PG_RW_W 0x2
-// #define PG_US_S 0x0
-// #define PG_US_U 0x4
-// #define PG_SIZE_2M 0x80
+#define PG_P 0x1
+#define PG_RW_R 0x0
+#define PG_RW_W 0x2
+#define PG_US_S 0x0
+#define PG_US_U 0x4
+#define PG_SIZE_2M 0x80
 
-EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
+EFI_PHYSICAL_ADDRESS CreatePage(boot_info_t* binfo)
 {
     /*
     * 系统内存分配:
@@ -356,12 +260,12 @@ EFI_PHYSICAL_ADDRESS CreatePage(struct BootInfo* Binfo)
         *((UINTN*)(PDE3 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Addr = Binfo->graph_info.frame_buffer_base;
+    Addr = binfo->graph_info.frame_buffer_base;
     for(i = 0;i < 8;i++)
     {
         *((UINTN*)(PDE4 + i * 8)) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
-    Binfo->graph_info.frame_buffer_base = 0xffff807fc0000000;
+    binfo->graph_info.frame_buffer_base = 0xffff807fc0000000;
     return PML4E;
 }

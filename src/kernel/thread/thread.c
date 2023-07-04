@@ -72,14 +72,14 @@ PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int 
     {
         thread->status = TASK_RUNNING;
     }
+    thread->fpu_used = 0;
     thread->priority = priority;
     thread->ticks = 0;
     thread->elapsed_ticks = 0;
     thread->all_tag.container = thread;
     thread->general_tag.container = thread;
     thread->pid = alloc_pid();
-    thread->self_kstack = (thread_stack_t*)(((uintptr_t)thread) + PCB_SIZE);
-    ASSERT(thread->self_kstack != 0);
+    thread->self_kstack = (uint64_t*)((uintptr_t)thread + PCB_SIZE);
     thread->page_dir = NULL;
     memset(&thread->msg,0,sizeof(message_t));
     thread->send_to = NO_TASK;
@@ -108,7 +108,7 @@ void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
     thread->self_kstack -= sizeof(unsigned long long int);
     ASSERT(thread->self_kstack != 0);
     thread_stack_t* kthread_stack;
-    kthread_stack = thread->self_kstack;
+    kthread_stack = (thread_stack_t*)thread->self_kstack;
 
     kthread_stack->rip = kernel_thread;
     kthread_stack->rbp = 0;
@@ -227,6 +227,17 @@ PUBLIC void schedule()
         list_append(&ready_list,&(cur_thread->general_tag));
         cur_thread->status = TASK_RUNNING;
     }
+
+    if (cur_thread->fpu_used == 1)
+    {
+        __asm__ __volatile__ ("fnsave %0"::"m"(cur_thread->fpu_regs));
+    }
+    else
+    {
+        __asm__ __volatile__ ("fnclex \n\t""fninit \n\t");
+        cur_thread->fpu_used = 1;
+    }
+    cur_thread->fpu_used = 1;
     task_struct_t* next = NULL;
     if (list_empty(&ready_list))
     {
@@ -239,6 +250,11 @@ PUBLIC void schedule()
     next->status = TASK_RUNNING;
 
     process_activate(next);
+
+    if (next->fpu_used == 1)
+    {
+        __asm__ __volatile__ ("frstor %0"::"m"(next->fpu_regs));
+    }
 
     switch_to(&cur_thread->self_kstack,&next->self_kstack);
     return;

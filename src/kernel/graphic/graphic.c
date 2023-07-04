@@ -2,7 +2,7 @@
 #include <global.h>
 #include <graphic.h>
 
-
+#include <memory.h>
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
@@ -29,14 +29,157 @@ void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y
     int y;
     if (color.reserved != 0xff)
     {
-        for(y = y0;y < y1;y++)
+        for (y = y0;y < y1;y++)
         {
-            for(x = x0;x < x1;x++)
+            for (x = x0;x < x1;x++)
             {
                 *((pixel_t*)(graph_info->frame_buffer_base) + ((y * graph_info->horizontal_resolution)) + x) = color;
             }
         }
     }
+    return;
+}
+
+PRIVATE stbtt_fontinfo ttf_info;
+
+void init_true_typeface()
+{
+    int i;
+    for (i = 0;i < g_boot_info.loaded_files;i++)
+    {
+        if (g_boot_info.loaded_file[i].flag == 2)
+        {
+            break;
+        }
+    }
+    int status = stbtt_InitFont(&ttf_info, (void*)g_boot_info.loaded_file[i].base_address, 0);
+    if (!status)
+    {
+        ASSERT(status);
+    }
+    return;
+}
+
+void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t ch,float font_size,uint8_t* bitmap)
+{
+    float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size); /* scale = font_size / (ascent - descent) */
+    /**
+     * 获取垂直方向上的度量
+     * ascent：字体从基线到顶部的高度；
+     * descent：基线到底部的高度，通常为负值；
+     * lineGap：两个字体之间的间距；
+     * 行间距为：ascent - descent + lineGap。
+    */
+    int ascent = 0;
+    int descent = 0;
+    int lineGap = 0;
+    stbtt_GetFontVMetrics(&ttf_info, &ascent, &descent, &lineGap);
+
+    /* 根据缩放调整字高 */
+    ascent = ceil(ascent * scale);
+    descent = ceil(descent * scale);
+
+    int x = 0; /*位图的x*/
+
+        /**
+          * 获取水平方向上的度量
+          * advanceWidth：字宽；
+          * leftSideBearing：左侧位置；
+        */
+        int advanceWidth = 0;
+        int leftSideBearing = 0;
+        stbtt_GetCodepointHMetrics(&ttf_info, ch, &advanceWidth, &leftSideBearing);
+
+        /* 获取字符的边框（边界） */
+        int c_x1, c_y1, c_x2, c_y2;
+        stbtt_GetCodepointBitmapBox(&ttf_info, ch, scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
+
+        /* 计算位图的y (不同字符的高度不同） */
+        int y = ascent + c_y1;
+
+        /* 渲染字符 */
+        int byteOffset = x + ceil(leftSideBearing * scale) + (y * font_size);
+        memset(bitmap,0,font_size * font_size * sizeof(uint8_t));
+        stbtt_MakeCodepointBitmap(&ttf_info, bitmap + byteOffset, c_x2 - c_x1, c_y2 - c_y1, (int)font_size, scale, scale, ch);
+
+        /* 调整x */
+        x += ceil(advanceWidth * scale);
+
+        int x0,y0;
+        for (x0 = 0;x0 < font_size;x0++)
+        {
+            for (y0 = 0;y0 < font_size;y0++)
+            {
+                uint8_t bits = bitmap[x0 + y0 * (int)font_size];
+                view_fill
+                (
+                    graph_info,
+                    color(col.red & bits,col.green & bits,col.blue & bits),
+                    pos->x + x0,
+                    pos->y + y0,
+                    pos->x + x0 + 1,
+                    pos->y + y0 + 1
+                );
+            }
+        }
+}
+
+uint64_t utf8_decode(char** _str)
+{
+    unsigned char* str = *((unsigned char**)_str);
+    uint64_t code;
+    if ((*str >> 7) == 0)
+    {
+        code = *str;
+        str++;
+    }
+    else if (((*str >> 5) & 0x0f) == 0x6) /* 0x110 开头,2字节 */
+    {
+        code = (*str & 0x1f) << 6;
+        str++;
+        code |= (*str & 0x3f);
+        str++;
+    }
+    else if (((*str >> 4) & 0xf) == 0xe) /* 0x1110 开头,3字节 */
+    {
+        code = (*str & 0x0f) << 12;
+        str++;
+        code |= (*str & 0x3f) << 6;
+        str++;
+        code |= (*str & 0x3f) << 0;
+        str++;
+    }
+    *_str = (char*)str;
+    return code;
+}
+
+void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float _font_size)
+{
+    float font_size = _font_size * 2;
+    float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size);
+    unsigned char *bitmap = kmalloc(((int)font_size) * ((int)font_size) * sizeof(uint8_t));
+    uint64_t code = 0;
+    position_t pos = *vpos;
+
+    while (*str)
+    {
+        code = utf8_decode(&str);
+        if (code == '\n')
+        {
+            pos.x = vpos->x;
+            pos.y += font_size;
+            continue;
+        }
+        pr_ch(graph_info,&pos,color,code,font_size,bitmap);
+        int advanceWidth = 0;
+        int leftSideBearing = 0;
+        stbtt_GetCodepointHMetrics(&ttf_info, code, &advanceWidth, &leftSideBearing);
+        char* next = str;
+        int kern = stbtt_GetCodepointKernAdvance(&ttf_info, code,utf8_decode(&next));
+        pos.x += ceil(advanceWidth * scale);
+        pos.x += ceil(kern * scale);
+    }
+    *vpos = pos;
     return;
 }
 
@@ -63,7 +206,7 @@ void init_screen(graph_info_t* graph_info)
     color.green = 0xa0;
     color.blue  = 0xa0;
     view_fill(graph_info,color,10,    graph_info->vertical_resolution - tsk + 10,tsk - 10,graph_info->vertical_resolution - 10);
-
+init_true_typeface();
 }
 
 /**
@@ -83,7 +226,7 @@ void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t c
     int i;
     if (ch < 0x7f)
     {
-        for(i = 0;i < 16;i++)
+        for (i = 0;i < 16;i++)
         {
             data = font[i];
             if ((data & 0x8000) != 0){view_fill(graph_info,color,pos->x + 0 * font_size,pos->y + i * font_size,pos->x + 1 * font_size,pos->y + (i + 1) * font_size);}
@@ -98,7 +241,7 @@ void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t c
     }
     else
     {
-        for(i = 0;i < 16;i++)
+        for (i = 0;i < 16;i++)
         {
             data = font[i];
 

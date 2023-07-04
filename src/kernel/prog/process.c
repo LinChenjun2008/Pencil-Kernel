@@ -13,6 +13,24 @@ void start_process(void* process_name)
     cur->self_kstack += sizeof(thread_stack_t);
     intr_stack_t* proc_stack = (intr_stack_t*)cur->self_kstack;
     /* 寄存器初始值,置为0 */
+
+    proc_stack->r15 = 0;
+    proc_stack->r14 = 0;
+    proc_stack->r13 = 0;
+    proc_stack->r12 = 0;
+    proc_stack->r11 = 0;
+    proc_stack->r10 = 0;
+    proc_stack->r9 = 0;
+    proc_stack->r8 = 0;
+
+    proc_stack->rdi = 0;
+    proc_stack->rsi = 0;
+    proc_stack->rbp = 0;
+    proc_stack->rdx = 0;
+    proc_stack->rcx = 0;
+    proc_stack->rbx = 0;
+    proc_stack->rax = 0;
+
     proc_stack->gs = SELECTOR_DATA64_U;
     proc_stack->fs = SELECTOR_DATA64_U;
     proc_stack->es = SELECTOR_DATA64_U;
@@ -22,15 +40,11 @@ void start_process(void* process_name)
     proc_stack->rflages = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
 
     proc_stack->rsp = ((uintptr_t)kmalloc(PCB_SIZE)) + PCB_SIZE;
-
-    // asm("int $0x80");
     proc_stack->ss = SELECTOR_DATA64_U;
     __asm__ __volatile__
     (
         "movq %0, %%rsp\n\t"
-        ".1: jmp .1 \n\t"
-        "leaq intr_exit(%%rip),%%rax \n\t"
-        "jmp *%%rax \n\t"
+        "jmp intr_exit"
         :
         :"g"(proc_stack)
         :"memory"
@@ -75,32 +89,32 @@ void process_activate(task_struct_t* pthread)
 /* create_page_dir
 * 为进程创建页目录表
 */
-UINTN* create_page_dir(void)
+uint64_t* create_page_dir(void)
 {
-    UINTN pgdir_v = (UINTN)kmalloc(4096);
-    if (pgdir_v == (UINTN)NULL)
+    uint64_t pgdir_v = (uint64_t)kmalloc(4096);
+    if (pgdir_v == (uint64_t)NULL)
     {
         return NULL;
     }
-    memcpy((UINTN*)(pgdir_v + 0x800),(UINTN*)(KERNEL_PAGE_DIR_TABLE_POS + 0x800),2048);
-    memcpy((UINTN*)(pgdir_v + 0x000),(UINTN*)(KERNEL_PAGE_DIR_TABLE_POS + 0x000),2048);
-    return (UINTN*)pgdir_v;
-}
-
-/* create_user_vaddr_memman
-* 为进程创建memman
-*/
-void create_user_vaddr_memman(task_struct_t* user_prog __attribute__((unused)))
-{
-    return;
+    memcpy((uint64_t*)(pgdir_v + 0x800),(uint64_t*)(KERNEL_PAGE_DIR_TABLE_POS + 0x800),2048);
+    memcpy((uint64_t*)(pgdir_v + 0x000),(uint64_t*)(KERNEL_PAGE_DIR_TABLE_POS + 0x000),2048);
+    return (uint64_t*)pgdir_v;
 }
 
 void process_execute(void* process_name,char* name)
 {
-    intr_status_t status = intr_disable();
-    task_struct_t* pthread;
-    pthread = thread_start(name,31,start_process,process_name);
+    task_struct_t* pthread = kmalloc(PCB_SIZE);
+    thread_init(pthread,name,31);
+    thread_create(pthread,start_process,process_name);
     pthread->page_dir = create_page_dir();
-    intr_set_status(status);
+
+    /* 加入队列,等待调度 */
+    pthread->general_tag.container = pthread;
+    pthread->all_tag.container     = pthread;
+
+    intr_status_t intr_status = intr_disable();
+    list_append(&all_list,&(pthread->all_tag));
+    list_append(&ready_list,&(pthread->general_tag));
+    intr_set_status(intr_status);
     return;
 }

@@ -7,6 +7,7 @@
 #include <syscall.h>
 #include <timer.h>
 #include <memory.h>
+#include <serial.h>
 #include <tss.h>
 #include <thread.h>
 #include <keyboard.h>
@@ -30,8 +31,10 @@ PRIVATE void init_desctrib()
     gdt_table[0] = make_segmdesc(0,      0,        0);
     gdt_table[1] = make_segmdesc(0,      0,AR_CODE64);
     gdt_table[2] = make_segmdesc(0,      0,AR_DATA64);
-    gdt_table[3] = make_segmdesc(0,      0,AR_CODE64_DPL3);
-    gdt_table[4] = make_segmdesc(0,      0,AR_DATA64_DPL3);
+    gdt_table[3] = make_segmdesc(0,0xfffff,AR_CODE32_DPL3);
+    gdt_table[4] = make_segmdesc(0,0xfffff,AR_DATA32_DPL3);
+    gdt_table[5] = make_segmdesc(0,      0,AR_CODE64_DPL3);
+    gdt_table[6] = make_segmdesc(0,      0,AR_DATA64_DPL3);
     gdt_table[7] = make_segmdesc(0,0xfffff,AR_CODE32);
     gdt_table[8] = make_segmdesc(0,0xfffff,AR_DATA32);
     init_tss();
@@ -66,6 +69,7 @@ PUBLIC void init_all()
 {
     init_desctrib();
     init_interrupt();
+    init_serial(COM1_PORT);
     init_pit();
     init_syscall();
     init_screen(&(g_boot_info.graph_info));

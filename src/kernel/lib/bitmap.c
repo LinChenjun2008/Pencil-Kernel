@@ -26,7 +26,7 @@ BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
 }
 
 /**
- * @brief 在bitmap中分配cnt个位
+ * @brief 在bitmap中分配cnt个位(不操作位图)
  * @param btmp       :bitmap指针
  * @param cnt        :要分配的位数
  * @retval 返回值为位的下标. 返回-1为分配失败

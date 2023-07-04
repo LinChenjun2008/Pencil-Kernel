@@ -22,19 +22,19 @@ struct msg2
 
 struct msg3
 {
-    uint32_t m3i1;
-    uint32_t m3i2;
-    uint32_t m3i3;
-    uint32_t m3i4;
-    uint64_t m3l1;
-    uint64_t m3l2;
-    void* m3p1;
-    void* m3p2;
+    uint32_t  m3i1;
+    uint32_t  m3i2;
+    uint32_t  m3i3;
+    uint32_t  m3i4;
+    uint64_t  m3l1;
+    uint64_t  m3l2;
+    void     *m3p1;
+    void     *m3p2;
 };
 
 typedef struct
 {
-    volatile pid_t source;   /* 发出这个消息的进程pid */
+    volatile pid_t    source;   /* 发出这个消息的进程pid */
     volatile uint32_t type;  /* 消息类型 */
     union
     {
