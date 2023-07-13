@@ -23,18 +23,21 @@
                     的右下角坐标(x1,y1)
 
 */
-void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y1)
+PUBLIC void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1)
 {
-    int x;
-    int y;
-    if (color.reserved != 0xff)
+    unsigned int x;
+    unsigned int y;
+    pixel_t* frame_buffer = (pixel_t*)graph_info->frame_buffer_base;
+    unsigned int xsize = graph_info->horizontal_resolution;
+    for (y = y0;y < y1;y++)
     {
-        for (y = y0;y < y1;y++)
+        for (x = x0;x < x1;x++)
         {
-            for (x = x0;x < x1;x++)
-            {
-                *((pixel_t*)(graph_info->frame_buffer_base) + ((y * graph_info->horizontal_resolution)) + x) = color;
-            }
+            pixel_t bgc = *(frame_buffer + y * xsize + x);
+            uint8_t red = (color.red * (255 - color.alpha) + bgc.red * color.alpha) / 255;
+            uint8_t green = (color.green * (255 - color.alpha) + bgc.green * color.alpha) / 255;
+            uint8_t blue = (color.blue * (255 - color.alpha) + bgc.blue * color.alpha) / 255;
+            *(frame_buffer + y * xsize + x) = make_color(red,green,blue);
         }
     }
     return;
@@ -42,17 +45,9 @@ void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y
 
 PRIVATE stbtt_fontinfo ttf_info;
 
-void init_true_typeface()
+PUBLIC void init_true_typeface()
 {
-    int i;
-    for (i = 0;i < g_boot_info.loaded_files;i++)
-    {
-        if (g_boot_info.loaded_file[i].flag == 2)
-        {
-            break;
-        }
-    }
-    int status = stbtt_InitFont(&ttf_info, (void*)g_boot_info.loaded_file[i].base_address, 0);
+    int status = stbtt_InitFont(&ttf_info, (void*)g_boot_info.ttf_base, 0);
     if (!status)
     {
         ASSERT(status);
@@ -60,74 +55,66 @@ void init_true_typeface()
     return;
 }
 
-void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t ch,float font_size,uint8_t* bitmap)
+PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t ch,float font_size,uint8_t* bitmap)
 {
     float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size); /* scale = font_size / (ascent - descent) */
-    /**
-     * 获取垂直方向上的度量
-     * ascent：字体从基线到顶部的高度；
-     * descent：基线到底部的高度，通常为负值；
-     * lineGap：两个字体之间的间距；
-     * 行间距为：ascent - descent + lineGap。
-    */
+
     int ascent = 0;
     int descent = 0;
     int lineGap = 0;
     stbtt_GetFontVMetrics(&ttf_info, &ascent, &descent, &lineGap);
 
-    /* 根据缩放调整字高 */
     ascent = ceil(ascent * scale);
     descent = ceil(descent * scale);
 
-    int x = 0; /*位图的x*/
+    int advanceWidth = 0;
+    int leftSideBearing = 0;
+    stbtt_GetCodepointHMetrics(&ttf_info, ch, &advanceWidth, &leftSideBearing);
 
-        /**
-          * 获取水平方向上的度量
-          * advanceWidth：字宽；
-          * leftSideBearing：左侧位置；
-        */
-        int advanceWidth = 0;
-        int leftSideBearing = 0;
-        stbtt_GetCodepointHMetrics(&ttf_info, ch, &advanceWidth, &leftSideBearing);
+    int c_x1, c_y1, c_x2, c_y2;
+    stbtt_GetCodepointBitmapBox(&ttf_info, ch, scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
 
-        /* 获取字符的边框（边界） */
-        int c_x1, c_y1, c_x2, c_y2;
-        stbtt_GetCodepointBitmapBox(&ttf_info, ch, scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
+    int y = ascent + c_y1;
 
-        /* 计算位图的y (不同字符的高度不同） */
-        int y = ascent + c_y1;
+    int x = 0;
+    int byteOffset = x + ceil(leftSideBearing * scale) + (y * font_size);
+    memset(bitmap,0,font_size * font_size * sizeof(uint8_t));
+    stbtt_MakeCodepointBitmap(&ttf_info, bitmap + byteOffset, c_x2 - c_x1, c_y2 - c_y1, (int)font_size, scale, scale, ch);
 
-        /* 渲染字符 */
-        int byteOffset = x + ceil(leftSideBearing * scale) + (y * font_size);
-        memset(bitmap,0,font_size * font_size * sizeof(uint8_t));
-        stbtt_MakeCodepointBitmap(&ttf_info, bitmap + byteOffset, c_x2 - c_x1, c_y2 - c_y1, (int)font_size, scale, scale, ch);
+    pixel_t* frame_buffer = (pixel_t*)graph_info->frame_buffer_base;
+    unsigned int xsize = graph_info->horizontal_resolution;
 
-        /* 调整x */
-        x += ceil(advanceWidth * scale);
-
-        int x0,y0;
-        for (x0 = 0;x0 < font_size;x0++)
+    int x0,y0;
+    for (x0 = 0;x0 < font_size;x0++)
+    {
+        for (y0 = 0;y0 < font_size;y0++)
         {
-            for (y0 = 0;y0 < font_size;y0++)
-            {
-                uint8_t bits = bitmap[x0 + y0 * (int)font_size];
-                view_fill
-                (
-                    graph_info,
-                    color(col.red & bits,col.green & bits,col.blue & bits),
-                    pos->x + x0,
-                    pos->y + y0,
-                    pos->x + x0 + 1,
-                    pos->y + y0 + 1
-                );
-            }
+            pixel_t tmp_col = *(frame_buffer + (pos->y + y0) * xsize + pos->x + x0);
+            uint8_t red = (col.red * (255 - col.alpha) + tmp_col.red * col.alpha) / 255;
+            uint8_t green = (col.green * (255 - col.alpha) + tmp_col.green * col.alpha) / 255;
+            uint8_t blue = (col.blue * (255 - col.alpha) + tmp_col.blue * col.alpha) / 255;
+            // col.alpha = 255 - bitmap[x0 + y0 * (int)font_size];
+            tmp_col.red = red;
+            tmp_col.green = green;
+            tmp_col.blue = blue;
+            tmp_col.alpha = 255 - bitmap[x0 + y0 * (int)font_size];
+            view_fill
+            (
+                graph_info,
+                tmp_col,
+                pos->x + x0,
+                pos->y + y0,
+                pos->x + x0 + 1,
+                pos->y + y0 + 1
+            );
         }
+    }
 }
 
-uint64_t utf8_decode(char** _str)
+PRIVATE uint64_t utf8_decode(char** _str)
 {
     unsigned char* str = *((unsigned char**)_str);
-    uint64_t code;
+    uint64_t code = 0;
     if ((*str >> 7) == 0)
     {
         code = *str;
@@ -153,27 +140,33 @@ uint64_t utf8_decode(char** _str)
     return code;
 }
 
-void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float _font_size)
+PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float font_size)
 {
-    float font_size = _font_size * 2;
+    font_size *= 2;
     float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size);
-    unsigned char *bitmap = kmalloc(((int)font_size) * ((int)font_size) * sizeof(uint8_t));
+    int ascent = 0;
+    int descent = 0;
+    int lineGap = 0;
+    stbtt_GetFontVMetrics(&ttf_info, &ascent, &descent, &lineGap);
+    ascent = ceil(ascent * scale);
+    descent = ceil(descent * scale);
     uint64_t code = 0;
     position_t pos = *vpos;
-
     while (*str)
     {
         code = utf8_decode(&str);
         if (code == '\n')
         {
             pos.x = vpos->x;
-            pos.y += font_size;
+            pos.y += ascent - descent + lineGap;
             continue;
         }
-        pr_ch(graph_info,&pos,color,code,font_size,bitmap);
         int advanceWidth = 0;
         int leftSideBearing = 0;
         stbtt_GetCodepointHMetrics(&ttf_info, code, &advanceWidth, &leftSideBearing);
+        uint8_t *bitmap = pmalloc((ascent - descent) * advanceWidth * sizeof(uint8_t));
+        pr_ch(graph_info,&pos,color,code,font_size,bitmap);
+        pfree(bitmap);
         char* next = str;
         int kern = stbtt_GetCodepointKernAdvance(&ttf_info, code,utf8_decode(&next));
         pos.x += ceil(advanceWidth * scale);
@@ -183,30 +176,9 @@ void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,fl
     return;
 }
 
-void init_screen(graph_info_t* graph_info)
+PUBLIC void init_screen()
 {
-    int tsk  = 70;
-    pixel_t color;
-    color.red   = 0x20;
-    color.green = 0x70;
-    color.blue  = 0x90;
-    view_fill(graph_info,color,0,0,graph_info->horizontal_resolution,graph_info->vertical_resolution - tsk);
-
-    color.red   = 0x20;
-    color.green = 0x20;
-    color.blue  = 0x20;
-    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,graph_info->horizontal_resolution,graph_info->vertical_resolution);
-
-    color.red   = 0x50;
-    color.green = 0x50;
-    color.blue  = 0x50;
-    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,tsk * 4,graph_info->vertical_resolution);
-
-    color.red   = 0xa0;
-    color.green = 0xa0;
-    color.blue  = 0xa0;
-    view_fill(graph_info,color,10,    graph_info->vertical_resolution - tsk + 10,tsk - 10,graph_info->vertical_resolution - 10);
-init_true_typeface();
+    init_true_typeface();
 }
 
 /**
@@ -219,7 +191,7 @@ init_true_typeface();
  * @param ch       字符编码(unicode)
 
 */
-void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,int font_size)
+PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,int font_size)
 {
     uint16_t *font, data;
     font = (((uint16_t*)g_boot_info.typeface_base) + ch * 16);
@@ -276,7 +248,7 @@ void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t c
  * @param str      字符串(utf-8)
 
 */
-void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size)
+PUBLIC void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size)
 {
     uint64_t code = 0;
     position_t pos = *vpos;

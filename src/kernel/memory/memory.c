@@ -1,13 +1,9 @@
 #include <memory.h>
 #include <bitmap.h>
-#include <debug.h>
+#include <Efi.h>
 #include <interrupt.h>
 #include <serial.h>
-#include <stdio.h>
 #include <string.h>
-#include <sync.h>
-#include <Efi.h>
-
 #define PAGE_BITMAP_BYTES_LEN 2048
 
 typedef enum
@@ -92,6 +88,57 @@ PRIVATE memory_type_t type_uefi2os(EFI_MEMORY_TYPE efi_type)
     return type;
 }
 
+
+PRIVATE void init_memory_group()
+{
+    int group_block_size = MIN_ALLOCATE_MEMORY_SIZE;
+    int i;
+    for (i = 0;i < NUMBER_OF_MEMORY_BLOCK_TYPES;i++)
+    {
+        global_memory_groups[i].block_size            = group_block_size;
+        global_memory_groups[i].flags                 = 0;
+        lock_init(&global_memory_groups[i].lock);
+        list_init(&global_memory_groups[i].free_block_list);
+        group_block_size *= 2;
+    }
+    group_block_size = MIN_ALLOCATE_MEMORY_SIZE;
+    for (i = 0;i < NUMBER_OF_MEMORY_BLOCK_TYPES;i++)
+    {
+        pmalloc(group_block_size);
+        group_block_size *= 2;
+    }
+    return;
+}
+
+PRIVATE void make_page_table(uintptr_t max_address)
+{
+    uintptr_t pml4e_pos = KERNEL_PAGE_DIR_TABLE_POS;
+    int pdpte_idx = ADDR_PDPT_INDEX(max_address);
+    if (max_address >= 0x0000007fc0000000)
+    {
+        pdpte_idx = 510;
+    }
+    // 只要增加PDE ASSERT(pdpte_idx > 3)
+    // 原来已经有3个pde了
+    int number_of_pde = pdpte_idx - 3;
+    uintptr_t pde_addr = (uintptr_t)alloc_physical_page((number_of_pde * 4096 + PG_SIZE - 1) / PG_SIZE);
+    uintptr_t address = 0x100000000;
+    uintptr_t pdpte_pos = pml4e_pos + 1 * PT_SIZE;
+    int i;
+    for (i = 3;i <= pdpte_idx;i++)
+    {
+        uintptr_t pde_pos = pde_addr + i * PT_SIZE;
+        *((uint64_t*)pdpte_pos + i) = pde_pos | PG_US_U | PG_RW_W | PG_P;
+        int j;
+        for (j = 0;j < 511;j++)
+        {
+            *((uint64_t*)pde_pos + j) = address | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+            address += 0x200000;
+        }
+    }
+    return;
+}
+
 void init_memory()
 {
     page_bitmap.map = page_bitmap_map;
@@ -100,14 +147,14 @@ void init_memory()
     int number_of_memory_desct;
     number_of_memory_desct = g_boot_info.memory_map.map_size / g_boot_info.memory_map.descriptor_size;
     uintptr_t total_free = 0;
-    uintptr_t memory_limit __attribute__((unused)) = 0;
+    uintptr_t max_address = 0; // 记录最大的内存地址
     int i;
     for (i = 0;i < number_of_memory_desct;i++)
     {
         EFI_MEMORY_DESCRIPTOR* efi_memory_desc = (EFI_MEMORY_DESCRIPTOR*)g_boot_info.memory_map.buffer;
         uintptr_t start = efi_memory_desc[i].PhysicalStart;
         uintptr_t end   = start + (efi_memory_desc[i].NumberOfPages << 12);
-        memory_limit = efi_memory_desc[i].PhysicalStart + (efi_memory_desc[i].NumberOfPages << 12);
+        max_address = efi_memory_desc[i].PhysicalStart + (efi_memory_desc[i].NumberOfPages << 12);
         // 将非 FREE_MEMORY 的内存占用
         if (type_uefi2os(efi_memory_desc[i].Type) != FREE_MEMORY)
         {
@@ -129,44 +176,34 @@ void init_memory()
             }
         }
     }
-    // 剔除被占用的内存
-    for (i = 0;i < 4;i++)
+    // 剔除被占用的内存(0 - 16M)
+    for (i = 0;i < 8;i++)
     {
         bitmap_set(&page_bitmap,i,1);
     }
-    for (i = 0;i <= g_boot_info.loaded_files;i++)
-    {
-
-    }
     lock_init(&physical_page_lock);
     // 初始化内存组
-    int group_block_size = MIN_ALLOCATE_MEMORY_SIZE;
-    for (i = 0;i < NUMBER_OF_MEMORY_BLOCK_TYPES;i++)
+    init_memory_group();
+    // 为超出4GB地址空间的内存创建页表
+    if (max_address > 0xffffffff)
     {
-        global_memory_groups[i].block_size            = group_block_size;
-        global_memory_groups[i].flags                 = 0;
-        lock_init(&global_memory_groups[i].lock);
-        list_init(&global_memory_groups[i].free_block_list);
-        group_block_size *= 2;
-    }
-    group_block_size = MIN_ALLOCATE_MEMORY_SIZE;
-    for (i = 0;i < NUMBER_OF_MEMORY_BLOCK_TYPES;i++)
-    {
-        kmalloc(group_block_size);
-        group_block_size *= 2;
+        make_page_table(max_address);
     }
     return;
 }
 
-PUBLIC void* alloc_page(int number_of_pages)
+PUBLIC void* alloc_physical_page(uint64_t number_of_pages)
 {
-    ASSERT(number_of_pages > 0);
+    if (number_of_pages == 0)
+    {
+        return NULL;
+    }
     lock_acquire(&physical_page_lock);
     signed int index = bitmap_alloc(&page_bitmap,number_of_pages);
     uintptr_t paddr = 0;
     if (index != -1)
     {
-        int i;
+        uint64_t i;
         for (i = index;i < index + number_of_pages;i++)
         {
             bitmap_set(&page_bitmap,i,1);
@@ -178,11 +215,11 @@ PUBLIC void* alloc_page(int number_of_pages)
     return (void*)paddr;
 }
 
-PUBLIC void free_page(void* addr,int number_of_pages)
+PUBLIC void free_physical_page(void* addr,uint64_t number_of_pages)
 {
     if (number_of_pages == 0 || addr == NULL || ((((uintptr_t)addr) & 0x1fffff) != 0))
     {
-        pr_log(COM1_PORT,"Free Address fail");
+        pr_log(COM1_PORT,"free_physical_page: Not a page addr");
         return;
     }
     lock_acquire(&physical_page_lock);
@@ -206,7 +243,7 @@ PRIVATE zone_t* block2zone(memory_block_t* b)
     return ((zone_t*)((uintptr_t)b & 0xffffffffffe00000));
 }
 
-void* kmalloc(size_t size)
+PUBLIC void* pmalloc(size_t size)
 {
     int i;
     zone_t *z;
@@ -215,7 +252,7 @@ void* kmalloc(size_t size)
     {
         size_t number_of_pages;
         number_of_pages = DIV_ROUND_UP(size + sizeof(*z),PG_SIZE);
-        z = alloc_page(number_of_pages);
+        z = alloc_physical_page(number_of_pages);
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
@@ -239,7 +276,7 @@ void* kmalloc(size_t size)
     if (list_empty(&global_memory_groups[i].free_block_list))
     {
         // 初始化内存块
-        z = alloc_page(1);
+        z = alloc_physical_page(1);
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
@@ -272,7 +309,7 @@ void* kmalloc(size_t size)
 }
 
 
-PUBLIC void kfree(void* addr)
+PUBLIC void pfree(void* addr)
 {
     if (addr == NULL)
     {
@@ -284,7 +321,7 @@ PUBLIC void kfree(void* addr)
     z = block2zone(b);
     if (z->group == NULL && z->large == TRUE)
     {
-        free_page(z,z->cnt);
+        free_physical_page(z,z->cnt);
         return;
     }
     lock_acquire(&z->group->lock);
@@ -297,11 +334,65 @@ PUBLIC void kfree(void* addr)
         for (idx = 0;idx < z->number_of_blocks;idx++)
         {
             b = znoe2block(z,idx);
-            ASSERT(list_find(&(z->group->free_block_list),b));
             list_remove(b);
         }
-        free_page(z,1);
+        free_physical_page(z,1);
     }
     lock_release(&z->group->lock);
     return;
+}
+
+PUBLIC uint64_t* pml4t_entry(void* vaddr)
+{
+    wordsize_t pml4t;
+    __asm__ __volatile__("movq %%cr3,%0":"=r"(pml4t)::);
+    return (uint64_t*)pml4t + ADDR_PML4T_INDEX(vaddr);
+}
+
+PUBLIC uint64_t* pdpt_entry(void* vaddr)
+{
+    return (uint64_t*)(*pml4t_entry(vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
+}
+
+PUBLIC uint64_t* pdt_entry(void* vaddr)
+{
+    return (uint64_t*)(*pdpt_entry(vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
+}
+
+PUBLIC void* to_physical_address(void* vaddr)
+{
+    return (void*)
+        ( (*pdt_entry(vaddr) & ~0xfff)
+        + ADDR_OFFSET(vaddr));
+}
+
+/**
+ * @brief 将paddr映射到虚拟地址vaddr处
+ * @param pml4t 页目录表地址
+ * @param paddr 物理地址
+ * @param vaddr 虚拟地址
+*/
+PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr)
+{
+    paddr = (void*)((uintptr_t)paddr & ~(PG_SIZE - 1));
+    vaddr = (void*)((uintptr_t)vaddr & ~(PG_SIZE - 1));
+    uint64_t* pml4e = pml4t + ADDR_PML4T_INDEX(vaddr);
+    // pdpte不存在
+    if (!(*pml4e & PG_P))
+    {
+        uint64_t* pdpt = pmalloc(PT_SIZE);
+        memset(pdpt,0,PT_SIZE);
+        *pml4e = (uint64_t)pdpt | PG_US_U | PG_RW_W | PG_P;
+    }
+    uint64_t* pdpte = (uint64_t*)((*pml4e & ~0xfff) + ADDR_PDPT_INDEX(vaddr) * 8);
+
+    // pdt不存在
+    if (!(*pdpte & PG_P))
+    {
+        uint64_t* pdt = pmalloc(PT_SIZE);
+        memset(pdt,0,PT_SIZE);
+        *pdpte = (uint64_t)pdt | PG_US_U | PG_RW_W | PG_P;
+    }
+    uint64_t* pde = (uint64_t*)((*pdpte & ~0xfff) + ADDR_PDT_INDEX(vaddr) * 8);
+    *pde = (uint64_t)paddr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
 }

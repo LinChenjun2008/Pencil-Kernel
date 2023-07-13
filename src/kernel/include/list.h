@@ -31,41 +31,41 @@ typedef BOOL (func) (list_node_t* ,wordsize_t arg);
  * @brief 初始化链表
  * @param list 待初始化链表的指针
 */
-void list_init(list_t* list);
+PUBLIC void list_init(list_t* list);
 
 /**
  * @brief 插入node到in_before前面
  * @param node     链表节点指针
  * @param in_before node被插入到这个节点前面
 */
-void list_in(list_node_t* node,list_node_t* in_before);
+PUBLIC void list_in(list_node_t* node,list_node_t* in_before);
 
 /**
  * @brief 把node添加到队首,类似于push
  * @param list 链表指针
  * @param node  要添加的元素的指针
 */
-void list_push(list_t* list,list_node_t* node);
+PUBLIC void list_push(list_t* list,list_node_t* node);
 
 /**
  * @brief 添加node到队尾
  * @param list 链表指针
  * @param node 要添加的元素的指针
 */
-void list_append(list_t* list,list_node_t* node);
+PUBLIC void list_append(list_t* list,list_node_t* node);
 
 /**
  * @brief 将元素从链中退出
  * @param node 要弹出的元素
 */
-void list_remove(list_node_t* node);
+PUBLIC void list_remove(list_node_t* node);
 
 /**
  * @brief 从队首弹出一个node,类似于pop
  * @param list 链表指针
  * @return 弹出的元素指针
 */
-list_node_t* list_pop(list_t* list);
+PUBLIC list_node_t* list_pop(list_t* list);
 
 /**
  * @brief 在链表中查找objnode
@@ -74,7 +74,7 @@ list_node_t* list_pop(list_t* list);
  * @retval false 查找失败
  * @retval true  找到元素
 */
-BOOL list_find(list_t* list,list_node_t* objnode);
+PUBLIC BOOL list_find(list_t* list,list_node_t* objnode);
 
 /**
  * @brief 在链表中查找符合条件的节点
@@ -83,15 +83,15 @@ BOOL list_find(list_t* list,list_node_t* objnode);
  * @param arg 作为回调函数function的一个参数
  * @return 符合条件的链表指针
 */
-list_node_t* list_traversal(list_t* list,func function,int arg);
+PUBLIC list_node_t* list_traversal(list_t* list,func function,int arg);
 
 /**
  * @brief 计算链表长度
  * @param list 计算此链表的长度
  * @return 链表长度
 */
-int list_len(list_t* list);
+PUBLIC int list_len(list_t* list);
 
-BOOL list_empty(list_t* list);
+PUBLIC BOOL list_empty(list_t* list);
 
 #endif /* __LIST_H_ */

@@ -13,20 +13,25 @@ static inline void io_hlt(void)
 
 static inline void io_sti(void)
 {
-    __asm__ __volatile__ ("sti;":::"memory");
+    __asm__ __volatile__ ("sti":::"memory");
     return;
 }
 
 static inline void io_cli(void)
 {
-    __asm__ __volatile__ ("cli;":::"memory");
+    __asm__ __volatile__ ("cli":::"memory");
     return;
 }
 
 static inline void io_stihlt(void)
 {
-    __asm__ __volatile__ ("sti;hlt;":::"memory");
+    __asm__ __volatile__ ("sti\n\t""hlt;":::"memory");
     return;
+}
+
+static inline void io_mfence(void)
+{
+    __asm__ __volatile("mfence":::"memory");
 }
 
 static inline uint32_t io_in8(uint32_t port)
@@ -34,9 +39,9 @@ static inline uint32_t io_in8(uint32_t port)
     uint32_t data;
     __asm__ __volatile__
     (
-        "inb %w[port],%b[data];"
-        :[data]"=a"(data)
-        :[port]"d"(port)
+        "inb %w1,%b0"
+        :"=a"(data)
+        :"d"(port)
         :"memory"
     );
     return data;
@@ -47,9 +52,9 @@ static inline uint32_t io_in16(uint32_t port)
     uint32_t data;
     __asm__ __volatile__
     (
-        "inw %w[port],%w[data];"
-        :[data]"=a"(data)
-        :[port]"d"(port)
+        "inw %w1,%w0"
+        :"=a"(data)
+        :"d"(port)
         :"memory"
     );
     return data;
@@ -60,9 +65,9 @@ static inline uint32_t io_in32(uint32_t port)
     uint32_t data;
     __asm__ __volatile__
     (
-        "inl %w[port],%k[data];"
-        :[data]"=a"(data)
-        :[port]"d"(port)
+        "inl %w1,%k0"
+        :"=a"(data)
+        :"d"(port)
         :"memory"
     );
     return data;
@@ -74,9 +79,9 @@ static inline void io_out8(uint32_t port,uint32_t data)
 {
     __asm__ __volatile__
     (
-        "outb %b[data],%w[port];"
+        "outb %b0,%w1"
         :
-        :[data]"a"(data),[port]"d"(port)
+        :"a"(data),"d"(port)
         :"memory"
     );
 }
@@ -85,9 +90,9 @@ static inline void io_out16(uint32_t port,uint32_t data)
 {
     __asm__ __volatile__
     (
-        "outw %w[data],%w[port];"
+        "outw %w0,%w1"
         :
-        :[data]"a"(data),[port]"d"(port)
+        :"a"(data),"d"(port)
         :"memory"
     );
 }
@@ -96,9 +101,9 @@ static inline void io_out32(uint32_t port,uint32_t data)
 {
     __asm__ __volatile__
     (
-        "outl %k[data],%w[port];"
+        "outl %k0,%w1"
         :
-        :[data]"a"(data),[port]"d"(port)
+        :"a"(data),"d"(port)
         :"memory"
     );
 }
@@ -109,8 +114,8 @@ static inline uint32_t get_flages()
     __asm__ __volatile__
     (
         "pushf;"      /* 将flage寄存器压栈 */
-        "pop %q[flages];"
-        :[flages]"=a"(flages)
+        "popq %q0"
+        :"=a"(flages)
         :
         :"memory"
     );

@@ -1,14 +1,12 @@
-#include <global.h>
-#include <graphic.h>
-#include <debug.h>
-#include <io.h>
-
-#include <thread.h>
-#include <stdio.h>
 #include <interrupt.h>
+#include <graphic.h>
+#include <io.h>
+#include <pic.h>
+#include <stdio.h>
 #include <syscall.h>
+#include <thread.h>
 
-#define IDT_DESC_CNT 0x41 /* 总共支持的中断数 */
+#define IDT_DESC_CNT 0x41
 
 void* intr_handle_entry[IDT_DESC_CNT];
 
@@ -35,26 +33,6 @@ PRIVATE char* intr_name[IDT_DESC_CNT] =
     "#MC Machine-Check Exception\n",
     "#XF SIMD Floating-Point Exception\n",
 };
-
-PRIVATE void init_pic()
-{
-    io_out8(PIC_M_DATA, 0xff ); /* 11111111 禁止所有中断 */
-    io_out8(PIC_S_DATA, 0xff ); /* 11111111 禁止所有中断 */
-
-    io_out8(PIC_M_CTRL, 0x11 ); /* 边沿触发模式 */
-    io_out8(PIC_M_DATA, 0x20 ); /* IRQ0-7由INT20-27接收 */
-    io_out8(PIC_M_DATA, 0x04 ); /* PIC1由IRQ2连接*/
-    io_out8(PIC_M_DATA, 0x01 ); /* 无缓冲区模式 */
-
-    io_out8(PIC_S_CTRL, 0x11 ); /* 与上方类似 */
-    io_out8(PIC_S_DATA, 0x28 ); /* IRQ8-15 INT28-2f */
-    io_out8(PIC_S_DATA, 0x02 ); /* PIC1 IRQ2 */
-    io_out8(PIC_S_DATA, 0x01 ); /* 无缓冲区模式 */
-
-    io_out8(PIC_M_DATA, 0xfc ); /* 1 1 1 1 1 1 键盘 时钟*/
-    io_out8(PIC_S_DATA, 0xff ); /* 1 硬盘 1 PS/2鼠标 1 1 1 实时时钟*/
-    return;
-}
 
 typedef struct
 {
@@ -90,14 +68,12 @@ PRIVATE void set_gatedesc(gate_desc_t* gd,void* func,int selector,int ar)
 /**
  * @brief 通用中断处理函数
 */
-void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
+PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
 {
     if (nr == 0x27)
     {
-        io_out8(PIC_M_CTRL,0x20);
         return;
     }
-    ASSERT(intr_get_status() == INTR_OFF);
     pixel_t col =
     {
         .red = 0,
@@ -197,18 +173,13 @@ PRIVATE void idt_desc_init(void)
     int i;
     for (i = 0;i < IDT_DESC_CNT;i++)
     {
-        set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
+        set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL3);
         intr_handle_entry[i] = general_intr_handler;
     }
     #define INTR_HANDLER(ENTRY,NR,ERROR_CODE) set_gatedesc(&idt[NR],ENTRY,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
     #include <intrlist.h>
     #undef INTR_HANDLER
-}
-
-PUBLIC void register_handle(uint8_t nr,void* handle)
-{
-    intr_handle_entry[nr] = handle;
-    return;
+    set_gatedesc(&idt[SYSCALL_INTR],asm_syscall_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL3);
 }
 
 PUBLIC void init_interrupt()
@@ -216,7 +187,12 @@ PUBLIC void init_interrupt()
     idt_desc_init();
     uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) | (sizeof(idt) - 1);
     __asm__ __volatile__ ("lidt %[idt_ptr]"::[idt_ptr]"m"(idt_ptr):);
-    init_pic();
+    return;
+}
+
+PUBLIC void register_handle(uint8_t nr,void* handle)
+{
+    intr_handle_entry[nr] = handle;
     return;
 }
 

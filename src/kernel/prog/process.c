@@ -1,12 +1,10 @@
 #include <process.h>
-#include <debug.h>
 #include <interrupt.h>
-#include <list.h>
 #include <memory.h>
 #include <string.h>
 #include <tss.h>
 
-void start_process(void* process_name)
+PRIVATE void start_process(void* process_name)
 {
     void* func = process_name;
     task_struct_t* cur = running_thread();
@@ -39,7 +37,12 @@ void start_process(void* process_name)
     proc_stack->cs = SELECTOR_CODE64_U;
     proc_stack->rflages = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
 
-    proc_stack->rsp = ((uintptr_t)kmalloc(PCB_SIZE)) + PCB_SIZE;
+    // 分配用户态下的栈
+    void* pstack = pmalloc(PCB_SIZE);
+    page_map(cur->page_dir,pstack,(void*)USER_STACK_VADDR_BASE);
+    // 基地址 + pcb在页中的偏移 + pcb大小
+    proc_stack->rsp = USER_STACK_VADDR_BASE + ((uintptr_t)pstack & (PG_SIZE - 1)) + PCB_SIZE;
+
     proc_stack->ss = SELECTOR_DATA64_U;
     __asm__ __volatile__
     (
@@ -54,30 +57,22 @@ void start_process(void* process_name)
 /* page_dir_activate
 * 激活页表
 */
-void page_dir_activate(task_struct_t* pthread)
+PRIVATE void page_dir_activate(task_struct_t* pthread)
 {
     void* page_dir_table_pos = (void*)KERNEL_PAGE_DIR_TABLE_POS;
     if (pthread->page_dir != NULL)
     {
         page_dir_table_pos = pthread->page_dir;
     }
-    ASSERT(page_dir_table_pos != NULL)
-    __asm__ __volatile__
-    (
-        "movq %0,%%cr3"
-        :
-        :"r"(page_dir_table_pos)
-        :"memory"
-    );
+    __asm__ __volatile__("movq %0,%%cr3"::"r"(page_dir_table_pos):"memory");
     return;
 }
 
 /* process_activate
 * 激活页表,并更新0特权级下的栈
 */
-void process_activate(task_struct_t* pthread)
+PUBLIC void process_activate(task_struct_t* pthread)
 {
-    ASSERT(pthread != NULL);
     page_dir_activate(pthread);
     if (pthread->page_dir != NULL)
     {
@@ -89,9 +84,9 @@ void process_activate(task_struct_t* pthread)
 /* create_page_dir
 * 为进程创建页目录表
 */
-uint64_t* create_page_dir(void)
+PRIVATE uint64_t* create_page_dir(void)
 {
-    uint64_t pgdir_v = (uint64_t)kmalloc(4096);
+    uint64_t pgdir_v = (uint64_t)pmalloc(PT_SIZE);
     if (pgdir_v == (uint64_t)NULL)
     {
         return NULL;
@@ -101,9 +96,9 @@ uint64_t* create_page_dir(void)
     return (uint64_t*)pgdir_v;
 }
 
-void process_execute(void* process_name,char* name)
+PUBLIC task_struct_t* process_execute(void* process_name,char* name)
 {
-    task_struct_t* pthread = kmalloc(PCB_SIZE);
+    task_struct_t* pthread = pmalloc(PCB_SIZE);
     thread_init(pthread,name,31);
     thread_create(pthread,start_process,process_name);
     pthread->page_dir = create_page_dir();
@@ -116,5 +111,5 @@ void process_execute(void* process_name,char* name)
     list_append(&all_list,&(pthread->all_tag));
     list_append(&ready_list,&(pthread->general_tag));
     intr_set_status(intr_status);
-    return;
+    return pthread;
 }

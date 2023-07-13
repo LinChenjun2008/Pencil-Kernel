@@ -4,7 +4,7 @@
 #include <global.h>
 #include <thread.h>
 
-void init_tss();
-void update_tss_rsp0(task_struct_t* pthread);
+PUBLIC void init_tss();
+PUBLIC void update_tss_rsp0(task_struct_t* pthread);
 
 #endif

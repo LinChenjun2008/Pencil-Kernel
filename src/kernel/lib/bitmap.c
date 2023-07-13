@@ -1,12 +1,11 @@
 #include <bitmap.h>
-#include <debug.h>
 #include <string.h>
 
 /**
  * @brief 初始化位图
  * @param btmp 要初始化的位图指针
 */
-void bitmap_init(bitmap_t* btmp)
+PUBLIC void bitmap_init(bitmap_t* btmp)
 {
     memset(btmp->map,0,btmp->btmp_bytes_len);
     return;
@@ -18,7 +17,7 @@ void bitmap_init(bitmap_t* btmp)
  * @param bit_index   :bit位下标
  * @return true: 为1 false: 为0
 */
-BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
+PUBLIC BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
 {
     size_t byte_index = bit_index / 8;
     size_t bit_odd = bit_index % 8;
@@ -31,15 +30,18 @@ BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
  * @param cnt        :要分配的位数
  * @retval 返回值为位的下标. 返回-1为分配失败
 */
-signed int bitmap_alloc(bitmap_t* btmp,size_t cnt)
+PUBLIC signed int bitmap_alloc(bitmap_t* btmp,size_t cnt)
 {
     size_t byte_index = 0;
     /* 寻找第一个空的bit所在位 */
-    while ((byte_index < (btmp->btmp_bytes_len)) && (btmp->map[byte_index] == 0xff))
+    while ((byte_index < btmp->btmp_bytes_len) && (btmp->map[byte_index] == 0xff))
     {
         byte_index++;
     }
-    ASSERT(byte_index < (btmp->btmp_bytes_len));
+    if (byte_index >= btmp->btmp_bytes_len)
+    {
+        return -1;
+    }
     /* bitmap已满,找不到空位 */
     if (byte_index == (btmp->btmp_bytes_len))
     {
@@ -92,9 +94,8 @@ signed int bitmap_alloc(bitmap_t* btmp,size_t cnt)
  * @param bit_index 要设置的位的下标
  * @param value 设置值
 */
-void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value)
+PUBLIC void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value)
 {
-    ASSERT(value == 0 || value == 1);
     size_t byte_index = bit_index / 8;
     size_t bit_odd = bit_index % 8;
     switch(value)
@@ -106,7 +107,6 @@ void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value)
             btmp->map[byte_index] |= (BITMAP_MASK << bit_odd);
             break;
         default:
-            ASSERT(value == 1 || value == 0);
             break;
     }
     return;

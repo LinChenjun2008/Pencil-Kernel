@@ -1,9 +1,9 @@
-#include <debug.h>
 #include <stdint.h>
 #include <global.h>
 #include <graphic.h>
 #include <init.h>
 #include <interrupt.h>
+#include <pic.h>
 #include <syscall.h>
 #include <timer.h>
 #include <memory.h>
@@ -69,7 +69,7 @@ PUBLIC void init_all()
 {
     init_desctrib();
     init_interrupt();
-    init_serial(COM1_PORT);
+    init_pic();
     init_pit();
     init_syscall();
     init_screen(&(g_boot_info.graph_info));

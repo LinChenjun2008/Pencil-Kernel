@@ -144,6 +144,26 @@ EFI_STATUS
     VOID    **Interface
 );
 
+
+typedef
+VOID
+(EFIAPI *EFI_COPY_MEM)
+(
+    VOID     *Destination,
+    VOID     *Source,
+    UINTN    Length
+);
+
+typedef
+VOID
+(EFIAPI *EFI_SET_MEM)
+(
+    VOID     *Buffer,
+    UINTN    Size,
+    UINT8    Value
+);
+
+
 /// Uefi Runtime services
 typedef struct
 {
@@ -180,53 +200,55 @@ typedef struct
 
 
 typedef struct
-{
-        char _buf1[24];
+    {
+    char _buf1[24];
 
-        // Task Priority Services
-        UINTN _buf2[2];
+    // Task Priority Services
+    UINTN _buf2[2];
 
-        // Memory Services
-        EFI_ALLOCATE_PAGES       AllocatePages;
-        EFI_FREE_PAGES           FreePages;
-        EFI_GET_MEMORY_MAP       GetMemoryMap;
-        EFI_ALLOCATE_POOL        AllocatePool;
-        EFI_FREE_POOL            FreePool;
+    // Memory Services
+    EFI_ALLOCATE_PAGES       AllocatePages;
+    EFI_FREE_PAGES           FreePages;
+    EFI_GET_MEMORY_MAP       GetMemoryMap;
+    EFI_ALLOCATE_POOL        AllocatePool;
+    EFI_FREE_POOL            FreePool;
 
-        // Event & Timer Services
-        UINTN _buf4[2];
-        EFI_WAIT_FOR_EVENT       WaitForEvent;
-        UINTN _buf4_2[3];
+    // Event & Timer Services
+    UINTN _buf4[2];
+    EFI_WAIT_FOR_EVENT       WaitForEvent;
+    UINTN _buf4_2[3];
 
-        // Protocol Handler Services
-        UINTN _buf5[9];
+    // Protocol Handler Services
+    UINTN _buf5[9];
 
-        // Image Services
-        UINTN _buf6[4];
-        EFI_EXIT_BOOT_SERVICES   ExitBootServices;
-        // Miscellaneous Services
-        UINTN _buf7[2];
-        EFI_SET_WATCHDOG_TIMER   SetWatchdogTimer;
+    // Image Services
+    UINTN _buf6[4];
+    EFI_EXIT_BOOT_SERVICES   ExitBootServices;
+    // Miscellaneous Services
+    UINTN _buf7[2];
+    EFI_SET_WATCHDOG_TIMER   SetWatchdogTimer;
 
-        // DriverSupport Services
-        UINTN _buf8[2];
+    // DriverSupport Services
+    UINTN _buf8[2];
 
-        // Open and Close Protocol Services
+    // Open and Close Protocol Services
 
-        EFI_OPEN_PROTOCOL        OpenProtocol;
-        EFI_CLOSE_PROTOCOL       CloseProtocol;
-        UINTN _buf9[1];
+    EFI_OPEN_PROTOCOL        OpenProtocol;
+    EFI_CLOSE_PROTOCOL       CloseProtocol;
+    UINTN _buf9[1];
 
-        // Library Services
-        UINTN _buf10[1];
-        EFI_LOCATE_HANDLE_BUFFER LocateHandleBuffer;
-        EFI_LOCATE_PROTOCOL      LocateProtocol;
-        UINTN _buf_10_2[2];
-        // 32-bit CRC Services
-        UINTN _buf11;
+    // Library Services
+    UINTN _buf10[1];
+    EFI_LOCATE_HANDLE_BUFFER LocateHandleBuffer;
+    EFI_LOCATE_PROTOCOL      LocateProtocol;
+    UINTN _buf_10_2[2];
+    // 32-bit CRC Services
+    UINTN _buf11;
 
-        // Miscellaneous Services
-        UINTN _buf12[3];
+    // Miscellaneous Services
+    EFI_COPY_MEM             CopyMem;
+    EFI_SET_MEM              SetMem;
+    UINTN _buf12;
 } EFI_BOOT_SERVICES;
 
 typedef struct

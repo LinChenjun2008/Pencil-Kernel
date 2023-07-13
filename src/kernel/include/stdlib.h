@@ -3,10 +3,10 @@
 
 typedef unsigned long long int size_t;
 
-// #define malloc kmalloc
-// #define free kfree
+// #define malloc pmalloc
+// #define free pfree
 #include <memory.h>
-static inline void* malloc(int x){return kmalloc(x);}
-static inline void free(void* addr){kfree(addr);}
+static inline void* malloc(int x){return pmalloc(x);}
+static inline void free(void* addr){pfree(addr);}
 
 #endif

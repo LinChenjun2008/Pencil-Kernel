@@ -14,16 +14,13 @@ typedef unsigned long long int wordsize_t;
 
 extern boot_info_t g_boot_info;
 
-/* gdt描述符 */
-#include <desctrib.h>
-
 #define KERNEL_PAGE_DIR_TABLE_POS ((uintptr_t)0x5f9000)
 #define KERNEL_VMA_BASE 0xffff800000000000
 
 #define KADDR_P2V(ADDR) ((ADDR) + KERNEL_VMA_BASE)
 #define KADDR_V2P(ADDR) ((ADDR) - KERNEL_VMA_BASE)
 
-
+#define PT_SIZE 0x1000
 #define PG_SIZE 0x200000
 
 #define PG_P       0b00000001
@@ -53,5 +50,8 @@ extern boot_info_t g_boot_info;
 #define STATIC_ASSERT _Static_assert
 
 #include <symbol.h>
+#include <desctrib.h>
+
+PUBLIC segmdesc_t make_segmdesc(uint32_t base,uint32_t limit,uint16_t access);
 
 #endif

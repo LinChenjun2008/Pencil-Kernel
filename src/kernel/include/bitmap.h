@@ -17,7 +17,7 @@ typedef struct
  * @brief 初始化位图
  * @param btmp 要初始化的位图指针
 */
-void bitmap_init(bitmap_t* btmp);
+PUBLIC void bitmap_init(bitmap_t* btmp);
 
 /**
  * @brief 判断位图中bit_idx是否为1
@@ -25,7 +25,7 @@ void bitmap_init(bitmap_t* btmp);
  * @param bit_index   :bit位下标
  * @return true: 为1 false: 为0
 */
-BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index);
+PUBLIC BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index);
 
 /**
  * @brief 在bitmap中分配cnt个位
@@ -33,7 +33,7 @@ BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index);
  * @param cnt        :要分配的位数
  * @retval 返回值为位的下标. 返回-1为分配失败
 */
-signed int bitmap_alloc(bitmap_t* btmp,size_t cnt);
+PUBLIC signed int bitmap_alloc(bitmap_t* btmp,size_t cnt);
 
 /**
  * @brief 将bitmap的bit_index位设为value
@@ -41,7 +41,7 @@ signed int bitmap_alloc(bitmap_t* btmp,size_t cnt);
  * @param bit_index 要设置的位的下标
  * @param value 设置值
 */
-void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value);
+PUBLIC void bitmap_set(bitmap_t* btmp,size_t bit_index,uint8_t value);
 
 //8388608
 #endif /* __BITMAP_H_ */

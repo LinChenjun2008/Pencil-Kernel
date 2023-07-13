@@ -70,6 +70,7 @@ typedef struct
     wordsize_t r14;
     wordsize_t r13;
     wordsize_t r12;
+
     wordsize_t rbp;
     wordsize_t rbx;
     wordsize_t rdi;
@@ -91,7 +92,7 @@ typedef struct
     unsigned long long int elapsed_ticks; /* 总共运行的时间 */
 
     list_node_t            all_tag;       /* 用于加入全部线程队列 */
-    list_node_t            general_tag;   /* 用于加入就绪线程队列 */
+    list_node_t            general_tag;   /* 用于加入线程队列 */
 
     wordsize_t             *page_dir;     /* 线程的页表 */
     // struct MEMMAN prog_vaddr;          /* 进程的虚拟地址 */
@@ -100,19 +101,19 @@ typedef struct
     message_t              msg;           /* 进程消息体 */
     pid_t                  send_to;       /* 记录进程想要向谁发送消息 */
     pid_t                  recv_from;     /* 记录进程想要从谁获取消息 */
-    list_t                 sender_list;   /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的send_tag加入这个队列 */
+    list_t                 sender_list;   /* 如果有进程A向这个进程发送消息,但本进程没有要接收消息,进程A将自己的general_tag加入这个队列 */
 
-    int fpu_used;
     fpu_t fpu_regs;
 
     wordsize_t             stack_magic;  /* 用于检测是否栈溢出 */
 } task_struct_t;
 
-void init_thread();
-PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg);
 PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int priority);
-void thread_create(task_struct_t* thread,thread_function_t func,void* arg);
 PUBLIC task_struct_t* running_thread();
+PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,void* arg);
+PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg);
+PUBLIC void init_thread();
+
 PUBLIC void schedule();
 
 PUBLIC void thread_block(task_status_t status);

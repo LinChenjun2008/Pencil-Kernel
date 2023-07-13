@@ -1,17 +1,12 @@
-#include <global.h>
 #include <thread.h>
-#include <debug.h>
 #include <bitmap.h>
-#include <sync.h>
+#include <debug.h>
 #include <interrupt.h>
-#include <list.h>
 #include <memory.h>
-#include <graphic.h>
-#include <stdio.h>
-#include <string.h>
-#include <syscall.h>
-
 #include <process.h>
+#include <string.h>
+#include <sync.h>
+#include <syscall.h>
 
 PRIVATE task_struct_t* main_thread;
 PRIVATE task_struct_t* idle_thread;
@@ -44,6 +39,7 @@ PRIVATE void kernel_thread(void)
 {
     uintptr_t  func;
     wordsize_t arg;
+    fpu_init();
     // 获取暂存的值
     __asm__ __volatile__
     (
@@ -72,7 +68,6 @@ PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int 
     {
         thread->status = TASK_RUNNING;
     }
-    thread->fpu_used = 0;
     thread->priority = priority;
     thread->ticks = 0;
     thread->elapsed_ticks = 0;
@@ -99,14 +94,13 @@ PUBLIC task_struct_t* running_thread()
         :
         :
     );
-    return (task_struct_t*)(rsp & 0xffffffffffff0000);
+    return (task_struct_t*)(rsp & ~(PCB_SIZE - 1));
 }
 
-void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
+PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
 {
     thread->self_kstack -= sizeof(intr_stack_t);
     thread->self_kstack -= sizeof(unsigned long long int);
-    ASSERT(thread->self_kstack != 0);
     thread_stack_t* kthread_stack;
     kthread_stack = (thread_stack_t*)thread->self_kstack;
 
@@ -120,14 +114,11 @@ void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
 
 PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg)
 {
-    task_struct_t* thread = (task_struct_t*)KADDR_P2V(kmalloc(PCB_SIZE));
+    task_struct_t* thread = (task_struct_t*)KADDR_P2V(pmalloc(PCB_SIZE));
     thread_init(thread,name,priority);
     thread_create(thread,func,arg);
-    /* 加入就绪队列 */
-    ASSERT(!list_find(&ready_list,&(thread->general_tag)));
+
     list_append(&ready_list,&(thread->general_tag));
-    /* 加入线程队列 */
-    ASSERT(!list_find(&all_list,&(thread->all_tag)));
     list_append(&all_list,&(thread->all_tag));
     return thread;
 }
@@ -150,7 +141,7 @@ PRIVATE void idle(void* arg __attribute__((unused)))
     return;
 }
 
-void init_thread()
+PUBLIC void init_thread()
 {
     list_init(&(ready_list));
     list_init(&(all_list));
@@ -166,7 +157,7 @@ void init_thread()
     return;
 }
 
-void switch_to(void* cur,void* next)
+PRIVATE void switch_to(void* cur,void* next)
 {
     __asm__ __volatile__
     (
@@ -227,17 +218,6 @@ PUBLIC void schedule()
         list_append(&ready_list,&(cur_thread->general_tag));
         cur_thread->status = TASK_RUNNING;
     }
-
-    if (cur_thread->fpu_used == 1)
-    {
-        __asm__ __volatile__ ("fnsave %0"::"m"(cur_thread->fpu_regs));
-    }
-    else
-    {
-        __asm__ __volatile__ ("fnclex \n\t""fninit \n\t");
-        cur_thread->fpu_used = 1;
-    }
-    cur_thread->fpu_used = 1;
     task_struct_t* next = NULL;
     if (list_empty(&ready_list))
     {
@@ -250,12 +230,7 @@ PUBLIC void schedule()
     next->status = TASK_RUNNING;
 
     process_activate(next);
-
-    if (next->fpu_used == 1)
-    {
-        __asm__ __volatile__ ("frstor %0"::"m"(next->fpu_regs));
-    }
-
+    fpu_set(cur_thread,next);
     switch_to(&cur_thread->self_kstack,&next->self_kstack);
     return;
 }

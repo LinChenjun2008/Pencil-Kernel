@@ -1,6 +1,7 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
+#include <global.h>
 #include <stdint.h>
 
 #define COM1_PORT 0x3f8
@@ -12,10 +13,10 @@
 #define COM7_PORT 0x5e8
 #define COM8_PORT 0x4e8
 
-void init_serial(uint16_t port);
-int is_transmit_empty(uint16_t port);
-void write_serial(uint16_t port,char a);
+PUBLIC void init_serial(uint16_t port);
+PUBLIC int is_transmit_empty(uint16_t port);
+PUBLIC void write_serial(uint16_t port,char a);
 
-void pr_log(uint16_t port,const char* log);
+PUBLIC void pr_log(uint16_t port,const char* log);
 
 #endif

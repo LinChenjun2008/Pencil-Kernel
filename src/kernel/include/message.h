@@ -44,6 +44,4 @@ typedef struct
     };
 } message_t;
 
-void resetmsg(message_t* msg);
-
 #endif /* __MESSAGE_H__ */

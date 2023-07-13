@@ -3,20 +3,10 @@
 64位,支持UEFI引导的Pencil-Kernel
 #### 编译工具
 [Windows工具](https://gitee.com/LinChenjun2008/pencil_build/)
-#### 运行(以U盘为例)
-1.先格式化为FAT32/16/12文件系统.(如果原来就是FAT32/16/12文件系统,则可以跳过此步骤)<br />
-2.在根目录下创建EFI目录,然后在EFI文件夹中创建Boot目录<br />
-3.将编译后的程序命名为`BootX64.efi`,复制到`(2)`中创建的Boot文件夹中<br />
-4.将编译后的kernel.sys复制到根目录下.<br />
-5.在`EFI/Boot/`目录下创建`BootConfig.txt`,并输入以下内容:
-```
-.x=1920
-.y=1018
-.kernel = "kernel.sys"
-.typeface = "typeface.sys"
-```
-需要保存为UTF-16 LE 格式.
-其中,`.x`和`.y`设置分辨率,`.kernel`指定内核文件.<br />
-6.将符合utf-8编码的16*16点阵字库命名为`BootConfig.txt`中设定的文件名,并复制到根目录下.<br />
-7.从U盘启动即可.<br />
-* 此文件最后更新日期: 2023/1/31
+#### 安装步骤
+* 寻找一个空U盘作为启动盘,格式化为FAT类文件系统.
+* 在根目录下创建`EFI`目录,然后在`EFI`文件夹中创建`Boot`目录.
+* 在根目录下创建`Kernel`目录,然后在`Kernel`目录中创建`resource`目录.
+* 将一个ttf字库重命名为`typeface.ttf`,并放在`Kernel/resource/`目录中.
+* 打开项目目录的`build/config.txt`,将`PHYSICAL_DISK = `后改为启动盘的卷标.
+* 在`build/`下打开终端,运行`make install`.当出现成功的提示后安装完成.

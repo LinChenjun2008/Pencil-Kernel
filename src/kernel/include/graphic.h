@@ -5,8 +5,8 @@
 
 typedef struct
 {
-    int x;
-    int y;
+    unsigned int x;
+    unsigned int y;
 } position_t;
 
 /** @brief 字体大小 */
@@ -18,12 +18,12 @@ typedef enum
 } fontsize_t;
 
 // typedef uint32_t pixel_t;
-void view_fill(graph_info_t* graph_info,pixel_t color,int x0,int y0,int x1,int y1);
-void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,float font_size,uint8_t* bitmap);
-void pr_str(graph_info_t* graph_info,position_t* pos,pixel_t color,char* str,float font_size);
-void init_screen(graph_info_t* graph_info);
+PUBLIC void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1);
+PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,float font_size,uint8_t* bitmap);
+PUBLIC void pr_str(graph_info_t* graph_info,position_t* pos,pixel_t color,char* str,float font_size);
+PUBLIC void init_screen();
 
-// void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch);
+// PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch);
 /**
 
  * @brief 显示一个字符串.
@@ -34,9 +34,9 @@ void init_screen(graph_info_t* graph_info);
  * @param str      字符串(utf-8)
 
 */
-void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size);
+PUBLIC void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size);
 
-static inline pixel_t color(uint8_t red,uint8_t green,uint8_t blue)
+static inline pixel_t make_color(uint8_t red,uint8_t green,uint8_t blue)
 {
     pixel_t col =
     {

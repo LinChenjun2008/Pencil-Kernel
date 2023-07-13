@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <debug.h>
 
-void init_serial(uint16_t port)
+PUBLIC void init_serial(uint16_t port)
 {
     io_out8(port + 1,0x00);
     io_out8(port + 3,0x80);
@@ -22,18 +22,18 @@ void init_serial(uint16_t port)
     return;
 }
 
-int is_transmit_empty(uint16_t port)
+PUBLIC int is_transmit_empty(uint16_t port)
 {
    return io_in8(port + 5) & 0x20;
 }
 
-void write_serial(uint16_t port,char a)
+PUBLIC void write_serial(uint16_t port,char a)
 {
    while (is_transmit_empty(port) == 0);
    io_out8(port,a);
 }
 
-void pr_log(uint16_t port,const char* log)
+PUBLIC void pr_log(uint16_t port,const char* log)
 {
     while (is_transmit_empty(port) == 0);
     if(*log != 0)

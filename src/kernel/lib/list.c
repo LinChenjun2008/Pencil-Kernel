@@ -5,7 +5,7 @@
  * @brief 初始化链表
  * @param list 待初始化链表的指针
 */
-void list_init(list_t* list)
+PUBLIC void list_init(list_t* list)
 {
     list->head.prev = NULL;
     list->head.next = &list->tail;
@@ -19,7 +19,7 @@ void list_init(list_t* list)
  * @param node     链表节点指针
  * @param in_before node被插入到这个节点前面
 */
-void list_in(list_node_t* node,list_node_t* in_before)
+PUBLIC void list_in(list_node_t* node,list_node_t* in_before)
 {
     intr_status_t status= intr_disable();
 
@@ -39,7 +39,7 @@ void list_in(list_node_t* node,list_node_t* in_before)
  * @param list 链表指针
  * @param node  要添加的元素的指针
 */
-void list_push(list_t* list,list_node_t* node)
+PUBLIC void list_push(list_t* list,list_node_t* node)
 {
     list_in(node,list->head.next);
     return;
@@ -50,7 +50,7 @@ void list_push(list_t* list,list_node_t* node)
  * @param list 链表指针
  * @param node 要添加的元素的指针
 */
-void list_append(list_t* list,list_node_t* node)
+PUBLIC void list_append(list_t* list,list_node_t* node)
 {
     list_in(node,&list->tail);
     return;
@@ -60,7 +60,7 @@ void list_append(list_t* list,list_node_t* node)
  * @brief 将元素从链中退出
  * @param node 要弹出的元素
 */
-void list_remove(list_node_t* node)
+PUBLIC void list_remove(list_node_t* node)
 {
     intr_status_t status = intr_disable();
     node->prev->next = node->next;
@@ -74,7 +74,7 @@ void list_remove(list_node_t* node)
  * @param list 链表指针
  * @return 弹出的元素指针
 */
-list_node_t* list_pop(list_t* list)
+PUBLIC list_node_t* list_pop(list_t* list)
 {
     list_node_t* node = list->head.next;
     list_remove(node);
@@ -88,7 +88,7 @@ list_node_t* list_pop(list_t* list)
  * @retval false 查找失败
  * @retval true  找到元素
 */
-BOOL list_find(list_t* list,list_node_t* objnode)
+PUBLIC BOOL list_find(list_t* list,list_node_t* objnode)
 {
     list_node_t* node = list->head.next;
     while (node != &(list->tail))
@@ -109,7 +109,7 @@ BOOL list_find(list_t* list,list_node_t* objnode)
  * @param arg 作为回调函数function的一个参数
  * @return 符合条件的链表节点指针,没有符合的则返回0
 */
-list_node_t* list_traversal(list_t* list,func function,int arg)
+PUBLIC list_node_t* list_traversal(list_t* list,func function,int arg)
 {
     list_node_t* node = list->head.next;
     while (node != &list->tail)
@@ -128,7 +128,7 @@ list_node_t* list_traversal(list_t* list,func function,int arg)
  * @param list 计算此链表的长度
  * @return 链表长度
 */
-int list_len(list_t* list)
+PUBLIC int list_len(list_t* list)
 {
     list_node_t* node = list->head.next;
     int len = 0;
@@ -140,7 +140,7 @@ int list_len(list_t* list)
     return len;
 }
 
-BOOL list_empty(list_t* list)
+PUBLIC BOOL list_empty(list_t* list)
 {
     return list->head.next == &list->tail;
 }

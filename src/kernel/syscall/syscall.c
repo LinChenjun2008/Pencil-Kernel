@@ -1,36 +1,28 @@
 #include <syscall.h>
-#include <debug.h>
 #include <interrupt.h>
-#include <list.h>
+#include <serial.h>
 #include <stdio.h>
 #include <string.h>
-#include <thread.h>
+#include <subsystem.h>
 
-syscall_return_t send_recv(int function,pid_t src_dst,message_t* msg)
+PUBLIC syscall_status_t send_recv(syscall_function_t function,pid_t src_dst,message_t* msg)
 {
-    syscall_return_t res;
+    syscall_status_t res;
     __asm__ __volatile__
     (
-        "movq %q[function],%%rax \n\t"
-        "movq %q[src_dst],%%rbx \n\t"
-        "movq %q[msg],%%rcx \n\t"
         "int $0x40"
         :"=a"(res)
-        :[function]"r"(function),[src_dst]"r"(src_dst),[msg]"r"(msg)
+        :"a"(function),"b"(src_dst),"c"(msg)
     );
     return res;
 }
 
-pid_t pid_table[TASKPID_END - ANY];
-
-void resetmsg(message_t* msg)
+PRIVATE BOOL deadlock(pid_t src,pid_t dst)
 {
-    memset(msg,0,sizeof(message_t));
-    return;
-}
-
-BOOL deadlock(pid_t src,pid_t dst)
-{
+    if (src == dst)
+    {
+        return TRUE;
+    }
     task_struct_t* pthread = pid2thread(dst);
     while (1)
     {
@@ -58,51 +50,53 @@ BOOL deadlock(pid_t src,pid_t dst)
 PRIVATE uint32_t msg_send(pid_t dst,message_t* msg)
 {
     task_struct_t* sender;
-    task_struct_t* pdest;
+    task_struct_t* pdst;
     sender = running_thread();
     sender->send_to = dst;
-    ASSERT(dst <= 1024);
-    pdest = pid2thread(dst);
-    ASSERT(pdest != NULL);
-    ASSERT(sender != pdest);
-    msg->source = running_thread()->pid;
+    pdst = pid2thread(dst);
+    if (pdst == NULL)
+    {
+        sender->send_to = NO_TASK;
+        return SYSCALL_NO_DST;
+    }
+    msg->source = sender->pid;
     /* 判断是否死锁 */
     if (deadlock(sender->pid,dst))
     {
         char str[128];
-        sprintf(str,"src:%s -> dst:%s dead lock",running_thread()->name,pid2thread(dst)->name);
-        PANIC(str);
-        return 1;
+        sprintf(str,"%s:Error: '%s'(src) -> '%s'(dst) dead lock\n",__func__,sender->name,pid2thread(dst)->name);
+        pr_log(COM1_PORT,str);
+        return SYSCALL_DEADLOCK;
     }
     /* 消息复制到当前进程pcb */
-    memcpy(&(running_thread()->msg),msg,sizeof(message_t));
-    ASSERT(sender->msg.source == msg->source);
+    memcpy(&(sender->msg),msg,sizeof(message_t));
     /* 加入队列 */
-    ASSERT(!list_find(&(pdest->sender_list),&(sender->general_tag)));
-    list_append(&(pdest->sender_list),&(sender->general_tag));
+    list_append(&(pdst->sender_list),&(sender->general_tag));
     /* 对方正准备接收消息 */
-    if (pdest->status == TASK_RECEIVING && (pdest->recv_from == ANY || pdest->recv_from == sender->pid))
+    if (pdst->status == TASK_RECEIVING)
     {
-        /* 唤醒对方 */
-        thread_unblock(pdest);
+        if(pdst->recv_from == ANY || pdst->recv_from == sender->pid)
+        {
+            /* 唤醒对方 */
+            thread_unblock(pdst);
+        }
     }
     /* 阻塞自己 */
     thread_block(TASK_SENDING);
-    /* 被唤醒后不应该还在队列中 */
-    ASSERT(!list_find(&(pdest->sender_list),&(sender->general_tag)));
     sender->send_to = NO_TASK;
-    resetmsg(&(sender->msg));
-    return 0;
+    return SYSCALL_SUCCESS;
 }
 
-int msg_recv(pid_t src,message_t* msg)
+PRIVATE int msg_recv(pid_t src,message_t* msg)
 {
-    ASSERT(src == ANY || src <= 1024);
     task_struct_t* psrc;
     task_struct_t* receiver;
     receiver = running_thread();
 
-    ASSERT(src != receiver->pid);
+    if (src == receiver->pid)
+    {
+        return SYSCALL_DEADLOCK;
+    }
     receiver->recv_from = src;
 
     /* 从任意进程接收消息 */
@@ -114,65 +108,80 @@ int msg_recv(pid_t src,message_t* msg)
             thread_block(TASK_RECEIVING);
         }
         /* 被唤醒说明一定有进程发消息*/
-        ASSERT(!list_empty(&(receiver->sender_list)));
         psrc = list_pop(&(receiver->sender_list))->container;
     }
     /* 从特定进程接收 */
     else
     {
+        if (pid2thread(src) == NULL)
+        {
+            receiver->recv_from = NO_TASK;
+            return SYSCALL_NO_SRC;
+        }
         /* 阻塞,直到收到消息 */
         while (!list_find(&receiver->sender_list,&pid2thread(src)->general_tag))
         {
             thread_block(TASK_RECEIVING);
         }
         list_remove(&pid2thread(src)->general_tag);
-
-        psrc = pid2thread(src)->general_tag.container;
+        psrc = pid2thread(src);
     }
-    ASSERT(psrc != NULL);
+    if (psrc == NULL)
+    {
+        receiver->recv_from = NO_TASK;
+        return SYSCALL_NO_SRC;
+    }
     memcpy(msg,&(psrc->msg),sizeof(message_t));
-    ASSERT(psrc->status == TASK_SENDING)
     psrc->send_to = NO_TASK;
     thread_unblock(psrc);
     receiver->recv_from = NO_TASK;
-    return 0;
+    return SYSCALL_SUCCESS;
 }
 
-syscall_return_t ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),intr_stack_t* stack)
+PRIVATE void ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),intr_stack_t* stack)
 {
-    int function;
+    syscall_function_t function;
     pid_t src_dst;
     message_t* msg;
     function = stack->rax;
     src_dst = stack->rbx;
     msg = (message_t*)stack->rcx;
-    syscall_return_t res = 1;
+    syscall_status_t res = SYSCALL_ERROR;
+    if (0x80000000 + SUBSYS_CNT >= src_dst && src_dst > 0x80000000)
+    {
+        src_dst = subsystem_pid[src_dst - 0x80000000];
+    }
     switch(function)
     {
-        case SEND:
+        case NR_SEND:
             res = msg_send(src_dst,msg);
             break;
-        case RECEIVE:
+        case NR_RECEIVE:
             res = msg_recv(src_dst,msg);
             break;
-        case BOTH:
+        case NR_BOTH:
             res = msg_send(src_dst,msg);
-            if (res == 0)
+            if (res == SYSCALL_SUCCESS)
             {
                 res = msg_recv(src_dst,msg);
             }
             break;
-        case MSG_RECEIVED:
-            res = !list_empty(&(running_thread()->sender_list));
-            break;
         default:
-            ASSERT((function == SEND) || (function == RECEIVE) || (function == BOTH) || (function == MSG_RECEIVED));
+            res = SYSCALL_NO_SYSCALL;
             break;
     }
-    return res;
+
+    if (IS_SYSCALL_ERROR(res))
+    {
+        char s[64];
+        sprintf(s,"%s:%x syscall error(%x)\n",running_thread()->name,function,res);
+        pr_log(COM1_PORT,s);
+    }
+    stack->rax = res;
+    return;
 }
 
-void init_syscall()
+PUBLIC void init_syscall()
 {
     register_handle(SYSCALL_INTR,sys_sendrec);
     return;

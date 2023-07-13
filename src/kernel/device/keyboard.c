@@ -1,7 +1,7 @@
 #include <keyboard.h>
 #include <io.h>
 #include <interrupt.h>
-#include <graphic.h>
+#include <pic.h>
 
 PUBLIC void wait_keyboard_ready()
 {

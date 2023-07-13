@@ -26,6 +26,7 @@ typedef struct
     uint8_t regs[80];
 } __attribute__((packed)) fpu_t;
 
-BOOL init_fpu();
-
+PUBLIC BOOL fpu_check();
+PUBLIC void fpu_init();
+PUBLIC void fpu_set(void* cur_thread,void* next);
 #endif

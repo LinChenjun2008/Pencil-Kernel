@@ -1,57 +1,85 @@
-#定时器类型:8254
-TIMER = 8254
+#定时器类型:8254 或HPET
+#TIMER = 8254
+TIMER = HPET
 
 GuestMemory = 128M
-#文件路径
+CDEF = -D__COMPILE_TIME__="\"$(shell echo %date%%time%)\""
 
-CFLAGS := \
+ifeq ($(TIMER),8254)
+    CDEF += -D__TIMER_8254__
+else
+    CDEF += -D__TIMER_HPET__
+endif
+
+CFLAGS = \
  -Wall -Wextra \
  -finput-charset=UTF-8 -fexec-charset=UTF-8 \
- -fno-builtin -fno-strict-aliasing -fstrength-reduce \
+ -fno-builtin -fno-strict-aliasing -ffreestanding \
+ -fstrength-reduce -falign-loops -falign-jumps \
  -mno-red-zone -m64 -mcmodel=large -march=x86-64 \
  -O0 \
- -g3 -gdwarf-2 -gstrict-dwarf
+ -g3 -gdwarf-2 -gstrict-dwarf \
+ $(CDEF)
 
-UEFI_DIR = ../src/bootloader/
-KERNEL_DIR = ../src/kernel/
+QEMU_FLAGS = \
+ -m $(GuestMemory) -bios $(UEFI_BIOS) \
+ -cpu Nehalem \
+ -smp 1,cores=1,threads=1,sockets=1 \
+ -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
+ -device nec-usb-xhci,id=xhci \
+ -device usb-mouse \
+ -no-shutdown \
+ -chardev stdio,mux=on,id=com1 \
+ -serial chardev:com1
+
+#文件路径
+UEFI_DIR    = ../src/bootloader/
+KERNEL_DIR  = ../src/kernel/
 INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../src/
 
-#源代码
-UEFI_SRC = \
-$(UEFI_DIR)/main.c \
-$(UEFI_DIR)/video.c \
-$(UEFI_DIR)/script.c \
-$(UEFI_DIR)/file.c \
-$(UEFI_DIR)/memory.c \
-$(UEFI_DIR)/lib.c
+UEFI_SRC    = $(UEFI_DIR)/main.c
 
 KERNEL_SRC = \
 $(KERNEL_DIR)/main.c \
 $(KERNEL_DIR)/init.c \
 $(KERNEL_DIR)/debug/debug.c \
 $(KERNEL_DIR)/interrupt/interrupt.c \
+\
 $(KERNEL_DIR)/prog/tss.c \
 $(KERNEL_DIR)/prog/process.c \
+\
 $(KERNEL_DIR)/thread/thread.c \
 $(KERNEL_DIR)/thread/sync.c \
+\
 $(KERNEL_DIR)/memory/memory.c \
 $(KERNEL_DIR)/syscall/syscall.c \
+\
+$(KERNEL_DIR)/device/cpu/cpu.c \
+$(KERNEL_DIR)/device/pic/pic.c \
+$(KERNEL_DIR)/device/pic/8259A.c \
+$(KERNEL_DIR)/device/pic/APIC.c \
+$(KERNEL_DIR)/device/time/time.c \
 $(KERNEL_DIR)/device/timer/$(TIMER).c \
 $(KERNEL_DIR)/device/serial/serial.c \
 $(KERNEL_DIR)/device/fpu/fpu.c \
 $(KERNEL_DIR)/device/keyboard.c \
-$(KERNEL_DIR)/graphic/graphic.c \
-$(KERNEL_DIR)/lib/alloc_table.c \
+\
 $(KERNEL_DIR)/lib/symbol.c \
 $(KERNEL_DIR)/lib/lib.c \
 $(KERNEL_DIR)/lib/list.c \
 $(KERNEL_DIR)/lib/bitmap.c \
+\
 $(KERNEL_DIR)/libc/string.c \
-$(KERNEL_DIR)/libc/stdio.c
+$(KERNEL_DIR)/libc/stdio.c \
+\
+$(KERNEL_DIR)/subsystem/subsystem.c \
+$(KERNEL_DIR)/subsystem/mm/mm.c \
+$(KERNEL_DIR)/subsystem/view/view.c \
+$(KERNEL_DIR)/subsystem/view/graphic.c
 
 #虚拟磁盘和物理磁盘路径
-DISK = ../../run/disk/
-REAL_DISK = ../../../
+DISK = ../../run/esp/
+PHYSICAL_DISK = G:/
 
 #输出文件名
 KERNEL_OBJ       = $(KERNEL_DIR)/kernel.o
@@ -59,31 +87,31 @@ UEFI_OUTPUT      = $(DISK)/EFI/Boot/BootX64.efi
 KERNEL_OUTPUT    = $(DISK)Kernel/kernel.sys
 
 #实际路径(物理磁盘上的路径)
-REAL_UEFI_OUTPUT      = $(REAL_DISK)/EFI/Boot/BootX64.efi
-REAL_KERNEL_OUTPUT    = $(REAL_DISK)/Kernel/kernel.sys
+PHYSICAL_UEFI_OUTPUT      = $(PHYSICAL_DISK)/EFI/Boot/BootX64.efi
+PHYSICAL_KERNEL_OUTPUT    = $(PHYSICAL_DISK)/Kernel/kernel.sys
 
 #工具路径
 TOOL_DIR = ../tools/
 
 #编译器
 Mingw_CC = $(TOOL_DIR)MinGW64/bin/gcc
-CC = $(TOOL_DIR)/cross-compiler/bin/x86_64-elf-gcc
+CC       = $(TOOL_DIR)/cross-compiler/bin/x86_64-elf-gcc
 
 #连接器和链接脚本
-LD  = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/ld
+LD         = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/ld
 KERNEL_LDS = $(KERNEL_DIR)/kernel.lds
 
 #其他
-GDB    = $(TOOL_DIR)/MinGW64/bin/gdb
-NM     = "$(TOOL_DIR)/cross-compiler/x86_64-elf/bin/nm"
-OBJCOPY = $(TOOL_DIR)/objcopy
-OBJDUMP = $(TOOL_DIR)MinGW64/bin/objdump
-RM             = $(TOOL_DIR)/rm
-ECHO = echo
+GDB      = $(TOOL_DIR)/MinGW64/bin/gdb
+NM       = $(TOOL_DIR)/cross-compiler/x86_64-elf/bin/nm
+OBJCOPY  = $(TOOL_DIR)/objcopy
+OBJDUMP  = $(TOOL_DIR)MinGW64/bin/objdump
+RM       = $(TOOL_DIR)/rm
+ECHO     = echo
 KALLSYMS = $(TOOL_DIR)/mytools/kallsyms
 
 #模拟器和UEFI-BIOS
-QEMU = $(TOOL_DIR)/qemu/qemu-system-x86_64
+QEMU           = $(TOOL_DIR)/qemu/qemu-system-x86_64
 UEFI_BIOS      = ../../run/bios.bin
 
 #输出文件格式
