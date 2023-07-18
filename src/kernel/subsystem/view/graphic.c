@@ -6,6 +6,9 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
+
+// #include <interrupt.h>
+
 /**
  * @brief 在屏幕上画一个矩形
 
@@ -47,11 +50,7 @@ PRIVATE stbtt_fontinfo ttf_info;
 
 PUBLIC void init_true_typeface()
 {
-    int status = stbtt_InitFont(&ttf_info, (void*)g_boot_info.ttf_base, 0);
-    if (!status)
-    {
-        ASSERT(status);
-    }
+    stbtt_InitFont(&ttf_info,g_boot_info.ttf_base,0);
     return;
 }
 
@@ -140,8 +139,9 @@ PRIVATE uint64_t utf8_decode(char** _str)
     return code;
 }
 
-PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float font_size)
+PUBLIC void pr_ttf_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float font_size)
 {
+    // intr_status_t intr_status = intr_disable();
     font_size *= 2;
     float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size);
     int ascent = 0;
@@ -164,15 +164,16 @@ PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char*
         int advanceWidth = 0;
         int leftSideBearing = 0;
         stbtt_GetCodepointHMetrics(&ttf_info, code, &advanceWidth, &leftSideBearing);
-        uint8_t *bitmap = pmalloc((ascent - descent) * advanceWidth * sizeof(uint8_t));
+        uint8_t *bitmap = KADDR_P2V(pmalloc((ascent - descent) * advanceWidth * sizeof(uint8_t)));
         pr_ch(graph_info,&pos,color,code,font_size,bitmap);
-        pfree(bitmap);
+        pfree(KADDR_V2P(bitmap));
         char* next = str;
         int kern = stbtt_GetCodepointKernAdvance(&ttf_info, code,utf8_decode(&next));
         pos.x += ceil(advanceWidth * scale);
         pos.x += ceil(kern * scale);
     }
     *vpos = pos;
+    // intr_set_status(intr_status);
     return;
 }
 
@@ -183,7 +184,7 @@ PUBLIC void init_screen()
 
 /**
 
- * @brief 显示一个字符,由vput_utf8_str调用.
+ * @brief 显示一个字符,由pr_str调用.
  * @param vram     显存起始地址
  * @param xsize    水平方向的像素数
  * @param pos      坐标
@@ -248,7 +249,7 @@ PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uin
  * @param str      字符串(utf-8)
 
 */
-PUBLIC void vput_utf8_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size)
+PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size)
 {
     uint64_t code = 0;
     position_t pos = *vpos;

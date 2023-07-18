@@ -76,5 +76,8 @@ PUBLIC void init_all()
     init_memory();
     init_thread();
     init_keyboard();
+    // 清除内核在低地址的映射
+    *(uint64_t*)KERNEL_PAGE_DIR_TABLE_POS = 0;
+    flush_tlb();
     return;
 }

@@ -15,16 +15,24 @@
 #define NUMBER_OF_MEMORY_BLOCK_TYPES 7
 
 // 地址的PML4E索引值
-#define ADDR_PML4T_INDEX(ADDR) ((((uintptr_t)ADDR) & 0x0000ff8000000000) >> 39)
+#define ADDR_PML4T_INDEX(ADDR) ((((uintptr_t)ADDR) >> 39) & 0x1ff)
 
 // 地址的PDPTE索引值
-#define ADDR_PDPT_INDEX(ADDR)  ((((uintptr_t)ADDR) & 0x0000007fc0000000) >> 30)
+#define ADDR_PDPT_INDEX(ADDR)  ((((uintptr_t)ADDR) >> 30) & 0x1ff)
 
-#define ADDR_PDT_INDEX(ADDR)   ((((uintptr_t)ADDR) & 0x000000003fe00000) >> 21)
+#define ADDR_PDT_INDEX(ADDR)   ((((uintptr_t)ADDR) >> 21) & 0x1ff)
 
-#define ADDR_OFFSET(ADDR)      ((((uintptr_t)ADDR) & 0x00000000001fffff) >>  0)
+#define ADDR_OFFSET(ADDR)      ((((uintptr_t)ADDR) & 0x1fffff))
 
-#define flush_tlb() __asm__ __volatile__("movq %%cr3,%%rax\n\t""movq %%rax,%%cr3":::"rax")
+static __inline__ wordsize_t get_cr3()
+{
+    wordsize_t cr3;
+    __asm__ __volatile__("movq %%cr3,%0":"=r"(cr3)::);
+    return cr3;
+}
+
+#define flush_tlb() __asm__ __volatile__("movq %%cr3,%%rax\n\t" \
+                                         "movq %%rax,%%cr3":::"rax")
 
 PUBLIC void init_memory();
 
@@ -46,11 +54,17 @@ PUBLIC void free_physical_page(void* addr,uint64_t number_of_pages);
 PUBLIC void* pmalloc(size_t size);
 PUBLIC void pfree(void* addr);
 
-PUBLIC uint64_t* pml4t_entry(void* vaddr);
-PUBLIC uint64_t* pdpt_entry(void* vaddr);
-PUBLIC uint64_t* pdt_entry(void* vaddr);
+// PUBLIC uint64_t* pml4t_entry(void* vaddr);
+// PUBLIC uint64_t* pdpt_entry(void* vaddr);
+// PUBLIC uint64_t* pdt_entry(void* vaddr);
 
-PUBLIC void* to_physical_address(void* vaddr);
+// PUBLIC void* to_physical_address(void* vaddr);
+
+PUBLIC uint64_t* pml4t_entry(void* pml4t,void* vaddr);
+PUBLIC uint64_t* pdpt_entry(void* pml4t,void* vaddr);
+PUBLIC uint64_t* pdt_entry(void* pml4t,void* vaddr);
+
+PUBLIC void* to_physical_address(void* pml4t,void* vaddr);
 
 PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr);
 #endif

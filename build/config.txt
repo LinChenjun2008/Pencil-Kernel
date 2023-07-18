@@ -1,9 +1,9 @@
 #定时器类型:8254 或HPET
-#TIMER = 8254
-TIMER = HPET
+#TIMER := 8254
+TIMER := HPET
 
 GuestMemory = 128M
-CDEF = -D__COMPILE_TIME__="\"$(shell echo %date%%time%)\""
+CDEF = -D__COMPILE_TIME__="\"$(shell echo %date% %time%)\""
 
 ifeq ($(TIMER),8254)
     CDEF += -D__TIMER_8254__
@@ -23,7 +23,6 @@ CFLAGS = \
 
 QEMU_FLAGS = \
  -m $(GuestMemory) -bios $(UEFI_BIOS) \
- -cpu Nehalem \
  -smp 1,cores=1,threads=1,sockets=1 \
  -drive file=fat:rw:$(DISK),index=0,format=vvfat -net none \
  -device nec-usb-xhci,id=xhci \
@@ -64,6 +63,7 @@ $(KERNEL_DIR)/device/serial/serial.c \
 $(KERNEL_DIR)/device/fpu/fpu.c \
 $(KERNEL_DIR)/device/keyboard.c \
 \
+$(KERNEL_DIR)/lib/alloc_table.c \
 $(KERNEL_DIR)/lib/symbol.c \
 $(KERNEL_DIR)/lib/lib.c \
 $(KERNEL_DIR)/lib/list.c \

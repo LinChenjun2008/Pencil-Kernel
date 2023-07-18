@@ -87,43 +87,43 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
     col.green = 255;
     col.blue = 255;
     fontsize_t font_size = 7;
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,":",font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,":",font_size);
     pos.y += 2 * font_size;
     pos.x -= 2 * font_size;
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,"(\n",font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,"(\n",font_size);
     pos.x = 10;
     font_size = FONT_NORMAL;
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,
+    pr_str(&(g_boot_info.graph_info),&pos,col,
     "你的设备遇到问题,需要重新启动.\n"
     "接下来显示错误信息,然后你可以重新启动.\n\n"
     ,font_size);
     sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack->rax,stack->rbx,stack->rcx,stack->rdx);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack->rbp,stack->rsi,stack->rdi);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack->r8,stack->r9,stack->r10,stack->r11);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack->r12,stack->r13,stack->r14,stack->r15);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     uint64_t crN;
     __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
     sprintf(s,"cr2 = %016x\n",crN);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
     sprintf(s,"cr3 = %016x\n",crN);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"CS:RIP %04x:%016x\n",stack->cs,stack->rip);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     sprintf(s,"nr: 0x%02x 错误码 ERROR CODE: %016x\n",nr,stack->error_code);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     if (nr <= 0x1f)
     {
-        vput_utf8_str(&(g_boot_info.graph_info),&pos,col,"Error: ",font_size);
-        vput_utf8_str(&(g_boot_info.graph_info),&pos,col,intr_name[nr],font_size);
+        pr_str(&(g_boot_info.graph_info),&pos,col,"Error: ",font_size);
+        pr_str(&(g_boot_info.graph_info),&pos,col,intr_name[nr],font_size);
     }
     pos.x = 10;
     sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
-    vput_utf8_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
+    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
 
     wordsize_t rbp = stack->rbp;
     char* name;
@@ -133,7 +133,7 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
         name = address2symbol((wordsize_t)stack->rip);
         if (name)
         {
-            vput_utf8_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
+            pr_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
         }
     }
     int i;
@@ -144,8 +144,8 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
             name = address2symbol(*((wordsize_t*)rbp + 1));
             if (name)
             {
-                vput_utf8_str(&(g_boot_info.graph_info),&pos,col," <+--- ",font_size);
-                vput_utf8_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
+                pr_str(&(g_boot_info.graph_info),&pos,col," <+--- ",font_size);
+                pr_str(&(g_boot_info.graph_info),&pos,col,name,font_size);
             }
         }
         else
@@ -156,7 +156,7 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
     }
     if (i >= 8)
     {
-        vput_utf8_str(&(g_boot_info.graph_info),&pos,col," <+--- [...]",font_size);
+        pr_str(&(g_boot_info.graph_info),&pos,col," <+--- [...]",font_size);
     }
     while (1){;}
 }
@@ -236,7 +236,8 @@ __asm__ \
     "leaq intr_handle_entry(%rip),%rax \n\t"/* rax = &intr_handle_entry */    \
     "movq $"#NR",%rbx \n\t"              /*rax = &intr_handle_entry[NR] */ \
     "callq *(%rax,%rbx,8) \n\t" \
-    "jmp intr_exit" \
+    "leaq intr_exit(%rip),%rax \n\t" \
+    "jmpq *%rax" \
 );
 
 #include <intrlist.h>

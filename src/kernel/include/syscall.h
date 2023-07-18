@@ -4,7 +4,7 @@
 #include <thread.h>
 
 #define SYSCALL_INTR 0x40
-// typedef void* syscall_t;
+
 typedef uint32_t syscall_status_t;
 typedef uint32_t syscall_function_t;
 

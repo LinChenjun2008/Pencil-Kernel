@@ -17,20 +17,29 @@ PRIVATE void time_thread()
     unsigned int time_x1 = 0;
     unsigned int time_y1 = 0;
     position_t pos = {0,0};
+
     col.alpha = 255; // 先在透明状态下打印一遍,用于计算字体大小
-    pr_str(&g_boot_info.graph_info,&pos,col,"0000/00/00 00:00",12.0);
+    sprintf(s,time_style,0,0,0,0,0,0);
+    pr_ttf_str(&g_boot_info.graph_info,&pos,col,s,12.0);
     time_x0 = g_boot_info.graph_info.horizontal_resolution - pos.x - 20;
     time_x1 = g_boot_info.graph_info.horizontal_resolution - 20;
-    pr_str(&g_boot_info.graph_info,&pos,col,"\n",12.0);
+    pr_ttf_str(&g_boot_info.graph_info,&pos,col,"\n",12.0);
     time_y0 = g_boot_info.graph_info.vertical_resolution - (70 + pos.y) / 2;
     time_y1 = time_y0 + pos.y;
     col.alpha = 0;
+
+
+    // time_x0 = g_boot_info.graph_info.horizontal_resolution - 16 * 8 - 20;
+    // time_x1 = g_boot_info.graph_info.horizontal_resolution - 20;
+    // time_y0 = g_boot_info.graph_info.vertical_resolution - (70 + 16) / 2;
+    // time_y1 = time_y0 + 16;
+
     pos.x = time_x0;
     pos.y = time_y0;
 
     sprintf(s,time_style,time.year,time.month,time.day,time.hour,time.minuet);
-    pr_str(&g_boot_info.graph_info,&pos,col,s,12.0);
-
+    pr_ttf_str(&g_boot_info.graph_info,&pos,col,s,12.0);
+    // pr_str(&g_boot_info.graph_info,&pos,col,s,1);
     pixel_t bgc = *((pixel_t*)g_boot_info.graph_info.frame_buffer_base
                 + time_y0 * g_boot_info.graph_info.horizontal_resolution
                 + time_x0);
@@ -42,7 +51,8 @@ PRIVATE void time_thread()
             pos.y = time_y0;
             sprintf(s,time_style,time.year,time.month,time.day,time.hour,time.minuet);
             view_fill(&g_boot_info.graph_info,bgc,time_x0,time_y0,time_x1,time_y1);
-            pr_str(&g_boot_info.graph_info,&pos,col,s,12.0);
+            // pr_str(&g_boot_info.graph_info,&pos,col,s,1);
+            pr_ttf_str(&g_boot_info.graph_info,&pos,col,s,12.0);
             minuet1 = time.minuet;
         }
         get_time(&time);
@@ -80,7 +90,6 @@ PRIVATE void make_background()
 PUBLIC void view_main()
 {
     message_t msg;
-    pid_t source;
     send_recv(NR_RECEIVE,ANY,&msg);
     make_background();
     thread_start("time",31,time_thread,NULL);

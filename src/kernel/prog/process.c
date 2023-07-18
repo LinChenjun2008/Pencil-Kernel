@@ -42,7 +42,6 @@ PRIVATE void start_process(void* process_name)
     page_map(cur->page_dir,pstack,(void*)USER_STACK_VADDR_BASE);
     // 基地址 + pcb在页中的偏移 + pcb大小
     proc_stack->rsp = USER_STACK_VADDR_BASE + ((uintptr_t)pstack & (PG_SIZE - 1)) + PCB_SIZE;
-
     proc_stack->ss = SELECTOR_DATA64_U;
     __asm__ __volatile__
     (
@@ -86,23 +85,36 @@ PUBLIC void process_activate(task_struct_t* pthread)
 */
 PRIVATE uint64_t* create_page_dir(void)
 {
-    uint64_t pgdir_v = (uint64_t)pmalloc(PT_SIZE);
-    if (pgdir_v == (uint64_t)NULL)
+    uint64_t* pgdir_v = KADDR_P2V(pmalloc(PT_SIZE));
+    if (pgdir_v == NULL)
     {
         return NULL;
     }
-    memcpy((uint64_t*)(pgdir_v + 0x800),(uint64_t*)(KERNEL_PAGE_DIR_TABLE_POS + 0x800),2048);
-    memcpy((uint64_t*)(pgdir_v + 0x000),(uint64_t*)(KERNEL_PAGE_DIR_TABLE_POS + 0x000),2048);
-    return (uint64_t*)pgdir_v;
+    memset(pgdir_v,0,PT_SIZE);
+    memcpy(pgdir_v + 0x100,(uint64_t*)KADDR_P2V(KERNEL_PAGE_DIR_TABLE_POS) + 0x100,2048);
+    return (uint64_t*)KADDR_V2P(pgdir_v);
+}
+
+PRIVATE void user_vaddr_table_init(task_struct_t* pthread)
+{
+    size_t entry_size          = sizeof(*pthread->vaddr_table.entries);
+    uint64_t number_of_entries = 1024;
+    void* p = KADDR_P2V(pmalloc(entry_size * number_of_entries));
+    allocate_table_init(&pthread->vaddr_table,p,number_of_entries);
+
+    uint64_t index = USER_VADDR_START / PG_SIZE;
+    uint64_t cnt   = (USER_STACK_VADDR_BASE - USER_VADDR_START) / PG_SIZE;
+    free_units(&pthread->vaddr_table,index,cnt);
+    return;
 }
 
 PUBLIC task_struct_t* process_execute(void* process_name,char* name)
 {
-    task_struct_t* pthread = pmalloc(PCB_SIZE);
+    task_struct_t* pthread = KADDR_P2V(pmalloc(PCB_SIZE));
     thread_init(pthread,name,31);
     thread_create(pthread,start_process,process_name);
     pthread->page_dir = create_page_dir();
-
+    user_vaddr_table_init(pthread);
     /* 加入队列,等待调度 */
     pthread->general_tag.container = pthread;
     pthread->all_tag.container     = pthread;

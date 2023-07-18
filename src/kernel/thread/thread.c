@@ -161,21 +161,21 @@ PRIVATE void switch_to(void* cur,void* next)
 {
     __asm__ __volatile__
     (
-        "pushq %[cur] \n\t"
-        "pushq %[next] \n\t"
+        "pushq %1 \n\t"
+        "pushq %0 \n\t"
         "leaq asm_switch_to(%%rip),%%rax \n\t"
         "callq *%%rax \n\t"
         :
-        :[cur]"g"(cur),[next]"g"(next)
+        :"g"(cur),"g"(next)
     );
 }
 
 __asm__
 (
     "asm_switch_to: \n\t"
-    // cur
-    // next
-    // 栈中这里是返回地址
+    /***    next     *** rsp + 8*10 */
+    /***     cur     *** rsp + 8* 9 */
+    /*** return addr *** rsp + 8* 7 */
     "pushq %rsi \n\t"
     "pushq %rdi \n\t"
     "pushq %rbx \n\t"
@@ -186,13 +186,12 @@ __asm__
     "pushq %r14 \n\t"
     "pushq %r15 \n\t"
 
-    /* 接下来切换栈 */
-    "movq 80(%rsp),%rax \n\t"
+    /* 栈切换 */
+    "movq 72(%rsp),%rax \n\t"
     "movq %rsp,(%rax) \n\t"
-    "movq 88(%rsp),%rax \n\t"
+    "movq 80(%rsp),%rax \n\t"
     "movq (%rax),%rsp \n\t"
-    /* 现在已经切换到next的栈了 */
-    /* 所以下面pop的值并不是刚才push的值 */
+
     "popq %r15 \n\t"
     "popq %r14 \n\t"
     "popq %r13 \n\t"
@@ -202,7 +201,6 @@ __asm__
     "popq %rbx \n\t"
     "popq %rdi \n\t"
     "popq %rsi \n\t"
-
     "retq \n\t"
 );
 
@@ -226,7 +224,6 @@ PUBLIC void schedule()
     list_node_t* next_thread_tag = NULL;
     next_thread_tag = list_pop(&ready_list);
     next = next_thread_tag->container;
-
     next->status = TASK_RUNNING;
 
     process_activate(next);
@@ -276,10 +273,6 @@ PRIVATE BOOL pid_check(list_node_t* node,pid_t pid)
 
 PUBLIC task_struct_t* pid2thread(pid_t pid)
 {
-    if (pid > 1024)
-    {
-        return NULL;
-    }
     list_node_t* node = list_traversal(&all_list,pid_check,pid);
     if (node == NULL)
     {

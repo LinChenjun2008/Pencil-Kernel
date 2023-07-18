@@ -1,9 +1,9 @@
 #ifndef __THREAD_H__
 #define __THREAD_H__
 
+#include <alloc_table.h>
 #include <global.h>
 #include <list.h>
-
 #include <fpu.h>
 
 typedef unsigned long long int pid_t;
@@ -94,9 +94,8 @@ typedef struct
     list_node_t            all_tag;       /* 用于加入全部线程队列 */
     list_node_t            general_tag;   /* 用于加入线程队列 */
 
-    wordsize_t             *page_dir;     /* 线程的页表 */
-    // struct MEMMAN prog_vaddr;          /* 进程的虚拟地址 */
-    // struct mem_desc u_desc[MEM_DESCS];
+    wordsize_t            *page_dir;      /* 线程的页表 */
+    allocate_table_t       vaddr_table;   /* 虚拟地址表,仅在page_dir != NULL 时有效*/
 
     message_t              msg;           /* 进程消息体 */
     pid_t                  send_to;       /* 记录进程想要向谁发送消息 */

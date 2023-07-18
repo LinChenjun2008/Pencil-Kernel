@@ -29,7 +29,7 @@ PRIVATE memory_group_t global_memory_groups[NUMBER_OF_MEMORY_BLOCK_TYPES];
 
 PRIVATE bitmap_t page_bitmap;
 PRIVATE uint8_t  page_bitmap_map[PAGE_BITMAP_BYTES_LEN];
-PRIVATE lock_t   physical_page_lock;
+
 
 typedef list_node_t memory_block_t;
 
@@ -176,12 +176,15 @@ void init_memory()
             }
         }
     }
+    if (max_address / PG_SIZE < PAGE_BITMAP_BYTES_LEN)
+    {
+        page_bitmap.btmp_bytes_len = max_address / PG_SIZE;
+    }
     // 剔除被占用的内存(0 - 16M)
     for (i = 0;i < 8;i++)
     {
         bitmap_set(&page_bitmap,i,1);
     }
-    lock_init(&physical_page_lock);
     // 初始化内存组
     init_memory_group();
     // 为超出4GB地址空间的内存创建页表
@@ -198,7 +201,7 @@ PUBLIC void* alloc_physical_page(uint64_t number_of_pages)
     {
         return NULL;
     }
-    lock_acquire(&physical_page_lock);
+    intr_status_t intr_status = intr_disable();
     signed int index = bitmap_alloc(&page_bitmap,number_of_pages);
     uintptr_t paddr = 0;
     if (index != -1)
@@ -209,9 +212,9 @@ PUBLIC void* alloc_physical_page(uint64_t number_of_pages)
             bitmap_set(&page_bitmap,i,1);
         }
         paddr = (0UL + (uintptr_t)index * PG_SIZE);
-        memset((void*)paddr,0,number_of_pages * PG_SIZE);
+        memset(KADDR_P2V(paddr),0,number_of_pages * PG_SIZE);
     }
-    lock_release(&physical_page_lock);
+    intr_set_status(intr_status);
     return (void*)paddr;
 }
 
@@ -222,13 +225,13 @@ PUBLIC void free_physical_page(void* addr,uint64_t number_of_pages)
         pr_log(COM1_PORT,"free_physical_page: Not a page addr");
         return;
     }
-    lock_acquire(&physical_page_lock);
+    intr_status_t intr_status = intr_disable();
     uintptr_t i;
     for (i = (uintptr_t)addr / PG_SIZE;i < (uintptr_t)addr / PG_SIZE + number_of_pages;i++)
     {
         bitmap_set(&page_bitmap,i,0);
     }
-    lock_release(&physical_page_lock);
+    intr_set_status(intr_status);
     return;
 }
 
@@ -252,7 +255,7 @@ PUBLIC void* pmalloc(size_t size)
     {
         size_t number_of_pages;
         number_of_pages = DIV_ROUND_UP(size + sizeof(*z),PG_SIZE);
-        z = alloc_physical_page(number_of_pages);
+        z = KADDR_P2V(alloc_physical_page(number_of_pages));
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
@@ -262,7 +265,7 @@ PUBLIC void* pmalloc(size_t size)
         z->group = NULL;
         z->cnt = number_of_pages;
         z->large = TRUE;
-        return (void*)(z + 1);
+        return (void*)KADDR_V2P(z + 1);
     }
     for (i = 0;i < NUMBER_OF_MEMORY_BLOCK_TYPES;i++)
     {
@@ -276,7 +279,7 @@ PUBLIC void* pmalloc(size_t size)
     if (list_empty(&global_memory_groups[i].free_block_list))
     {
         // 初始化内存块
-        z = alloc_physical_page(1);
+        z = KADDR_P2V(alloc_physical_page(1));
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
@@ -305,7 +308,7 @@ PUBLIC void* pmalloc(size_t size)
     z = block2zone(b);
     z->cnt--;
     lock_release(&z->group->lock);
-    return (void*)b;
+    return (void*)KADDR_V2P(b);
 }
 
 
@@ -317,11 +320,11 @@ PUBLIC void pfree(void* addr)
     }
     zone_t* z;
     memory_block_t* b;
-    b = addr;
+    b = KADDR_P2V(addr);
     z = block2zone(b);
     if (z->group == NULL && z->large == TRUE)
     {
-        free_physical_page(z,z->cnt);
+        free_physical_page(KADDR_V2P(z),z->cnt);
         return;
     }
     lock_acquire(&z->group->lock);
@@ -336,33 +339,55 @@ PUBLIC void pfree(void* addr)
             b = znoe2block(z,idx);
             list_remove(b);
         }
-        free_physical_page(z,1);
+        free_physical_page(KADDR_V2P(z),1);
     }
     lock_release(&z->group->lock);
     return;
 }
 
-PUBLIC uint64_t* pml4t_entry(void* vaddr)
+// PUBLIC uint64_t* pml4t_entry(void* vaddr)
+// {
+//     wordsize_t pml4t;
+//     __asm__ __volatile__("movq %%cr3,%0":"=r"(pml4t)::);
+//     return (uint64_t*)pml4t + ADDR_PML4T_INDEX(vaddr);
+// }
+
+// PUBLIC uint64_t* pdpt_entry(void* vaddr)
+// {
+//     return (uint64_t*)(*pml4t_entry(vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
+// }
+
+// PUBLIC uint64_t* pdt_entry(void* vaddr)
+// {
+//     return (uint64_t*)(*pdpt_entry(vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
+// }
+
+// PUBLIC void* to_physical_address(void* vaddr)
+// {
+//     return (void*)
+//         ( (*pdt_entry(vaddr) & ~0xfff)
+//         + ADDR_OFFSET(vaddr));
+// }
+
+PUBLIC uint64_t* pml4t_entry(void* pml4t,void* vaddr)
 {
-    wordsize_t pml4t;
-    __asm__ __volatile__("movq %%cr3,%0":"=r"(pml4t)::);
     return (uint64_t*)pml4t + ADDR_PML4T_INDEX(vaddr);
 }
 
-PUBLIC uint64_t* pdpt_entry(void* vaddr)
+PUBLIC uint64_t* pdpt_entry(void* pml4t,void* vaddr)
 {
-    return (uint64_t*)(*pml4t_entry(vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
+    return (uint64_t*)(*pml4t_entry(pml4t,vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
 }
 
-PUBLIC uint64_t* pdt_entry(void* vaddr)
+PUBLIC uint64_t* pdt_entry(void* pml4t,void* vaddr)
 {
-    return (uint64_t*)(*pdpt_entry(vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
+    return (uint64_t*)(*pdpt_entry(pml4t,vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
 }
 
-PUBLIC void* to_physical_address(void* vaddr)
+PUBLIC void* to_physical_address(void* pml4t,void* vaddr)
 {
     return (void*)
-        ( (*pdt_entry(vaddr) & ~0xfff)
+        ( (*pdt_entry(pml4t,vaddr) & ~0xfff)
         + ADDR_OFFSET(vaddr));
 }
 
@@ -376,23 +401,33 @@ PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr)
 {
     paddr = (void*)((uintptr_t)paddr & ~(PG_SIZE - 1));
     vaddr = (void*)((uintptr_t)vaddr & ~(PG_SIZE - 1));
-    uint64_t* pml4e = pml4t + ADDR_PML4T_INDEX(vaddr);
+    /* 带有v_前缀的是虚拟地址,必须通过虚拟地址访问内存 */
+    uint64_t *v_pml4t,*v_pml4e;
+    uint64_t *v_pdpt,*pdpt,*v_pdpte,*pdpte;
+    uint64_t *v_pdt,*pdt,*v_pde,*pde;
+    v_pml4t = KADDR_P2V(pml4t);
+    v_pml4e = v_pml4t + ADDR_PML4T_INDEX(vaddr);
     // pdpte不存在
-    if (!(*pml4e & PG_P))
+    if (!(*v_pml4e & PG_P))
     {
-        uint64_t* pdpt = pmalloc(PT_SIZE);
-        memset(pdpt,0,PT_SIZE);
-        *pml4e = (uint64_t)pdpt | PG_US_U | PG_RW_W | PG_P;
+        pdpt = pmalloc(PT_SIZE);
+        v_pdpt = KADDR_P2V(pdpt);
+        memset(v_pdpt,0,PT_SIZE);
+        *v_pml4e = (uint64_t)pdpt | PG_US_U | PG_RW_W | PG_P;
     }
-    uint64_t* pdpte = (uint64_t*)((*pml4e & ~0xfff) + ADDR_PDPT_INDEX(vaddr) * 8);
-
+    pdpt = (uint64_t*)(*v_pml4e & (~0xfff));
+    pdpte = pdpt + ADDR_PDPT_INDEX(vaddr);
+    v_pdpte = KADDR_P2V(pdpte);
     // pdt不存在
-    if (!(*pdpte & PG_P))
+    if (!(*v_pdpte & PG_P))
     {
-        uint64_t* pdt = pmalloc(PT_SIZE);
-        memset(pdt,0,PT_SIZE);
-        *pdpte = (uint64_t)pdt | PG_US_U | PG_RW_W | PG_P;
+        pdt = pmalloc(PT_SIZE);
+        v_pdt = KADDR_P2V(pdt);
+        memset(v_pdt,0,PT_SIZE);
+        *v_pdpte = (uint64_t)pdt | PG_US_U | PG_RW_W | PG_P;
     }
-    uint64_t* pde = (uint64_t*)((*pdpte & ~0xfff) + ADDR_PDT_INDEX(vaddr) * 8);
-    *pde = (uint64_t)paddr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+    pdt = (uint64_t*)(*v_pdpte & (~0xfff));
+    pde = pdt + ADDR_PDT_INDEX(vaddr);
+    v_pde = KADDR_P2V(pde);
+    *v_pde = (uint64_t)paddr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
 }

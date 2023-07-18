@@ -17,8 +17,8 @@ extern boot_info_t g_boot_info;
 #define KERNEL_PAGE_DIR_TABLE_POS ((uintptr_t)0x5f9000)
 #define KERNEL_VMA_BASE 0xffff800000000000
 
-#define KADDR_P2V(ADDR) ((ADDR) + KERNEL_VMA_BASE)
-#define KADDR_V2P(ADDR) ((ADDR) - KERNEL_VMA_BASE)
+#define KADDR_P2V(ADDR) ((void*)((uintptr_t)(ADDR) |  KERNEL_VMA_BASE))
+#define KADDR_V2P(ADDR) ((void*)((uintptr_t)(ADDR) & ~KERNEL_VMA_BASE))
 
 #define PT_SIZE 0x1000
 #define PG_SIZE 0x200000
@@ -38,6 +38,7 @@ extern boot_info_t g_boot_info;
 #define EFLAGS_IF_1   (1 << 9)
 #define EFLAGS_IF_0   (0 << 9)
 #define EFLAGS_IOPL_0 (0 << 12)
+#define EFLAGS_IOPL_3 (3 << 12)
 
 #define PUBLIC
 #define PRIVATE static
