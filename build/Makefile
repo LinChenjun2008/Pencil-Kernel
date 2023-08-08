@@ -23,7 +23,7 @@ include config.txt
 	@$(ECHO) compile BootLoader...
 	@"$(Mingw_CC)" -Wall -Wextra -Werror $(INCLUDE_DIR) -e UefiMain -nostdinc -nostdlib \
 	-finput-charset=UTF-8 -fexec-charset=UTF-16 -fno-stack-protector -O0 \
-	-fno-builtin -Wl,--subsystem,10 -m64 -mcmodel=large -fpic -o $@ $(filter-out Makefile,$^)
+	-fno-builtin -Wl,--subsystem,10 -m64 -mcmodel=large -fpic -o $@ $^
 
 .PHONY: uefi config.txt
 uefi: $(UEFI_OUTPUT)
@@ -55,4 +55,5 @@ uninstall:
 .PHONY: clean
 clean:
 	-$(RM) -f $(KERNEL_SRC:c=o) $(KERNEL_DIR)kernel.map \
-	kernel.sym kallsyms.c kallsyms.o
+	kernel.sym kallsyms.c kallsyms.o \
+	$(UEFI_OUTPUT)

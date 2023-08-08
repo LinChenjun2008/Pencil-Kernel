@@ -1,21 +1,15 @@
 #ifndef __KERNEL_COMMON_H__
 #define __KERNEL_COMMON_H__
 
-#include <stdint.h>
-#include <stddef.h>
+#include <std/stdint.h>
+#include <std/stddef.h>
 
+#pragma pack(1)
 typedef struct
 {
-    uintptr_t frame_buffer_base;
-    unsigned int       horizontal_resolution;
-    unsigned int       vertical_resolution;
-    // struct
-    // {
-    //     uint32_t    RedMask;
-    //     uint32_t    GreenMask;
-    //     uint32_t    BlueMask;
-    //     uint32_t    ReservedMask;
-    // }PixelBitMask;
+    uintptr_t    frame_buffer_base;
+    unsigned int horizontal_resolution;
+    unsigned int vertical_resolution;
 } graph_info_t;
 
 typedef struct
@@ -27,26 +21,36 @@ typedef struct
     uint32_t descriptor_version;
 } memory_map_t;
 
+// RSDP
+typedef struct
+{
+    uint64_t Signature;
+    uint8_t  Checksum;
+    uint8_t  OemId[6];
+    uint8_t  Revision;
+    uint32_t RsdtAddress;
+    uint32_t Length;
+    uint64_t XsdtAddress;
+    uint8_t  ExtendedChecksum;
+    uint8_t  Reserved[3];
+} RSDP_t;
+
 typedef struct
 {
     uintptr_t base_address;
     size_t    size;
-    uint8_t   flag;
-} loaded_file_t;
+    uint32_t  flag;
+} file_table_t;
 
 
 typedef struct
 {
     uint64_t       magic;               // 5a 42 cb 16 13 d4 a6 2f
-    uint64_t       kernel_base_address; // 内核加载地址
-    uint64_t       typeface_base;       // 点阵字体加载地址
-    uint64_t       typeface_size;
-    uint64_t       ttf_base;            // TrueType字体加载地址
-    uint64_t       ttf_size;
     memory_map_t   memory_map;          // 内存描述符
     graph_info_t   graph_info;          // 图形信息
-    // uint8_t        loaded_files;        // 已加载的文件数
-    // loaded_file_t *loaded_file;         // 已加载的文件
+    RSDP_t        *rsdp;
+    uint8_t        loaded_files;        // 已加载的文件数
+    file_table_t  *loaded_file;         // 已加载的文件
 } boot_info_t;
 
 typedef struct
@@ -56,5 +60,6 @@ typedef struct
     uint8_t    red;
     uint8_t    alpha;
 } pixel_t;
+#pragma pack()
 
 #endif

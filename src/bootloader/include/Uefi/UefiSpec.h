@@ -266,7 +266,7 @@ typedef struct
     unsigned long long _buf3[2];
     EFI_RUNTIME_SERVICES            *RuntimeServices;
     EFI_BOOT_SERVICES               *BootServices;
-    UINTN                            NumberOfTableEntrties;
+    UINTN                            NumberOfTableEntries;
     EFI_CONFIGURATION_TABLE         *ConfigurationTable;
 } EFI_SYSTEM_TABLE;
 

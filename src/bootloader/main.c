@@ -9,6 +9,7 @@ EFI_HANDLE                       gImageHandle;
 EFI_GUID gEfiGraphicsOutputProtocolGuid   = EFI_GRAPHICS_OUTPUT_PROTOCOL_GUID;
 EFI_GUID gEfiSimpleFileSystemProtocolGuid = EFI_SIMPLE_FILE_SYSTEM_PROTOCOL_GUID;
 EFI_GUID gEfiFileInfoGuid                 = EFI_FILE_INFO_ID;
+EFI_GUID gEfiAcpiTableGuid                = EFI_ACPI_TABLE_GUID;
 
 typedef struct
 {
@@ -19,7 +20,8 @@ typedef struct
     UINT32 descriptor_version;
 } EFI_MEMORY_MAP;
 
-EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* SystemTable)
+EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,
+                           IN EFI_SYSTEM_TABLE* SystemTable)
 {
     EFI_STATUS Status = EFI_SUCCESS;
     EfiInit(ImageHandle,SystemTable);
@@ -30,15 +32,21 @@ EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* System
     SetVideoMode(HORIZONTAL_RESOLUTION,VERTICAL_RESOLUTION);
 
     gST->ConOut->OutputString(gST->ConOut,L"\n\rPencil-Boot Starting...\n\r");
-    EFI_PHYSICAL_ADDRESS ArrFileBufferBase[sizeof(Files) / sizeof(Files[0])] = {0};
-    UINT64               ArrFileSize[sizeof(Files) / sizeof(Files[0])] = {0};
+
+    boot_info_t *boot_info = (void*)0x7c00;
+    gBS->SetMem(boot_info,sizeof(*boot_info),0);
+    // 加载文件
     EFI_PHYSICAL_ADDRESS FileBufferBase = 0;
     UINT64               FileSize = 0;
+    UINT32               FileFlag = 0;
+    boot_info->loaded_files = 0;
     UINTN i;
     for (i = 0;i < sizeof(Files) / sizeof(Files[0]);i++)
     {
         FileBufferBase = Files[i].FileBufferBase;
-        Status = ReadFile(Files[i].Name,&FileBufferBase,Files[i].FileBufferType,&FileSize);
+        FileFlag       = Files[i].Flag;
+        Status = ReadFile(Files[i].Name,&FileBufferBase,Files[i].FileBufferType,
+                          &FileSize);
         gST->ConOut->OutputString(gST->ConOut,L"Load File ");
         CHAR16 str[2];
         str[0] = i + L'0';
@@ -59,10 +67,12 @@ EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* System
         else
         {
             gST->ConOut->OutputString(gST->ConOut,L" Success");
+            boot_info->loaded_file[boot_info->loaded_files].base_address = FileBufferBase;
+            boot_info->loaded_file[boot_info->loaded_files].size         = FileSize;
+            boot_info->loaded_file[boot_info->loaded_files].flag         = FileFlag;
+            boot_info->loaded_files++;
         }
         gST->ConOut->OutputString(gST->ConOut,L"\n\r");
-        ArrFileBufferBase[i] = FileBufferBase;
-        ArrFileSize[i]       = FileSize;
     }
 
     memory_map_t Memmap =
@@ -75,21 +85,15 @@ EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* System
     };
     GetMemoryMap(&Memmap);
 
-    boot_info_t *boot_info = (void*)0x7c00;
-
     boot_info->magic                            = 0x5a42cb1613d4a62f;
-
-    boot_info->kernel_base_address              = 0x100000;
-    boot_info->typeface_base                    = ArrFileBufferBase[1];
-    boot_info->typeface_size                    = ArrFileSize[1];
-    boot_info->ttf_base                         = ArrFileBufferBase[2];
-    boot_info->ttf_size                         = ArrFileSize[2];
-
     boot_info->memory_map                       = Memmap;
-
-    boot_info->graph_info.horizontal_resolution = Gop->Mode->Info->HorizontalResolution;
-    boot_info->graph_info.vertical_resolution   = Gop->Mode->Info->VerticalResolution;
+    boot_info->graph_info.horizontal_resolution = Gop->Mode->
+                                                  Info->HorizontalResolution;
+    boot_info->graph_info.vertical_resolution   = Gop->Mode->
+                                                  Info->VerticalResolution;
     boot_info->graph_info.frame_buffer_base     = 0xffff807fc0000000;
+
+    boot_info->rsdp  = GetRsdp();
 
     UINTN PML4T_POS = 0x5f9000;
     gBS->AllocatePages(AllocateAddress,EfiLoaderData,7,&PML4T_POS);
@@ -109,7 +113,8 @@ EFI_STATUS EFIAPI UefiMain(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* System
     return Status;
 }
 
-EFI_STATUS EFIAPI EfiInit(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* SystemTable)
+EFI_STATUS EFIAPI EfiInit(IN EFI_HANDLE ImageHandle,
+                          IN EFI_SYSTEM_TABLE* SystemTable)
 {
     gImageHandle = ImageHandle;
     gBS = SystemTable->BootServices;
@@ -119,7 +124,9 @@ EFI_STATUS EFIAPI EfiInit(IN EFI_HANDLE ImageHandle,IN EFI_SYSTEM_TABLE* SystemT
     return EFI_SUCCESS;
 }
 
-EFI_STATUS ReadFile(IN CHAR16* FileName,IN OUT EFI_PHYSICAL_ADDRESS *FileBufferBase,IN EFI_ALLOCATE_TYPE BufferType,OUT UINT64* FileSize)
+EFI_STATUS ReadFile(IN CHAR16* FileName,
+                    IN OUT EFI_PHYSICAL_ADDRESS *FileBufferBase,
+                    IN EFI_ALLOCATE_TYPE BufferType,OUT UINT64* FileSize)
 {
     EFI_FILE_PROTOCOL* FileHandle;
     EFI_STATUS Status = EFI_SUCCESS;
@@ -255,9 +262,11 @@ void SetVideoMode(int x,int y)
     for(i = 0;i < Gop->Mode->MaxMode;i++)
     {
         Gop->QueryMode(Gop,i,&SizeOfInfo,&Info);
-        if(abs(x - Info->HorizontalResolution) + abs(y -Info->VerticalResolution) < sub)
+        if(abs(x - Info->HorizontalResolution)
+           + abs(y -Info->VerticalResolution) < sub)
         {
-            sub = abs(x - Info->HorizontalResolution) + abs(y - Info->VerticalResolution);
+            sub =  abs(x - Info->HorizontalResolution)
+                 + abs(y - Info->VerticalResolution);
             Mode = i;
         }
     }
@@ -281,6 +290,41 @@ EFI_STATUS GetMemoryMap(memory_map_t* memmap)
         &memmap->descriptor_version
     );
     return Status;
+}
+
+void* GetRsdp()
+{
+    EFI_CONFIGURATION_TABLE *ConfigTable = NULL;
+    ConfigTable = gST->ConfigurationTable;
+    EFI_ACPI_6_4_ROOT_SYSTEM_DESCRIPTION_POINTER* Root;
+    UINTN i;
+    for (i = 0;i < gST->NumberOfTableEntries;i++)
+    {
+        if (CompareGuid(&ConfigTable->VendorGuid,&gEfiAcpiTableGuid))
+        {
+            Root = ConfigTable->VendorTable;
+            if (Root->Revision == 2)
+            {
+                CHAR16 s[2];
+                s[0] = L'0' + Root->Revision;
+                s[1] = 0;
+                gST->ConOut->OutputString(gST->ConOut,L"RSDP version is ");
+                gST->ConOut->OutputString(gST->ConOut,s);
+                gST->ConOut->OutputString(gST->ConOut,L"\n\r");
+                return Root;
+            }
+        }
+        ConfigTable++;
+    }
+    CHAR16 s[2];
+    s[0] = L'0' + Root->Revision;
+    s[1] = 0;
+    gST->ConOut->OutputString(gST->ConOut,L"RSDP version is ");
+    gST->ConOut->OutputString(gST->ConOut,s);
+    gST->ConOut->OutputString(gST->ConOut,L"\n\r");
+    gST->ConOut->OutputString(gST->ConOut,L"[Error] RSDP Not Found.\n");
+    while(1);
+    return NULL;
 }
 
 VOID CreatePage(EFI_PHYSICAL_ADDRESS PML4T)
@@ -332,7 +376,8 @@ VOID CreatePage(EFI_PHYSICAL_ADDRESS PML4T)
     Addr = Gop->Mode->FrameBufferBase;
     for(i = 0;i < (Gop->Mode->FrameBufferSize + 0x1fffff) / 0x200000;i++)
     {
-        *((UINTN*)Frame_buffer_PDT + i) = Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+        *((UINTN*)Frame_buffer_PDT + i) =
+                                   Addr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
         Addr += 0x200000;
     }
     return;
@@ -366,7 +411,8 @@ static inline pixel_t make_color(uint8_t red,uint8_t green,uint8_t blue)
                     的右下角坐标(x1,y1)
 
 */
-void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1)
+void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,
+               unsigned int y0,unsigned int x1,unsigned int y1)
 {
     unsigned int x;
     unsigned int y;

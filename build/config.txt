@@ -3,7 +3,7 @@
 TIMER := HPET
 
 GuestMemory = 128M
-CDEF = -D__COMPILE_TIME__="\"$(shell echo %date% %time%)\""
+CDEF =
 
 ifeq ($(TIMER),8254)
     CDEF += -D__TIMER_8254__
@@ -39,6 +39,7 @@ INCLUDE_DIR = -I$(KERNEL_DIR)/include/ -I$(UEFI_DIR)/include/ -I../src/
 UEFI_SRC    = $(UEFI_DIR)/main.c
 
 KERNEL_SRC = \
+$(KERNEL_DIR)/setup.c \
 $(KERNEL_DIR)/main.c \
 $(KERNEL_DIR)/init.c \
 $(KERNEL_DIR)/debug/debug.c \
@@ -53,6 +54,7 @@ $(KERNEL_DIR)/thread/sync.c \
 $(KERNEL_DIR)/memory/memory.c \
 $(KERNEL_DIR)/syscall/syscall.c \
 \
+$(KERNEL_DIR)/device/acpi/acpi.c \
 $(KERNEL_DIR)/device/cpu/cpu.c \
 $(KERNEL_DIR)/device/pic/pic.c \
 $(KERNEL_DIR)/device/pic/8259A.c \
