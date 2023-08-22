@@ -1,5 +1,5 @@
 #include <bitmap.h>
-#include <string.h>
+#include <std/string.h>
 
 /**
  * @brief 初始化位图
@@ -17,7 +17,7 @@ PUBLIC void bitmap_init(bitmap_t* btmp)
  * @param bit_index   :bit位下标
  * @return true: 为1 false: 为0
 */
-PUBLIC BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
+PUBLIC bool bitmap_scan_test(bitmap_t* btmp,size_t bit_index)
 {
     size_t byte_index = bit_index / 8;
     size_t bit_odd = bit_index % 8;
@@ -34,7 +34,8 @@ PUBLIC signed int bitmap_alloc(bitmap_t* btmp,size_t cnt)
 {
     size_t byte_index = 0;
     /* 寻找第一个空的bit所在位 */
-    while ((byte_index < btmp->btmp_bytes_len) && (btmp->map[byte_index] == 0xff))
+    while ((byte_index < btmp->btmp_bytes_len)
+        && (btmp->map[byte_index] == 0xff))
     {
         byte_index++;
     }

@@ -1,7 +1,7 @@
 #include <subsystem.h>
 #include <graphic.h>
-#include <interrupt.h>
-#include <stdio.h>
+#include <interrupt/interrupt.h>
+#include <std/stdio.h>
 #include <time.h>
 
 PRIVATE void time_thread()
@@ -28,18 +28,10 @@ PRIVATE void time_thread()
     time_y1 = time_y0 + pos.y;
     col.alpha = 0;
 
-
-    // time_x0 = g_boot_info.graph_info.horizontal_resolution - 16 * 8 - 20;
-    // time_x1 = g_boot_info.graph_info.horizontal_resolution - 20;
-    // time_y0 = g_boot_info.graph_info.vertical_resolution - (70 + 16) / 2;
-    // time_y1 = time_y0 + 16;
-
     pos.x = time_x0;
     pos.y = time_y0;
-
     sprintf(s,time_style,time.year,time.month,time.day,time.hour,time.minuet);
     pr_ttf_str(&g_boot_info.graph_info,&pos,col,s,12.0);
-    // pr_str(&g_boot_info.graph_info,&pos,col,s,1);
     pixel_t bgc = *((pixel_t*)g_boot_info.graph_info.frame_buffer_base
                 + time_y0 * g_boot_info.graph_info.horizontal_resolution
                 + time_x0);
@@ -51,7 +43,6 @@ PRIVATE void time_thread()
             pos.y = time_y0;
             sprintf(s,time_style,time.year,time.month,time.day,time.hour,time.minuet);
             view_fill(&g_boot_info.graph_info,bgc,time_x0,time_y0,time_x1,time_y1);
-            // pr_str(&g_boot_info.graph_info,&pos,col,s,1);
             pr_ttf_str(&g_boot_info.graph_info,&pos,col,s,12.0);
             minuet1 = time.minuet;
         }
@@ -68,22 +59,26 @@ PRIVATE void make_background()
     color.red   = 0x20;
     color.green = 0x70;
     color.blue  = 0x90;
-    view_fill(graph_info,color,0,0,graph_info->horizontal_resolution,graph_info->vertical_resolution - tsk);
+    view_fill(graph_info,color,0,0,graph_info->horizontal_resolution,
+              graph_info->vertical_resolution - tsk);
 
     color.red   = 0x20;
     color.green = 0x20;
     color.blue  = 0x20;
-    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,graph_info->horizontal_resolution,graph_info->vertical_resolution);
+    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,
+              graph_info->horizontal_resolution,graph_info->vertical_resolution);
 
     color.red   = 0x50;
     color.green = 0x50;
     color.blue  = 0x50;
-    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,tsk * 4,graph_info->vertical_resolution);
+    view_fill(graph_info,color,0,    graph_info->vertical_resolution - tsk,
+              tsk * 4,graph_info->vertical_resolution);
 
     color.red   = 0xa0;
     color.green = 0xa0;
     color.blue  = 0xa0;
-    view_fill(graph_info,color,10,    graph_info->vertical_resolution - tsk + 10,tsk - 10,graph_info->vertical_resolution - 10);
+    view_fill(graph_info,color,10,    graph_info->vertical_resolution - tsk + 10,
+              tsk - 10,graph_info->vertical_resolution - 10);
     intr_set_status(intr_status);
 }
 

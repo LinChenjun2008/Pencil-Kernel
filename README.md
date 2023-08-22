@@ -31,7 +31,8 @@ mkdir Kernel
 cd .\EFI
 mkdir Boot
 ```
-3. Open `pencil-kernel\build\config.txt` and configure the following:
+3. Compile `build\kallsyms.cpp`, just compile it the same way you would compile an application.
+4. Open `pencil-kernel\build\config.txt` and configure the following:
 * `DISK`:The `esp` folder created above.
 * `PHYSICAL_DISK`: The physical disk which you want install pencil-kernel.(Optional).
 
@@ -48,6 +49,7 @@ PHYSICAL_DISK = E:\
 * `OBJCOPY`
 * `OBJDUMP`
 * `RM`:(Optional).
+* `KALLSYMS`: kallsyms compiled in step 3.
 * `QEMU`:qemu simulator
 * `UEFI_BIOS`:Ovmf
 
@@ -59,10 +61,11 @@ NM        = x86_64-elf-tools/x86_64-elf/bin/nm.exe
 OBJCOPY   = x86_64-elf-tools/x86_64-elf/bin/objcopy.exe
 OBJDUMP   = x86_64-elf-tools/x86_64-elf/bin/objdump.exe
 RM        = rm.exe
+KALLSYMS = build/kallsyms.exe
 QEMU      = qemu/qemu-system-x86_64.exe
 UEFI_BIOS = vm/ovmf.bin
 ```
-4. Enter in the `pencil-kernel\build\` directory and execute `make bootoader`and`make kernel`.
+5. Enter in the `pencil-kernel\build\` directory and execute `make bootoader`and`make kernel`.
 
 example:
 ```

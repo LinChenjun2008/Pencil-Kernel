@@ -1,9 +1,12 @@
 #include <memory.h>
 #include <bitmap.h>
 #include <Efi.h>
-#include <interrupt.h>
-#include <serial.h>
-#include <string.h>
+#include <interrupt/interrupt.h>
+#include <device/serial.h>
+
+#include <device/acpi.h>
+
+#include <std/string.h>
 #define PAGE_BITMAP_BYTES_LEN 2048
 
 typedef enum
@@ -38,7 +41,7 @@ typedef struct
     memory_group_t *group;  // 该内存区域属于哪个内存块类型,只有large为0时有效
     uint64_t        number_of_blocks;
     size_t          cnt;   // large:false -> 空闲内存单位数量. large:true -> 内存区页数
-    BOOL            large;
+    bool            large;
 } zone_t;
 
 size_t page_index_high(uintptr_t page_addr)
@@ -82,7 +85,7 @@ PRIVATE memory_type_t type_uefi2os(EFI_MEMORY_TYPE efi_type)
             type = UNUSEABLE_MEMORY;
             break;
         default:
-            type = MAX_MEMORY_TYPE; // 应该不会到这里
+            type = MAX_MEMORY_TYPE;
             break;
     }
     return type;
@@ -112,29 +115,12 @@ PRIVATE void init_memory_group()
 
 PRIVATE void make_page_table(uintptr_t max_address)
 {
-    uintptr_t pml4e_pos = KERNEL_PAGE_DIR_TABLE_POS;
-    int pdpte_idx = ADDR_PDPT_INDEX(max_address);
-    if (max_address >= 0x0000007fc0000000)
+    uint8_t* paddr;
+    for ( paddr = (void*)0x10000000UL;
+          paddr <= (uint8_t*)max_address;
+          paddr += PG_SIZE )
     {
-        pdpte_idx = 510;
-    }
-    // 只要增加PDE ASSERT(pdpte_idx > 3)
-    // 原来已经有3个pde了
-    int number_of_pde = pdpte_idx - 3;
-    uintptr_t pde_addr = (uintptr_t)alloc_physical_page((number_of_pde * 4096 + PG_SIZE - 1) / PG_SIZE);
-    uintptr_t address = 0x100000000;
-    uintptr_t pdpte_pos = pml4e_pos + 1 * PT_SIZE;
-    int i;
-    for (i = 3;i <= pdpte_idx;i++)
-    {
-        uintptr_t pde_pos = pde_addr + i * PT_SIZE;
-        *((uint64_t*)pdpte_pos + i) = pde_pos | PG_US_U | PG_RW_W | PG_P;
-        int j;
-        for (j = 0;j < 511;j++)
-        {
-            *((uint64_t*)pde_pos + j) = address | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
-            address += 0x200000;
-        }
+        page_map((uint64_t*)KERNEL_PAGE_DIR_TABLE_POS,paddr,paddr);
     }
     return;
 }
@@ -145,27 +131,29 @@ void init_memory()
     page_bitmap.btmp_bytes_len = PAGE_BITMAP_BYTES_LEN;
     bitmap_init(&page_bitmap);
     int number_of_memory_desct;
-    number_of_memory_desct = g_boot_info.memory_map.map_size / g_boot_info.memory_map.descriptor_size;
+    number_of_memory_desct = g_boot_info.memory_map.map_size
+                           / g_boot_info.memory_map.descriptor_size;
     uintptr_t total_free = 0;
-    uintptr_t max_address = 0; // 记录最大的内存地址
+    uintptr_t max_address = 0;
     int i;
     for (i = 0;i < number_of_memory_desct;i++)
     {
-        EFI_MEMORY_DESCRIPTOR* efi_memory_desc = (EFI_MEMORY_DESCRIPTOR*)g_boot_info.memory_map.buffer;
+        EFI_MEMORY_DESCRIPTOR* efi_memory_desc =
+                          (EFI_MEMORY_DESCRIPTOR*)g_boot_info.memory_map.buffer;
         uintptr_t start = efi_memory_desc[i].PhysicalStart;
         uintptr_t end   = start + (efi_memory_desc[i].NumberOfPages << 12);
-        max_address = efi_memory_desc[i].PhysicalStart + (efi_memory_desc[i].NumberOfPages << 12);
-        // 将非 FREE_MEMORY 的内存占用
+        max_address     = efi_memory_desc[i].PhysicalStart
+                          + (efi_memory_desc[i].NumberOfPages << 12);
         if (type_uefi2os(efi_memory_desc[i].Type) != FREE_MEMORY)
         {
-            // 这样可能浪费一些内存,但可以保证可用内存不超出范围
             start = page_index_low(start);
             end   = page_index_high(end);
             uint64_t j;
             for(j = start;j < end;j++)
-            bitmap_set(&page_bitmap,j,1);
+            {
+                bitmap_set(&page_bitmap,j,1);
+            }
         }
-        // 空闲内存
         else
         {
             start = page_index_high(start);
@@ -185,9 +173,7 @@ void init_memory()
     {
         bitmap_set(&page_bitmap,i,1);
     }
-    // 初始化内存组
     init_memory_group();
-    // 为超出4GB地址空间的内存创建页表
     if (max_address > 0xffffffff)
     {
         make_page_table(max_address);
@@ -220,14 +206,16 @@ PUBLIC void* alloc_physical_page(uint64_t number_of_pages)
 
 PUBLIC void free_physical_page(void* addr,uint64_t number_of_pages)
 {
-    if (number_of_pages == 0 || addr == NULL || ((((uintptr_t)addr) & 0x1fffff) != 0))
+    if (number_of_pages == 0 || addr == NULL
+        || ((((uintptr_t)addr) & 0x1fffff) != 0))
     {
         pr_log(COM1_PORT,"free_physical_page: Not a page addr");
         return;
     }
     intr_status_t intr_status = intr_disable();
     uintptr_t i;
-    for (i = (uintptr_t)addr / PG_SIZE;i < (uintptr_t)addr / PG_SIZE + number_of_pages;i++)
+    for (i = (uintptr_t)addr / PG_SIZE;
+         i < (uintptr_t)addr / PG_SIZE + number_of_pages;i++)
     {
         bitmap_set(&page_bitmap,i,0);
     }
@@ -237,7 +225,8 @@ PUBLIC void free_physical_page(void* addr,uint64_t number_of_pages)
 
 PRIVATE memory_block_t* znoe2block(zone_t* z,int idx)
 {
-    uintptr_t addr = (uintptr_t)z + sizeof(*z) + (PG_SIZE - sizeof(*z)) % z->group->block_size;
+    uintptr_t addr = (uintptr_t)z + sizeof(*z) + (PG_SIZE - sizeof(*z))
+                    % z->group->block_size;
     return ((memory_block_t*)(addr + (idx * (z->group->block_size))));
 }
 
@@ -259,7 +248,7 @@ PUBLIC void* pmalloc(size_t size)
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
-            pr_log(COM1_PORT," NO MEMORY\n");
+            pr_log(COM1_PORT," Out of memory\n");
             return NULL;
         }
         z->group = NULL;
@@ -275,15 +264,13 @@ PUBLIC void* pmalloc(size_t size)
         }
     }
     lock_acquire(&global_memory_groups[i].lock);
-    // 内存块用完
     if (list_empty(&global_memory_groups[i].free_block_list))
     {
-        // 初始化内存块
         z = KADDR_P2V(alloc_physical_page(1));
         if (z == NULL)
         {
             pr_log(COM1_PORT,__func__);
-            pr_log(COM1_PORT," NO MEMORY\n");
+            pr_log(COM1_PORT," Out of memory\n");
             lock_release(&global_memory_groups[i].lock);
             return NULL;
         }
@@ -330,7 +317,6 @@ PUBLIC void pfree(void* addr)
     lock_acquire(&z->group->lock);
     list_append(&z->group->free_block_list,b);
     z->cnt++;
-    // 如果内存区域全部为空,则删除整个Zone
     if (z->cnt == z->number_of_blocks)
     {
         size_t idx;
@@ -345,30 +331,6 @@ PUBLIC void pfree(void* addr)
     return;
 }
 
-// PUBLIC uint64_t* pml4t_entry(void* vaddr)
-// {
-//     wordsize_t pml4t;
-//     __asm__ __volatile__("movq %%cr3,%0":"=r"(pml4t)::);
-//     return (uint64_t*)pml4t + ADDR_PML4T_INDEX(vaddr);
-// }
-
-// PUBLIC uint64_t* pdpt_entry(void* vaddr)
-// {
-//     return (uint64_t*)(*pml4t_entry(vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
-// }
-
-// PUBLIC uint64_t* pdt_entry(void* vaddr)
-// {
-//     return (uint64_t*)(*pdpt_entry(vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
-// }
-
-// PUBLIC void* to_physical_address(void* vaddr)
-// {
-//     return (void*)
-//         ( (*pdt_entry(vaddr) & ~0xfff)
-//         + ADDR_OFFSET(vaddr));
-// }
-
 PUBLIC uint64_t* pml4t_entry(void* pml4t,void* vaddr)
 {
     return (uint64_t*)pml4t + ADDR_PML4T_INDEX(vaddr);
@@ -376,12 +338,14 @@ PUBLIC uint64_t* pml4t_entry(void* pml4t,void* vaddr)
 
 PUBLIC uint64_t* pdpt_entry(void* pml4t,void* vaddr)
 {
-    return (uint64_t*)(*pml4t_entry(pml4t,vaddr) & ~0xfff) + ADDR_PDPT_INDEX(vaddr);
+    return (uint64_t*)(*pml4t_entry(pml4t,vaddr) & ~0xfff)
+            + ADDR_PDPT_INDEX(vaddr);
 }
 
 PUBLIC uint64_t* pdt_entry(void* pml4t,void* vaddr)
 {
-    return (uint64_t*)(*pdpt_entry(pml4t,vaddr) & ~0xfff) + ADDR_PDT_INDEX(vaddr);
+    return (uint64_t*)(*pdpt_entry(pml4t,vaddr) & ~0xfff)
+            + ADDR_PDT_INDEX(vaddr);
 }
 
 PUBLIC void* to_physical_address(void* pml4t,void* vaddr)
@@ -401,13 +365,11 @@ PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr)
 {
     paddr = (void*)((uintptr_t)paddr & ~(PG_SIZE - 1));
     vaddr = (void*)((uintptr_t)vaddr & ~(PG_SIZE - 1));
-    /* 带有v_前缀的是虚拟地址,必须通过虚拟地址访问内存 */
     uint64_t *v_pml4t,*v_pml4e;
     uint64_t *v_pdpt,*pdpt,*v_pdpte,*pdpte;
     uint64_t *v_pdt,*pdt,*v_pde,*pde;
     v_pml4t = KADDR_P2V(pml4t);
     v_pml4e = v_pml4t + ADDR_PML4T_INDEX(vaddr);
-    // pdpte不存在
     if (!(*v_pml4e & PG_P))
     {
         pdpt = pmalloc(PT_SIZE);
@@ -418,7 +380,6 @@ PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr)
     pdpt = (uint64_t*)(*v_pml4e & (~0xfff));
     pdpte = pdpt + ADDR_PDPT_INDEX(vaddr);
     v_pdpte = KADDR_P2V(pdpte);
-    // pdt不存在
     if (!(*v_pdpte & PG_P))
     {
         pdt = pmalloc(PT_SIZE);
@@ -430,4 +391,34 @@ PUBLIC void page_map(uint64_t* pml4t,void* paddr,void* vaddr)
     pde = pdt + ADDR_PDT_INDEX(vaddr);
     v_pde = KADDR_P2V(pde);
     *v_pde = (uint64_t)paddr | PG_US_U | PG_RW_W | PG_P | PG_SIZE_2M;
+}
+
+/**
+ * @brief 取消内存的映射
+ * @param pml4t 页目录地址
+ * @param vaddr 要取消映射的虚拟地址
+*/
+void page_unmap(uint64_t* pml4t,void* vaddr)
+{
+    vaddr = (void*)((uintptr_t)vaddr & ~(PG_SIZE - 1));
+    uint64_t *v_pml4t,*v_pml4e;
+    uint64_t *pdpt,*v_pdpte,*pdpte;
+    uint64_t *pdt,*v_pde,*pde;
+    v_pml4t = KADDR_P2V(pml4t);
+    v_pml4e = v_pml4t + ADDR_PML4T_INDEX(vaddr);
+    if (!(*v_pml4e & PG_P))
+    {
+        return;
+    }
+    pdpt = (uint64_t*)(*v_pml4e & (~0xfff));
+    pdpte = pdpt + ADDR_PDPT_INDEX(vaddr);
+    v_pdpte = KADDR_P2V(pdpte);
+    if (!(*v_pdpte & PG_P))
+    {
+        return;
+    }
+    pdt = (uint64_t*)(*v_pdpte & (~0xfff));
+    pde = pdt + ADDR_PDT_INDEX(vaddr);
+    v_pde = KADDR_P2V(pde);
+    *v_pde &= ~PG_P;
 }

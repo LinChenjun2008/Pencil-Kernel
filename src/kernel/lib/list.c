@@ -1,5 +1,5 @@
-#include <list.h>
-#include <interrupt.h>
+#include <lib/list.h>
+#include <interrupt/interrupt.h>
 
 /**
  * @brief 初始化链表
@@ -88,7 +88,7 @@ PUBLIC list_node_t* list_pop(list_t* list)
  * @retval false 查找失败
  * @retval true  找到元素
 */
-PUBLIC BOOL list_find(list_t* list,list_node_t* objnode)
+PUBLIC bool list_find(list_t* list,list_node_t* objnode)
 {
     list_node_t* node = list->head.next;
     while (node != &(list->tail))
@@ -140,7 +140,7 @@ PUBLIC int list_len(list_t* list)
     return len;
 }
 
-PUBLIC BOOL list_empty(list_t* list)
+PUBLIC bool list_empty(list_t* list)
 {
     return list->head.next == &list->tail;
 }

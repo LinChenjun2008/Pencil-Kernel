@@ -16,6 +16,7 @@ CFLAGS = \
  -finput-charset=UTF-8 -fexec-charset=UTF-8 \
  -fno-builtin -fno-strict-aliasing -ffreestanding \
  -fstrength-reduce -falign-loops -falign-jumps \
+ -fwrapv \
  -mno-red-zone -m64 -mcmodel=large -march=x86-64 \
  -O0 \
  -g3 -gdwarf-2 -gstrict-dwarf \
@@ -93,7 +94,7 @@ PHYSICAL_UEFI_OUTPUT      = $(PHYSICAL_DISK)/EFI/Boot/BootX64.efi
 PHYSICAL_KERNEL_OUTPUT    = $(PHYSICAL_DISK)/Kernel/kernel.sys
 
 #工具路径
-TOOL_DIR = ../tools/
+TOOL_DIR = ../../tools/
 
 #编译器
 Mingw_CC = $(TOOL_DIR)MinGW64/bin/gcc

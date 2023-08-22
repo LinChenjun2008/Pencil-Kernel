@@ -1,5 +1,5 @@
 #include <common.h>
-#include <global.h>
+#include <kernel/global.h>
 #include <graphic.h>
 
 #include <memory.h>
@@ -7,7 +7,11 @@
 #include <stb_truetype.h>
 
 
-// #include <interrupt.h>
+#include <interrupt/interrupt.h>
+
+
+PRIVATE uint16_t* font_base = NULL;
+PRIVATE stbtt_fontinfo ttf_info;
 
 /**
  * @brief 在屏幕上画一个矩形
@@ -26,7 +30,8 @@
                     的右下角坐标(x1,y1)
 
 */
-PUBLIC void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,unsigned int y0,unsigned int x1,unsigned int y1)
+PUBLIC void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,
+                      unsigned int y0,unsigned int x1,unsigned int y1)
 {
     unsigned int x;
     unsigned int y;
@@ -37,24 +42,20 @@ PUBLIC void view_fill(graph_info_t* graph_info,pixel_t color,unsigned int x0,uns
         for (x = x0;x < x1;x++)
         {
             pixel_t bgc = *(frame_buffer + y * xsize + x);
-            uint8_t red = (color.red * (255 - color.alpha) + bgc.red * color.alpha) / 255;
-            uint8_t green = (color.green * (255 - color.alpha) + bgc.green * color.alpha) / 255;
-            uint8_t blue = (color.blue * (255 - color.alpha) + bgc.blue * color.alpha) / 255;
+            uint8_t red = (color.red * (255 - color.alpha)
+                          + bgc.red * color.alpha) / 255;
+            uint8_t green = (color.green * (255 - color.alpha)
+                            + bgc.green * color.alpha) / 255;
+            uint8_t blue = (color.blue * (255 - color.alpha)
+                            + bgc.blue * color.alpha) / 255;
             *(frame_buffer + y * xsize + x) = make_color(red,green,blue);
         }
     }
     return;
 }
 
-PRIVATE stbtt_fontinfo ttf_info;
-
-PUBLIC void init_true_typeface()
-{
-    stbtt_InitFont(&ttf_info,g_boot_info.ttf_base,0);
-    return;
-}
-
-PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t ch,float font_size,uint8_t* bitmap)
+PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,
+                  uint64_t ch,float font_size,uint8_t* bitmap)
 {
     float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size); /* scale = font_size / (ascent - descent) */
 
@@ -71,14 +72,16 @@ PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t 
     stbtt_GetCodepointHMetrics(&ttf_info, ch, &advanceWidth, &leftSideBearing);
 
     int c_x1, c_y1, c_x2, c_y2;
-    stbtt_GetCodepointBitmapBox(&ttf_info, ch, scale, scale, &c_x1, &c_y1, &c_x2, &c_y2);
+    stbtt_GetCodepointBitmapBox(&ttf_info, ch, scale, scale, &c_x1, &c_y1, &c_x2,
+                                &c_y2);
 
     int y = ascent + c_y1;
 
     int x = 0;
     int byteOffset = x + ceil(leftSideBearing * scale) + (y * font_size);
     memset(bitmap,0,font_size * font_size * sizeof(uint8_t));
-    stbtt_MakeCodepointBitmap(&ttf_info, bitmap + byteOffset, c_x2 - c_x1, c_y2 - c_y1, (int)font_size, scale, scale, ch);
+    stbtt_MakeCodepointBitmap(&ttf_info, bitmap + byteOffset, c_x2 - c_x1,
+                              c_y2 - c_y1, (int)font_size, scale, scale, ch);
 
     pixel_t* frame_buffer = (pixel_t*)graph_info->frame_buffer_base;
     unsigned int xsize = graph_info->horizontal_resolution;
@@ -88,10 +91,14 @@ PUBLIC void pr_ch(graph_info_t* graph_info,position_t* pos,pixel_t col,uint64_t 
     {
         for (y0 = 0;y0 < font_size;y0++)
         {
-            pixel_t tmp_col = *(frame_buffer + (pos->y + y0) * xsize + pos->x + x0);
-            uint8_t red = (col.red * (255 - col.alpha) + tmp_col.red * col.alpha) / 255;
-            uint8_t green = (col.green * (255 - col.alpha) + tmp_col.green * col.alpha) / 255;
-            uint8_t blue = (col.blue * (255 - col.alpha) + tmp_col.blue * col.alpha) / 255;
+            pixel_t tmp_col = *(frame_buffer + (pos->y + y0) * xsize
+                                + pos->x + x0);
+            uint8_t red = (col.red * (255 - col.alpha)
+                          + tmp_col.red * col.alpha) / 255;
+            uint8_t green = (col.green * (255 - col.alpha)
+                            + tmp_col.green * col.alpha) / 255;
+            uint8_t blue = (col.blue * (255 - col.alpha)
+                           + tmp_col.blue * col.alpha) / 255;
             // col.alpha = 255 - bitmap[x0 + y0 * (int)font_size];
             tmp_col.red = red;
             tmp_col.green = green;
@@ -139,9 +146,10 @@ PRIVATE uint64_t utf8_decode(char** _str)
     return code;
 }
 
-PUBLIC void pr_ttf_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,char* str,float font_size)
+PUBLIC void pr_ttf_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,
+                       char* str,float font_size)
 {
-    // intr_status_t intr_status = intr_disable();
+    intr_status_t intr_status = intr_disable();
     font_size *= 2;
     float scale = stbtt_ScaleForPixelHeight(&ttf_info, font_size);
     int ascent = 0;
@@ -163,23 +171,45 @@ PUBLIC void pr_ttf_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,c
         }
         int advanceWidth = 0;
         int leftSideBearing = 0;
-        stbtt_GetCodepointHMetrics(&ttf_info, code, &advanceWidth, &leftSideBearing);
-        uint8_t *bitmap = KADDR_P2V(pmalloc((ascent - descent) * advanceWidth * sizeof(uint8_t)));
+        stbtt_GetCodepointHMetrics(&ttf_info, code, &advanceWidth,
+                                   &leftSideBearing);
+        uint8_t *bitmap = KADDR_P2V(pmalloc((ascent - descent) * advanceWidth
+                                    * sizeof(uint8_t)));
         pr_ch(graph_info,&pos,color,code,font_size,bitmap);
         pfree(KADDR_V2P(bitmap));
         char* next = str;
-        int kern = stbtt_GetCodepointKernAdvance(&ttf_info, code,utf8_decode(&next));
+        int kern = stbtt_GetCodepointKernAdvance(&ttf_info, code,
+                                                 utf8_decode(&next));
         pos.x += ceil(advanceWidth * scale);
         pos.x += ceil(kern * scale);
     }
     *vpos = pos;
-    // intr_set_status(intr_status);
+    intr_set_status(intr_status);
     return;
 }
 
 PUBLIC void init_screen()
 {
-    init_true_typeface();
+    int i;
+    for (i = 0;i < g_boot_info.loaded_files;i++)
+    {
+        if (g_boot_info.loaded_file[i].flag == 0x80000002)
+        {
+            font_base = KADDR_P2V(g_boot_info.loaded_file[i].base_address);
+        }
+
+    }
+    void* ttf_base;
+    for (i = 0;i < g_boot_info.loaded_files;i++)
+    {
+        if (g_boot_info.loaded_file[i].flag == 0x80000003)
+        {
+            ttf_base = KADDR_P2V(g_boot_info.loaded_file[i].base_address);
+            break;
+        }
+    }
+    stbtt_InitFont(&ttf_info,ttf_base,0);
+    return;
 }
 
 /**
@@ -192,10 +222,11 @@ PUBLIC void init_screen()
  * @param ch       字符编码(unicode)
 
 */
-PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uint64_t ch,int font_size)
+PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,
+                      uint64_t ch,int font_size)
 {
     uint16_t *font, data;
-    font = (((uint16_t*)g_boot_info.typeface_base) + ch * 16);
+    font = (font_base + ch * 16);
     int i;
     if (ch < 0x7f)
     {
@@ -249,10 +280,23 @@ PUBLIC void vput_utf8(graph_info_t* graph_info,position_t* pos,pixel_t color,uin
  * @param str      字符串(utf-8)
 
 */
-PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,const char* str,int font_size)
+PUBLIC void pr_str(graph_info_t* graph_info,position_t* vpos,pixel_t color,
+                   const char* str,int font_size)
 {
     uint64_t code = 0;
     position_t pos = *vpos;
+    if (font_size <= 16)
+    {
+        font_size = 1;
+    }
+    else if(font_size > 16 && font_size <= 24)
+    {
+        font_size = 2;
+    }
+    else
+    {
+        font_size = 3;
+    }
     /* 只考虑以下情况：
     * 1. 0xxx-xxxx
     * 2. 110x-xxxx 10xx-xxxx

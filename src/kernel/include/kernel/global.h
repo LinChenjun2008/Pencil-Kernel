@@ -5,7 +5,7 @@
 
 #define NULL ((void*) 0)
 
-typedef int BOOL;
+typedef int bool;
 
 #define TRUE  (1 == 1)
 #define FALSE (1 == 0)
@@ -47,10 +47,12 @@ extern boot_info_t g_boot_info;
 
 #define DIV_ROUND_UP(X ,STEP) (((X) + (STEP - 1)) / STEP)
 
+#define PADDR_AVAILABLE(ADDR) ((uintptr_t)ADDR <= 0x00007fffffffffff)
+
 /** STATIC_ASSERT(CONDITION,MESSAGE) */
 #define STATIC_ASSERT _Static_assert
 
-#include <symbol.h>
+#include <lib/symbol.h>
 #include <desctrib.h>
 
 PUBLIC segmdesc_t make_segmdesc(uint32_t base,uint32_t limit,uint16_t access);

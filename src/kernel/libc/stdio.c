@@ -1,7 +1,7 @@
-#include <global.h>
-#include <lib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <kernel/global.h>
+#include <lib/lib.h>
+#include <std/string.h>
+#include <std/stdarg.h>
 
 #define FORMAT_LEFT 0
 #define FORMAT_RIGHT 1

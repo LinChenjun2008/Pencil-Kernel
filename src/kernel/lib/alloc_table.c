@@ -6,7 +6,9 @@
  * @param entries 表项
  * @param number_of_entries 表项个数
 */
-PUBLIC void allocate_table_init(allocate_table_t* table,allocate_table_entry_t* entries,uint64_t number_of_entries)
+PUBLIC void allocate_table_init(allocate_table_t* table,
+                                allocate_table_entry_t* entries,
+                                uint64_t number_of_entries)
 {
     table->number_of_entries = number_of_entries;
     table->frees             = 0;
@@ -41,12 +43,10 @@ PUBLIC uint64_t allocate_units(allocate_table_t* table,uint64_t number_of_units)
                     i++;
                 }
             }
-            // intr_set_status(old_status);
             return index;
         }
     }
-    // intr_set_status(old_status);
-    return 0;
+    return -1;
 }
 
 /**
@@ -55,7 +55,8 @@ PUBLIC uint64_t allocate_units(allocate_table_t* table,uint64_t number_of_units)
  * @param index 单元编号
  * @param number_of_units 释放的单元个数
 */
-PUBLIC void free_units(allocate_table_t* table,uint64_t index,uint64_t number_of_units)
+PUBLIC void free_units(allocate_table_t* table,uint64_t index,
+                       uint64_t number_of_units)
 {
     uint64_t i,j;
     for (i = 0;i < table->frees;i++)
@@ -67,14 +68,16 @@ PUBLIC void free_units(allocate_table_t* table,uint64_t index,uint64_t number_of
     }
     if (i > 0)
     {
-        if (table->entries[i - 1].index + table->entries[i - 1].number_of_units == index)
+        if (table->entries[i - 1].index + table->entries[i - 1].number_of_units
+            == index)
         {
             table->entries[i - 1].number_of_units += number_of_units;
             if (i < table->frees)
             {
                 if (index + number_of_units == table->entries[i].index)
                 {
-                    table->entries[i - 1].number_of_units += table->entries[i].number_of_units;
+                    table->entries[i - 1].number_of_units +=
+                                            table->entries[i].number_of_units;
                     table->frees--;
                     while (i < table->frees)
                     {
@@ -107,4 +110,15 @@ PUBLIC void free_units(allocate_table_t* table,uint64_t index,uint64_t number_of
         return;
     }
     return;
+}
+
+PUBLIC uint64_t total_free_units(allocate_table_t* table)
+{
+    uint64_t i;
+    uint64_t free_units = 0;
+    for (i = 0;i < table->frees;i++)
+    {
+        free_units += table->entries[i].number_of_units;
+    }
+    return free_units;
 }

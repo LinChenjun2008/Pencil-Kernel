@@ -1,7 +1,7 @@
-#include <global.h>
+#include <kernel/global.h>
 #include <debug.h>
-#include <stdint.h>
-#include <stddef.h>
+#include <std/stdint.h>
+#include <std/stddef.h>
 
 /** memset
 
@@ -65,13 +65,14 @@ int32_t memcmp(const void* p1__,void* p2__,size_t size)
     ASSERT(p1__ != NULL && p2__ != NULL);
     uint8_t* p1 = (uint8_t*)p1__;
     uint8_t* p2 = (uint8_t*)p2__;
-    size_t i;
-    for (i = 0;i < size;i++)
+    while(--size)
     {
         if (*p1 != *p2)
         {
             break;
         }
+        p1++;
+        p2++;
     }
     return (*p1 < *p2 ? -1 : *p1 > *p2);
 }
@@ -99,6 +100,21 @@ int32_t strcmp(const char* str1__,const char* str2__)
     ASSERT(str1__ != NULL && str2__ != NULL);
     while (*str1__ != 0 && *str1__ == *str2__)
     {
+        str1__++;
+        str2__++;
+    }
+    return (*str1__ < *str2__ ? -1 : *str1__ > *str2__);
+}
+
+int32_t strncmp(const char* str1__,const char* str2__,size_t n)
+{
+    ASSERT(str1__ != NULL);ASSERT(str2__ != NULL);
+    while (--n)
+    {
+        if (*str1__ != *str2__)
+        {
+            break;
+        }
         str1__++;
         str2__++;
     }

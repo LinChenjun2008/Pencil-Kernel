@@ -1,5 +1,8 @@
-#include <global.h>
-#include <stdint.h>
+#ifndef __ALLOC_TABLE_H__
+#define __ALLOC_TABLE_H__
+
+#include <kernel/global.h>
+#include <std/stdint.h>
 
 typedef struct
 {
@@ -14,6 +17,12 @@ typedef struct
     allocate_table_entry_t *entries;           // 条目内容
 } allocate_table_t;
 
-PUBLIC void allocate_table_init(allocate_table_t* table,allocate_table_entry_t* entries,uint64_t number_of_entries);
+PUBLIC void allocate_table_init(allocate_table_t* table,
+                                allocate_table_entry_t* entries,
+                                uint64_t number_of_entries);
 PUBLIC uint64_t allocate_units(allocate_table_t* table,uint64_t number_of_units);
-PUBLIC void free_units(allocate_table_t* table,uint64_t index,uint64_t number_of_units);
+PUBLIC void free_units(allocate_table_t* table,uint64_t index,
+                       uint64_t number_of_units);
+PUBLIC uint64_t total_free_units(allocate_table_t* table);
+
+#endif

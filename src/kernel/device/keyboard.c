@@ -1,7 +1,7 @@
-#include <keyboard.h>
+#include <device/keyboard.h>
 #include <io.h>
-#include <interrupt.h>
-#include <pic.h>
+#include <interrupt/interrupt.h>
+#include <device/pic.h>
 
 PUBLIC void wait_keyboard_ready()
 {

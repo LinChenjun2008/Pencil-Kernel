@@ -1,15 +1,15 @@
 #ifndef __MEMORY_H__
 #define __MEMORY_H__
 
-#include <list.h>
-#include <sync.h>
-#include <stddef.h>
+#include <lib/list.h>
+#include <thread/sync.h>
+#include <std/stddef.h>
 
 // 所支持分配的最小内存块大小
-#define MIN_ALLOCATE_MEMORY_SIZE 8192
+#define MIN_ALLOCATE_MEMORY_SIZE 4096
 
 // 所支持分配的最大内存块大小,超过这个数就直接分配整页
-#define MAX_ALLOCATE_MEMORY_SIZE 524288
+#define MAX_ALLOCATE_MEMORY_SIZE 262144
 
 // 内存块种类的数量
 #define NUMBER_OF_MEMORY_BLOCK_TYPES 7

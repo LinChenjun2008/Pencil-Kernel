@@ -1,8 +1,8 @@
 #ifndef _TIME_H_
 #define _TIME_H_
 
-#include <stdint.h>
-#include <global.h>
+#include <std/stdint.h>
+#include <kernel/global.h>
 
 typedef struct
 {

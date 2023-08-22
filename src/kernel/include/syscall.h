@@ -1,7 +1,7 @@
 #ifndef __SYSCALL_H__
 #define __SYSCALL_H__
 
-#include <thread.h>
+#include <thread/thread.h>
 
 #define SYSCALL_INTR 0x40
 
@@ -25,6 +25,7 @@ typedef uint32_t syscall_function_t;
 #define ANY     0xc0000000
 
 PUBLIC void init_syscall();
-PUBLIC syscall_status_t send_recv(syscall_function_t function,pid_t src_dst,message_t* msg);
+PUBLIC syscall_status_t send_recv(syscall_function_t function,pid_t src_dst,
+                                  message_t* msg);
 
 #endif

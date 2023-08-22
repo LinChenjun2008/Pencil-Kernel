@@ -1,8 +1,8 @@
 #ifndef __PROCESS_H__
 #define __PROCESS_H__
 
-#include <global.h>
-#include <thread.h>
+#include <kernel/global.h>
+#include <thread/thread.h>
 
 #define USER_STACK_VADDR_BASE (0x0000800000000000 - PG_SIZE)
 /* #define USER_VADDR_START 0x804800 */

@@ -1,6 +1,6 @@
-#include <interrupt.h>
-#include <pic.h>
-#include <thread.h>
+#include <interrupt/interrupt.h>
+#include <device/pic.h>
+#include <thread/thread.h>
 #include <io.h>
 
 #define PIT_CTRL 0x0043
@@ -8,7 +8,7 @@
 
 PUBLIC void intr_8254timer_handler()
 {
-    eoi();
+    eoi(0x20);
     task_struct_t* cur_thread = running_thread();
     cur_thread->elapsed_ticks++;
     if (cur_thread->ticks == 0)

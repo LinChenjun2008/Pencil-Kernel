@@ -2,22 +2,24 @@
 #define __THREAD_H__
 
 #include <alloc_table.h>
-#include <global.h>
-#include <list.h>
-#include <fpu.h>
+#include <kernel/global.h>
+#include <lib/list.h>
+#include <device/fpu.h>
 
-typedef unsigned long long int pid_t;
+typedef uint64_t pid_t;
 
 #include <message.h>
 
 typedef void thread_function_t(void*);
+
+#define MAX_TASKS   256
 
 #define PCB_SIZE    (64 * 1024) /* 64KB */
 #define STACK_MAGIC 0x55aa55aa55aa55aa
 
 typedef enum
 {
-    TASK_RUNNING,
+    TASK_RUNNING = 1,
     TASK_READY,
     TASK_BLOCKED,
     TASK_SENDING,
@@ -30,7 +32,6 @@ typedef enum
 typedef struct
 {
     /* 低地址 */
-    /* 以下是中断处理程序入栈的值 */
     wordsize_t ds;
     wordsize_t es;
     wordsize_t fs;
@@ -52,11 +53,11 @@ typedef struct
     wordsize_t r13;
     wordsize_t r14;
     wordsize_t r15;
-    /* 以下是CPU 特权级切换时自动入栈的内容 */
+
     wordsize_t error_code;
     void       (*rip)(void);
     wordsize_t cs;
-    wordsize_t rflages;
+    wordsize_t rflags;
     wordsize_t rsp;
     wordsize_t ss;
     /* 高地址 */
@@ -82,21 +83,21 @@ typedef struct
 /* 程序控制块pcb */
 typedef struct
 {
-    uint64_t             *self_kstack;  /* 线程内核栈指针 */
+    uint64_t              *self_kstack;   /* 线程内核栈指针 */
+    uint64_t              *self_ustack;   /* 用户态栈指针(物理地址) */
 
     volatile task_status_t status;        /* 状态 */
     pid_t                  pid;           /* 进程或线程 pid */
     char                   name[32];      /* 名称 */
-    unsigned long long int priority;      /* 优先级 */
-    unsigned long long int ticks;         /* 在CPU上运行的时间 */
-    unsigned long long int elapsed_ticks; /* 总共运行的时间 */
+    uint64_t               priority;      /* 优先级 */
+    uint64_t               ticks;         /* 在CPU上运行的时间 */
+    uint64_t               elapsed_ticks; /* 总共运行的时间 */
 
     list_node_t            all_tag;       /* 用于加入全部线程队列 */
     list_node_t            general_tag;   /* 用于加入线程队列 */
 
-    wordsize_t            *page_dir;      /* 线程的页表 */
+    uint64_t              *page_dir;      /* 线程的页表 */
     allocate_table_t       vaddr_table;   /* 虚拟地址表,仅在page_dir != NULL 时有效*/
-
     message_t              msg;           /* 进程消息体 */
     pid_t                  send_to;       /* 记录进程想要向谁发送消息 */
     pid_t                  recv_from;     /* 记录进程想要从谁获取消息 */
@@ -104,13 +105,15 @@ typedef struct
 
     fpu_t fpu_regs;
 
-    wordsize_t             stack_magic;  /* 用于检测是否栈溢出 */
+    uint64_t               stack_magic;  /* 用于检测是否栈溢出 */
 } task_struct_t;
 
-PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int priority);
+PUBLIC void thread_init(task_struct_t* thread,char* name,uint64_t priority);
 PUBLIC task_struct_t* running_thread();
-PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,void* arg);
-PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg);
+PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,
+                          void* arg);
+PUBLIC task_struct_t* thread_start(char* name,uint64_t priority,
+                                   thread_function_t func,void* arg);
 PUBLIC void init_thread();
 
 PUBLIC void schedule();

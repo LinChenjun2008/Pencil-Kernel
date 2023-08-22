@@ -1,8 +1,8 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
-#include <global.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stdint.h>
 
 // #define offset(Type,Member) ((UINTN)(&(((Type*)0)->Member)))
 
@@ -25,7 +25,7 @@ typedef struct
     list_node_t tail; /* 链表尾 */
 } list_t;
 
-typedef BOOL (func) (list_node_t* ,wordsize_t arg);
+typedef bool (func) (list_node_t* ,wordsize_t arg);
 
 /**
  * @brief 初始化链表
@@ -74,7 +74,7 @@ PUBLIC list_node_t* list_pop(list_t* list);
  * @retval false 查找失败
  * @retval true  找到元素
 */
-PUBLIC BOOL list_find(list_t* list,list_node_t* objnode);
+PUBLIC bool list_find(list_t* list,list_node_t* objnode);
 
 /**
  * @brief 在链表中查找符合条件的节点
@@ -92,6 +92,6 @@ PUBLIC list_node_t* list_traversal(list_t* list,func function,int arg);
 */
 PUBLIC int list_len(list_t* list);
 
-PUBLIC BOOL list_empty(list_t* list);
+PUBLIC bool list_empty(list_t* list);
 
 #endif /* __LIST_H_ */

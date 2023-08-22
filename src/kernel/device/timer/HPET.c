@@ -1,11 +1,11 @@
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <io.h>
-#include <pic.h>
-#include <thread.h>
+#include <device/pic.h>
+#include <thread/thread.h>
 
 PRIVATE void intr_HPETtimer_handler()
 {
-    eoi();
+    eoi(0x20);
     task_struct_t* cur_thread = running_thread();
     cur_thread->elapsed_ticks++;
     if (cur_thread->ticks == 0)

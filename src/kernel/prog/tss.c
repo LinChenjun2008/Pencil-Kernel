@@ -1,6 +1,7 @@
 #include <tss.h>
-#include <string.h>
+#include <std/string.h>
 
+#pragma pack(1)
 struct TSS64
 {
     uint32_t reserved1;
@@ -41,7 +42,8 @@ struct TSS64
     uint32_t reserved5;
 
     uint32_t io_map;
-}__attribute__((packed));
+};
+#pragma pack()
 
 PRIVATE struct TSS64 tss;
 
@@ -53,7 +55,8 @@ PUBLIC void init_tss()
     uint64_t tss_base_l = ((uint64_t)&tss) & 0xffffffff;
     uint64_t tss_base_h = (((uint64_t)&tss) >> 32) & 0xffffffff;
 
-            gdt_table[9    ] = make_segmdesc((uint32_t)(tss_base_l & 0xffffffff),tss_size - 1,AR_TSS64);
+            gdt_table[9    ] = make_segmdesc((uint32_t)(tss_base_l & 0xffffffff),
+                                              tss_size - 1,AR_TSS64);
     memcpy(&gdt_table[9 + 1],&tss_base_h,8);
     return;
 }

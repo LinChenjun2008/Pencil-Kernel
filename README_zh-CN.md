@@ -30,7 +30,8 @@ mkdir Kernel
 cd .\EFI
 mkdir Boot
 ```
-3. 打开 `pencil-kernel\build\config.txt` 并配置以下内容:
+3. 编译`build\kallsyms.cpp`,按编译应用程序的方式编译即可.
+4. 打开 `pencil-kernel\build\config.txt` 并配置以下内容:
 * `DISK`:上文创建的`esp`目录.
 * `PHYSICAL_DISK`: 用于安装Pencil-Kernel的物理磁盘(可选).
 
@@ -47,6 +48,7 @@ PHYSICAL_DISK = E:\
 * `OBJCOPY`
 * `OBJDUMP`
 * `RM`:(可选).
+* `KALLSYMS`: 步骤3中编译的kallsyms路径.
 * `QEMU`:qemu模拟器
 * `UEFI_BIOS`:Ovmf文件
 
@@ -58,10 +60,11 @@ NM        = x86_64-elf-tools/x86_64-elf/bin/nm.exe
 OBJCOPY   = x86_64-elf-tools/x86_64-elf/bin/objcopy.exe
 OBJDUMP   = x86_64-elf-tools/x86_64-elf/bin/objdump.exe
 RM        = rm.exe
+KALLSYMS = build/kallsyms.exe
 QEMU      = qemu/qemu-system-x86_64.exe
 UEFI_BIOS = vm/ovmf.bin
 ```
-4. 进入`pencil-kernel\build\`目录并执行`make bootoader`和`make kernel`.
+5. 进入`pencil-kernel\build\`目录并执行`make bootoader`和`make kernel`.
 
 示例:
 ```

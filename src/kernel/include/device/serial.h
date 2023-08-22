@@ -1,8 +1,8 @@
 #ifndef __SERIAL_H__
 #define __SERIAL_H__
 
-#include <global.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stdint.h>
 
 #define COM1_PORT 0x3f8
 #define COM2_PORT 0x2f8

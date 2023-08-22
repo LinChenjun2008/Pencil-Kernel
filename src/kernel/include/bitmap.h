@@ -1,9 +1,9 @@
 #ifndef __BITMAP_H_
 #define __BITMAP_H_
 
-#include <global.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stddef.h>
+#include <std/stdint.h>
 
 #define BITMAP_MASK 0x01
 
@@ -25,7 +25,7 @@ PUBLIC void bitmap_init(bitmap_t* btmp);
  * @param bit_index   :bit位下标
  * @return true: 为1 false: 为0
 */
-PUBLIC BOOL bitmap_scan_test(bitmap_t* btmp,size_t bit_index);
+PUBLIC bool bitmap_scan_test(bitmap_t* btmp,size_t bit_index);
 
 /**
  * @brief 在bitmap中分配cnt个位

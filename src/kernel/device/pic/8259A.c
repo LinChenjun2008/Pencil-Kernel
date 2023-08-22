@@ -1,4 +1,4 @@
-#include <pic.h>
+#include <device/pic.h>
 #include <io.h>
 
 PUBLIC void init_8259a()

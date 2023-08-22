@@ -1,11 +1,12 @@
-#include <global.h>
-#include <interrupt.h>
-#include <thread.h>
-#include <serial.h>
-#include <stdio.h>
+#include <kernel/global.h>
+#include <interrupt/interrupt.h>
+#include <thread/thread.h>
+#include <device/serial.h>
+#include <std/stdio.h>
 
 PRIVATE char str[512];
-void panic_spin(const char* file,const char* base_file,int line,const char* func,const char* condition)
+void panic_spin(const char* file,const char* base_file,int line,const char* func,
+                const char* condition)
 {
     intr_disable();
     sprintf(str,"--- Kernel Panic --- \n" \

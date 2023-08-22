@@ -1,7 +1,7 @@
 #ifndef __INTERRUPT_H__
 #define __INTERRUPT_H__
 
-#include <global.h>
+#include <kernel/global.h>
 
 typedef enum
 {

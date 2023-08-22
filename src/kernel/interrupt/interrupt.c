@@ -1,10 +1,10 @@
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <graphic.h>
 #include <io.h>
-#include <pic.h>
-#include <stdio.h>
+#include <device/pic.h>
+#include <std/stdio.h>
 #include <syscall.h>
-#include <thread.h>
+#include <thread/thread.h>
 
 #define IDT_DESC_CNT 0x41
 
@@ -34,6 +34,7 @@ PRIVATE char* intr_name[IDT_DESC_CNT] =
     "#XF SIMD Floating-Point Exception\n",
 };
 
+#pragma pack(1)
 typedef struct
 {
     uint16_t offset_low;  /* 偏移15~0 */
@@ -43,7 +44,8 @@ typedef struct
     uint16_t offset_mid;  /* 偏移31~16 */
     uint32_t offset_high; /* 偏移63~32 */
     uint32_t reserved;    /* 保留 */
-} __attribute__((packed)) gate_desc_t;
+} gate_desc_t;
+#pragma pack()
 
 PRIVATE gate_desc_t idt[IDT_DESC_CNT];
 
@@ -80,41 +82,43 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
         .green = 0,
         .blue = 132,
     };
-    view_fill(&(g_boot_info.graph_info),col,0,0,g_boot_info.graph_info.horizontal_resolution - 1,g_boot_info.graph_info.vertical_resolution - 1);
+    view_fill(&(g_boot_info.graph_info),col,0,0,
+              g_boot_info.graph_info.horizontal_resolution - 1,
+              g_boot_info.graph_info.vertical_resolution - 1);
     position_t pos = {10,10};
+
     char s[512];
     col.red = 255;
     col.green = 255;
     col.blue = 255;
-    fontsize_t font_size = 7;
-    pr_str(&(g_boot_info.graph_info),&pos,col,":",font_size);
-    pos.y += 2 * font_size;
-    pos.x -= 2 * font_size;
-    pr_str(&(g_boot_info.graph_info),&pos,col,"(\n",font_size);
-    pos.x = 10;
-    font_size = FONT_NORMAL;
+    fontsize_t font_size = FONT_NORMAL;
     pr_str(&(g_boot_info.graph_info),&pos,col,
     "你的设备遇到问题,需要重新启动.\n"
     "接下来显示错误信息,然后你可以重新启动.\n\n"
     ,font_size);
-    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n",stack->rax,stack->rbx,stack->rcx,stack->rdx);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    sprintf(s,"rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n",stack,stack->rbp,stack->rsi,stack->rdi);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    sprintf(s,"r8 =%016x r9 =%016x r10=%016x r11=%016x\n",stack->r8,stack->r9,stack->r10,stack->r11);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    sprintf(s,"r12=%016x r13=%016x r14=%016x r15=%016x\n",stack->r12,stack->r13,stack->r14,stack->r15);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    uint64_t crN;
-    __asm__ __volatile__("movq %%cr2,%%rax":"=a"(crN)::);
-    sprintf(s,"cr2 = %016x\n",crN);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    __asm__ __volatile__("movq %%cr3,%%rax":"=a"(crN)::);
-    sprintf(s,"cr3 = %016x\n",crN);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    sprintf(s,"CS:RIP %04x:%016x\n",stack->cs,stack->rip);
-    pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
-    sprintf(s,"nr: 0x%02x 错误码 ERROR CODE: %016x\n",nr,stack->error_code);
+    uint64_t cr2,cr3;
+    __asm__ __volatile__
+    (
+        "movq %%cr2,%0\n\t"
+        "movq %%cr3,%0\n\t"
+        :"=r"(cr2),"=r"(cr3)
+        :
+        :
+    );
+
+    sprintf(s,"rax=%016x rbx=%016x rcx=%016x rdx=%016x\n"
+              "rsp=%016x rbp=%016x rsi=%016x rdi=%016x\n"
+              "r8 =%016x r9 =%016x r10=%016x r11=%016x\n"
+              "r12=%016x r13=%016x r14=%016x r15=%016x\n"
+              "cr2=%016x cr3=%016x\n"
+              "CS:RIP %04x:%016x\n"
+              "nr: 0x%02x 错误码 ERROR CODE: %016x\n"
+              ,stack->rax,stack->rbx,stack->rcx,stack->rdx,
+              stack,stack->rbp,stack->rsi,stack->rdi,
+              stack->r8,stack->r9,stack->r10,stack->r11,
+              stack->r12,stack->r13,stack->r14,stack->r15,
+              stack->cs,stack->rip,
+              nr,stack->error_code);
     pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
     if (nr <= 0x1f)
     {
@@ -122,7 +126,8 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
         pr_str(&(g_boot_info.graph_info),&pos,col,intr_name[nr],font_size);
     }
     pos.x = 10;
-    sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,running_thread()->pid);
+    sprintf(s,"线程: %s (ID: %d)\n",running_thread()->name,
+            running_thread()->pid);
     pr_str(&(g_boot_info.graph_info),&pos,col,s,font_size);
 
     wordsize_t rbp = stack->rbp;
@@ -162,7 +167,7 @@ PRIVATE void ASMCALL general_intr_handler(wordsize_t nr,intr_stack_t* stack)
 }
 
 #define INTR_HANDLER(ENTRY,NR,ERROR_CODE) extern void ENTRY();
-#include <intrlist.h>
+#include <interrupt/intrlist.h>
 #undef INTR_HANDLER
 
 /**
@@ -173,19 +178,23 @@ PRIVATE void idt_desc_init(void)
     int i;
     for (i = 0;i < IDT_DESC_CNT;i++)
     {
-        set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL3);
+        set_gatedesc(&idt[i],asm_intr0x0d_handler,SELECTOR_CODE64_K,
+                     AR_IDT_DESC_DPL3);
         intr_handle_entry[i] = general_intr_handler;
     }
-    #define INTR_HANDLER(ENTRY,NR,ERROR_CODE) set_gatedesc(&idt[NR],ENTRY,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
-    #include <intrlist.h>
+    #define INTR_HANDLER(ENTRY,NR,ERROR_CODE) \
+            set_gatedesc(&idt[NR],ENTRY,SELECTOR_CODE64_K,AR_IDT_DESC_DPL0);
+    #include <interrupt/intrlist.h>
     #undef INTR_HANDLER
-    set_gatedesc(&idt[SYSCALL_INTR],asm_syscall_handler,SELECTOR_CODE64_K,AR_IDT_DESC_DPL3);
+    set_gatedesc(&idt[SYSCALL_INTR],asm_syscall_handler,SELECTOR_CODE64_K,
+                 AR_IDT_DESC_DPL3);
 }
 
 PUBLIC void init_interrupt()
 {
     idt_desc_init();
-    uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) | (sizeof(idt) - 1);
+    uint128_t idt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)idt))) << 16) \
+                        | (sizeof(idt) - 1);
     __asm__ __volatile__ ("lidt %[idt_ptr]"::[idt_ptr]"m"(idt_ptr):);
     return;
 }
@@ -233,14 +242,14 @@ __asm__ \
     "movq $"#NR",%rdi \n\t" \
     "movq %rsp,%rsi \n\t" \
  \
-    "leaq intr_handle_entry(%rip),%rax \n\t"/* rax = &intr_handle_entry */    \
-    "movq $"#NR",%rbx \n\t"              /*rax = &intr_handle_entry[NR] */ \
+    "leaq intr_handle_entry(%rip),%rax \n\t" \
+    "movq $"#NR",%rbx \n\t" \
     "callq *(%rax,%rbx,8) \n\t" \
     "leaq intr_exit(%rip),%rax \n\t" \
     "jmpq *%rax" \
 );
 
-#include <intrlist.h>
+#include <interrupt/intrlist.h>
 #undef INTR_HANDLER
 
 __asm__

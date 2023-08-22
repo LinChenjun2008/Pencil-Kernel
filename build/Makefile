@@ -8,15 +8,15 @@ include config.txt
 # 链接内核文件
 %.sys: $(KERNEL_SRC:c=o)
 	@$(ECHO) link
-	@"$(LD)" -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map --no-warn-rwx-segments -o $(KERNEL_OBJ) $^
+	@"$(LD)" -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map -o $(KERNEL_OBJ) $^
 
 	@"$(NM)" -n $(KERNEL_OBJ) > kernel.sym
-	@"$(KALLSYMS)" kernel.sym kallsyms.c
-	@"$(CC)" kallsyms.c -c -o kallsyms.o
+	@"$(KALLSYMS)" kernel.sym .tmp_kallsymc.c
+	@"$(CC)" .tmp_kallsymc.c -c -o .tmp_kallsymc.o
 
 	@$(ECHO) relink
-	@"$(LD)" -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map --no-warn-rwx-segments -o $(KERNEL_OBJ) $^ kallsyms.o
-#	@$(RM) kernel.sym kallsyms.c kallsyms.o
+	@"$(LD)" -T $(KERNEL_LDS) -Map $(KERNEL_DIR)kernel.map -o $(KERNEL_OBJ) $^ .tmp_kallsymc.o
+#	@$(RM) kernel.sym .tmp_kallsymc.c .tmp_kallsymc.o
 	@"$(OBJCOPY)" -I $(KERNEL_OBJ_FORMAT) --strip-debug -S -R ".eh_frame" -R ".comment" -O $(KERNEL_OUTPUT_FORMAT) $(KERNEL_OBJ) $@
 
 %.efi: $(UEFI_SRC) $(UEFI_DIR)/boot.h
@@ -25,14 +25,14 @@ include config.txt
 	-finput-charset=UTF-8 -fexec-charset=UTF-16 -fno-stack-protector -O0 \
 	-fno-builtin -Wl,--subsystem,10 -m64 -mcmodel=large -fpic -o $@ $^
 
-.PHONY: uefi config.txt
-uefi: $(UEFI_OUTPUT)
+.PHONY: bootloader config.txt
+bootloader: $(UEFI_OUTPUT)
 
 .PHONY: kernel
 kernel: $(KERNEL_SRC:c=o) $(KERNEL_OUTPUT)
 
 .PHONY: run
-run: uefi kernel config.txt
+run: bootloader kernel config.txt
 	-"$(QEMU)" $(QEMU_FLAGS)
 #	-monitor stdio
 
@@ -55,5 +55,5 @@ uninstall:
 .PHONY: clean
 clean:
 	-$(RM) -f $(KERNEL_SRC:c=o) $(KERNEL_DIR)kernel.map \
-	kernel.sym kallsyms.c kallsyms.o \
+	kernel.sym .tmp_kallsymc.c .tmp_kallsymc.o \
 	$(UEFI_OUTPUT)

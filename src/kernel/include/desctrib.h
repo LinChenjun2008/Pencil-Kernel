@@ -15,8 +15,8 @@
 #define AR_S_CODE    0x0010
 #define AR_S_DATA    0x0010
 #define AR_S_SYS     0x0000
-#define AR_TYPE_CODE 0x0008 /* 可执行,非一致,不可读 */
-#define AR_TYPE_DATA 0x0002 /* 不可执行,向上拓展,可写 */
+#define AR_TYPE_CODE 0x0008
+#define AR_TYPE_DATA 0x0002
 #define AR_TYPE_TSS  0x0009
 
 #define AR_CODE32      (AR_G_4K | AR_D_32 | AR_L | AR_AVL | AR_P | AR_DPL_0 | AR_S_CODE | AR_TYPE_CODE)

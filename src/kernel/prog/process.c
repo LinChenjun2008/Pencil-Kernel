@@ -1,7 +1,7 @@
 #include <process.h>
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <memory.h>
-#include <string.h>
+#include <std/string.h>
 #include <tss.h>
 
 PRIVATE void start_process(void* process_name)
@@ -35,13 +35,13 @@ PRIVATE void start_process(void* process_name)
     proc_stack->ds = SELECTOR_DATA64_U;
     proc_stack->rip = func;
     proc_stack->cs = SELECTOR_CODE64_U;
-    proc_stack->rflages = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
+    proc_stack->rflags = (EFLAGS_IOPL_0 | EFLAGS_MBS | EFLAGS_IF_1);
 
     // 分配用户态下的栈
-    void* pstack = pmalloc(PCB_SIZE);
+    void* pstack = alloc_physical_page(1);
+    cur->self_ustack = pstack;
     page_map(cur->page_dir,pstack,(void*)USER_STACK_VADDR_BASE);
-    // 基地址 + pcb在页中的偏移 + pcb大小
-    proc_stack->rsp = USER_STACK_VADDR_BASE + ((uintptr_t)pstack & (PG_SIZE - 1)) + PCB_SIZE;
+    proc_stack->rsp = USER_STACK_VADDR_BASE + PG_SIZE;
     proc_stack->ss = SELECTOR_DATA64_U;
     __asm__ __volatile__
     (
@@ -91,7 +91,8 @@ PRIVATE uint64_t* create_page_dir(void)
         return NULL;
     }
     memset(pgdir_v,0,PT_SIZE);
-    memcpy(pgdir_v + 0x100,(uint64_t*)KADDR_P2V(KERNEL_PAGE_DIR_TABLE_POS) + 0x100,2048);
+    memcpy(pgdir_v + 0x100,(uint64_t*)KADDR_P2V(KERNEL_PAGE_DIR_TABLE_POS)
+                            + 0x100,2048);
     return (uint64_t*)KADDR_V2P(pgdir_v);
 }
 
@@ -99,7 +100,8 @@ PRIVATE void user_vaddr_table_init(task_struct_t* pthread)
 {
     size_t entry_size          = sizeof(*pthread->vaddr_table.entries);
     uint64_t number_of_entries = 1024;
-    void* p = KADDR_P2V(pmalloc(entry_size * number_of_entries));
+    void* p;
+    p = KADDR_P2V(pmalloc(entry_size * number_of_entries));
     allocate_table_init(&pthread->vaddr_table,p,number_of_entries);
 
     uint64_t index = USER_VADDR_START / PG_SIZE;

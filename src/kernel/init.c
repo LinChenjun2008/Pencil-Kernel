@@ -1,16 +1,17 @@
-#include <stdint.h>
-#include <global.h>
+#include <device/acpi.h>
+#include <std/stdint.h>
+#include <kernel/global.h>
 #include <graphic.h>
 #include <init.h>
-#include <interrupt.h>
-#include <pic.h>
+#include <interrupt/interrupt.h>
+#include <device/pic.h>
 #include <syscall.h>
-#include <timer.h>
+#include <device/timer.h>
 #include <memory.h>
-#include <serial.h>
+#include <device/serial.h>
 #include <tss.h>
-#include <thread.h>
-#include <keyboard.h>
+#include <thread/thread.h>
+#include <device/keyboard.h>
 
 PUBLIC segmdesc_t make_segmdesc(uint32_t base,uint32_t limit,uint16_t access)
 {
@@ -28,17 +29,19 @@ PUBLIC segmdesc_t gdt_table[17];
 
 PRIVATE void init_desctrib()
 {
-    gdt_table[0] = make_segmdesc(0,      0,        0);
-    gdt_table[1] = make_segmdesc(0,      0,AR_CODE64);
-    gdt_table[2] = make_segmdesc(0,      0,AR_DATA64);
+    gdt_table[0] = make_segmdesc(0,      0,             0);
+    gdt_table[1] = make_segmdesc(0,      0,     AR_CODE64);
+    gdt_table[2] = make_segmdesc(0,      0,     AR_DATA64);
     gdt_table[3] = make_segmdesc(0,0xfffff,AR_CODE32_DPL3);
     gdt_table[4] = make_segmdesc(0,0xfffff,AR_DATA32_DPL3);
     gdt_table[5] = make_segmdesc(0,      0,AR_CODE64_DPL3);
     gdt_table[6] = make_segmdesc(0,      0,AR_DATA64_DPL3);
-    gdt_table[7] = make_segmdesc(0,0xfffff,AR_CODE32);
-    gdt_table[8] = make_segmdesc(0,0xfffff,AR_DATA32);
+    gdt_table[7] = make_segmdesc(0,0xfffff,     AR_CODE32);
+    gdt_table[8] = make_segmdesc(0,0xfffff,     AR_DATA32);
     init_tss();
-    uint128_t gdt_ptr = (((uint128_t)0 + ((uint128_t)((uint64_t)gdt_table))) << 16) | (sizeof(gdt_table) - 1);
+    uint128_t gdt_ptr = (((uint128_t)0
+                        + ((uint128_t)((uint64_t)gdt_table))) << 16)
+                        | (sizeof(gdt_table) - 1);
     __asm__ __volatile__
     (
         "lgdtq %[gdt_ptr] \n\t"
@@ -55,7 +58,8 @@ PRIVATE void init_desctrib()
         ".next: \n\t"
         "ltr %w[TSS] \n\t"
         :
-        :[gdt_ptr]"m"(gdt_ptr),[SELECTOR_CODE64]"i"(SELECTOR_CODE64_K),[SELECTOR_DATA64]"ax"(SELECTOR_DATA64_K),[TSS]"r"(SELECTOR_TSS)
+        :[gdt_ptr]"m"(gdt_ptr),[SELECTOR_CODE64]"i"(SELECTOR_CODE64_K),
+         [SELECTOR_DATA64]"ax"(SELECTOR_DATA64_K),[TSS]"r"(SELECTOR_TSS)
         :"memory"
     );
 }
@@ -69,10 +73,10 @@ PUBLIC void init_all()
 {
     init_desctrib();
     init_interrupt();
+    init_screen();
     init_pic();
     init_pit();
     init_syscall();
-    init_screen(&(g_boot_info.graph_info));
     init_memory();
     init_thread();
     init_keyboard();

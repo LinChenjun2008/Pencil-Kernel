@@ -1,11 +1,11 @@
-#include <thread.h>
+#include <thread/thread.h>
 #include <bitmap.h>
 #include <debug.h>
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <memory.h>
 #include <process.h>
-#include <string.h>
-#include <sync.h>
+#include <std/string.h>
+#include <thread/sync.h>
 #include <syscall.h>
 
 PRIVATE task_struct_t* main_thread;
@@ -56,7 +56,7 @@ PRIVATE void kernel_thread(void)
     return;
 }
 
-PUBLIC void thread_init(task_struct_t* thread,char* name,unsigned long long int priority)
+PUBLIC void thread_init(task_struct_t* thread,char* name,uint64_t priority)
 {
     memset(thread,0,sizeof(*thread));
     strcpy(thread->name,name);
@@ -100,7 +100,7 @@ PUBLIC task_struct_t* running_thread()
 PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,void* arg)
 {
     thread->self_kstack -= sizeof(intr_stack_t);
-    thread->self_kstack -= sizeof(unsigned long long int);
+    thread->self_kstack -= sizeof(thread_stack_t);
     thread_stack_t* kthread_stack;
     kthread_stack = (thread_stack_t*)thread->self_kstack;
 
@@ -112,7 +112,8 @@ PUBLIC void thread_create(task_struct_t* thread,thread_function_t func,void* arg
     return;
 }
 
-PUBLIC task_struct_t* thread_start(char* name,unsigned long long int priority,thread_function_t func,void* arg)
+PUBLIC task_struct_t* thread_start(char* name,uint64_t priority,
+                                   thread_function_t func,void* arg)
 {
     task_struct_t* thread = (task_struct_t*)KADDR_P2V(pmalloc(PCB_SIZE));
     thread_init(thread,name,priority);
@@ -175,7 +176,7 @@ __asm__
     "asm_switch_to: \n\t"
     /***    next     *** rsp + 8*10 */
     /***     cur     *** rsp + 8* 9 */
-    /*** return addr *** rsp + 8* 7 */
+    /*** return addr *** rsp + 8* 8 */
     "pushq %rsi \n\t"
     "pushq %rdi \n\t"
     "pushq %rbx \n\t"
@@ -266,7 +267,7 @@ PUBLIC void thread_unblock(task_struct_t* pthread)
 }
 
 /* list_traversal的回调函数pid_check */
-PRIVATE BOOL pid_check(list_node_t* node,pid_t pid)
+PRIVATE bool pid_check(list_node_t* node,pid_t pid)
 {
     return (((task_struct_t*)node->container)->pid == pid);
 }

@@ -1,9 +1,9 @@
 #ifndef __SYNC_H__
 #define __SYNC_H__
 
-#include <list.h>
-#include <global.h>
-#include <thread.h>
+#include <lib/list.h>
+#include <kernel/global.h>
+#include <thread/thread.h>
 
 typedef struct
 {

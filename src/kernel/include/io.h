@@ -1,9 +1,9 @@
 #ifndef __IO_H__
 #define __IO_H__
 
-#include <global.h>
+#include <kernel/global.h>
 
-#include <stdint.h>
+#include <std/stdint.h>
 
 static inline void io_hlt(void)
 {

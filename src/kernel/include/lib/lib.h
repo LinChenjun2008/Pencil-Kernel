@@ -1,8 +1,8 @@
 #ifndef __LIB_H__
 #define __LIB_H__
 
-#include <global.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stdint.h>
 
 /**
  * @brief 求绝对值

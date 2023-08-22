@@ -1,9 +1,10 @@
-#include <global.h>
-#include <string.h>
+#include <kernel/global.h>
+#include <std/string.h>
 
-BOOL address_available(uintptr_t address)
+bool address_available(uintptr_t address)
 {
-    return (address >= KERNEL_VMA_BASE && address <= symbol_table[symbols - 1].address);
+    return (address >= KERNEL_VMA_BASE
+         && address <= symbol_table[symbols - 1].address);
 }
 
 uintptr_t symbol2address(char* name)
@@ -28,7 +29,8 @@ char* address2symbol(uintptr_t address)
     int i;
     for (i = 0;i < symbols;i++)
     {
-        if (address >= symbol_table[i].address && address < symbol_table[i + 1].address)
+        if (address >= symbol_table[i].address
+            && address < symbol_table[i + 1].address)
         {
             return symbol_table[i].name;
         }

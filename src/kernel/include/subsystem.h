@@ -1,9 +1,9 @@
 #ifndef __SUBSYSTEM_H__
 #define __SUBSYSTEM_H__
 
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <syscall.h>
-#include <thread.h>
+#include <thread/thread.h>
 
 #define SUBSYS_CNT 2
 

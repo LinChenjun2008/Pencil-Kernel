@@ -1,9 +1,10 @@
 #ifndef __FPU_H__
 #define __FPU_H__
 
-#include <global.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stdint.h>
 
+#pragma pack(1)
 typedef struct
 {
     uint16_t control_word;
@@ -24,9 +25,10 @@ typedef struct
     uint16_t reserved4;
 
     uint8_t regs[80];
-} __attribute__((packed)) fpu_t;
+} fpu_t;
+#pragma pack()
 
-PUBLIC BOOL fpu_check();
+PUBLIC bool fpu_check();
 PUBLIC void fpu_init();
 PUBLIC void fpu_set(void* cur_thread,void* next);
 #endif

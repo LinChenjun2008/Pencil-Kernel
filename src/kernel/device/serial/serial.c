@@ -1,6 +1,6 @@
-#include <serial.h>
+#include <device/serial.h>
 #include <io.h>
-#include <stdint.h>
+#include <std/stdint.h>
 #include <debug.h>
 
 PUBLIC void init_serial(uint16_t port)

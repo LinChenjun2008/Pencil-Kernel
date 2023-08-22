@@ -11,7 +11,7 @@ SECTIONS
     _text = .;
     .text :
     {
-        kernel_main = .;
+        kernel_entry = .;
         *(.text)
     }
     _etext = .;

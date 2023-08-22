@@ -320,7 +320,7 @@
 
    // #define your own functions "STBTT_malloc" / "STBTT_free" to avoid malloc.h
    #ifndef STBTT_malloc
-   #include <stdlib.h>
+   #include <std/stdlib.h>
    #define STBTT_malloc(x,u)  ((void)(u),malloc(x))
    #define STBTT_free(x,u)    ((void)(u),free(x))
    #endif
@@ -331,12 +331,12 @@
    #endif
 
    #ifndef STBTT_strlen
-   #include <string.h>
+   #include <std/string.h>
    #define STBTT_strlen(x)    strlen(x)
    #endif
 
    #ifndef STBTT_memcpy
-   #include <string.h>
+   #include <std/string.h>
    #define STBTT_memcpy       memcpy
    #define STBTT_memset       memset
    #endif

@@ -1,8 +1,8 @@
 #ifndef __KEYBOARD_H__
 #define __KEYBOARD_H__
 
-#include <global.h>
-#include <stdint.h>
+#include <kernel/global.h>
+#include <std/stdint.h>
 
 #define KEYBOARD_BUF_PORT 0x60
 #define KEYBOARD_WRITE_MD 0x60

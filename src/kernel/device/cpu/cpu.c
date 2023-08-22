@@ -1,4 +1,4 @@
-#include <cpu.h>
+#include <device/cpu.h>
 
 PUBLIC void cpu_factory_name(void* factory_name)
 {

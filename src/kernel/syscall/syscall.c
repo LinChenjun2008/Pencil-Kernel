@@ -1,8 +1,8 @@
 #include <syscall.h>
-#include <interrupt.h>
-#include <serial.h>
-#include <stdio.h>
-#include <string.h>
+#include <interrupt/interrupt.h>
+#include <device/serial.h>
+#include <std/stdio.h>
+#include <std/string.h>
 #include <subsystem.h>
 
 PUBLIC syscall_status_t send_recv(syscall_function_t function,pid_t src_dst,message_t* msg)
@@ -17,7 +17,7 @@ PUBLIC syscall_status_t send_recv(syscall_function_t function,pid_t src_dst,mess
     return res;
 }
 
-PRIVATE BOOL deadlock(pid_t src,pid_t dst)
+PRIVATE bool deadlock(pid_t src,pid_t dst)
 {
     if (src == dst)
     {
@@ -64,14 +64,15 @@ PRIVATE uint32_t msg_send(pid_t dst,message_t* msg)
     if (deadlock(sender->pid,dst))
     {
         char str[128];
-        sprintf(str,"%s:Error: '%s'(src) -> '%s'(dst) dead lock\n",__func__,sender->name,pid2thread(dst)->name);
+        sprintf(str,"%s:Error: '%s'(src) -> '%s'(dst) dead lock\n",__func__,
+                sender->name,pid2thread(dst)->name);
         pr_log(COM1_PORT,str);
         return SYSCALL_DEADLOCK;
     }
     /* 消息复制到当前进程pcb */
-    memcpy(&(sender->msg),msg,sizeof(message_t));
+    memcpy(&sender->msg,msg,sizeof(message_t));
     /* 加入队列 */
-    list_append(&(pdst->sender_list),&(sender->general_tag));
+    list_append(&pdst->sender_list,&sender->general_tag);
     /* 对方正准备接收消息 */
     if (pdst->status == TASK_RECEIVING)
     {
@@ -103,12 +104,12 @@ PRIVATE int msg_recv(pid_t src,message_t* msg)
     if (src == ANY)
     {
         /* 没有进程发消息,阻塞 */
-        if (list_empty(&(receiver->sender_list)))
+        if (list_empty(&receiver->sender_list))
         {
             thread_block(TASK_RECEIVING);
         }
         /* 被唤醒说明一定有进程发消息*/
-        psrc = list_pop(&(receiver->sender_list))->container;
+        psrc = list_pop(&receiver->sender_list)->container;
     }
     /* 从特定进程接收 */
     else
@@ -131,14 +132,18 @@ PRIVATE int msg_recv(pid_t src,message_t* msg)
         receiver->recv_from = NO_TASK;
         return SYSCALL_NO_SRC;
     }
-    memcpy(msg,&(psrc->msg),sizeof(message_t));
+    memcpy(msg,&psrc->msg,sizeof(message_t));
     psrc->send_to = NO_TASK;
-    thread_unblock(psrc);
+    if (psrc->status == TASK_SENDING)
+    {
+        thread_unblock(psrc);
+    }
     receiver->recv_from = NO_TASK;
     return SYSCALL_SUCCESS;
 }
 
-PRIVATE void ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),intr_stack_t* stack)
+PRIVATE void ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),
+                                 intr_stack_t* stack)
 {
     syscall_function_t function;
     pid_t src_dst;
@@ -174,7 +179,8 @@ PRIVATE void ASMCALL sys_sendrec(wordsize_t nr __attribute__((unused)),intr_stac
     if (IS_SYSCALL_ERROR(res))
     {
         char s[64];
-        sprintf(s,"%s:%x syscall error(%x)\n",running_thread()->name,function,res);
+        sprintf(s,"%s:%x syscall error(%x)\n",running_thread()->name,
+                function,res);
         pr_log(COM1_PORT,s);
     }
     stack->rax = res;

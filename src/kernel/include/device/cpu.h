@@ -1,7 +1,7 @@
 #ifndef __CPU_H__
 #define __CPU_H__
 
-#include <global.h>
+#include <kernel/global.h>
 
 static __inline__ wordsize_t rdmsr(wordsize_t address)
 {
@@ -13,11 +13,13 @@ static __inline__ wordsize_t rdmsr(wordsize_t address)
 
 static __inline__ void wrmsr(wordsize_t address,uint64_t value)
 {
-    __asm__ __volatile__ ("wrmsr"::"d"(value >> 32),"a"(value & 0xffffffff),"c"(address):"memory");
+    __asm__ __volatile__ ("wrmsr":
+                :"d"(value >> 32),"a"(value & 0xffffffff),"c"(address):"memory");
     return;
 }
 
-static __inline__ void cpuid(uint32_t mop,uint32_t sop,uint32_t* a,uint32_t* b,uint32_t* c,uint32_t* d)
+static __inline__ void cpuid(uint32_t mop,uint32_t sop,uint32_t* a,uint32_t* b,
+                             uint32_t* c,uint32_t* d)
 {
     __asm__ __volatile__
     (

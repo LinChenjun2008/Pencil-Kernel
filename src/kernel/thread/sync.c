@@ -1,6 +1,6 @@
-#include <sync.h>
+#include <thread/sync.h>
 #include <debug.h>
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 
 /**
  * @brief 初始化信号量

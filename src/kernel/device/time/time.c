@@ -1,5 +1,5 @@
 #include <time.h>
-#include <interrupt.h>
+#include <interrupt/interrupt.h>
 #include <io.h>
 
 #define CMOS_READ(ADDR) ({ \
